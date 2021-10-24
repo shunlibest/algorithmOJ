@@ -15,5 +15,6 @@ public class Code229_求众数 {
 
     public List<Integer> majorityElement(int[] nums) {
 
+        return null;
     }
 }

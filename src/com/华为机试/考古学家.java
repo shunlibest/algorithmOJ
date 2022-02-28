@@ -1,53 +1,69 @@
 package com.华为机试;
 
+import com.链表.ListNode;
+
 import java.util.Scanner;
 import java.util.TreeSet;
 
 public class 考古学家 {
-    static TreeSet<String> treeSet = new TreeSet<>();
-    
+
     public static void main(String[] args) {
+        ListNode node1 = new ListNode(1);
+        ListNode node2 = new ListNode(2);
+        ListNode node3 = new ListNode(3);
 
-        Scanner in = new Scanner(System.in);
-        int size = in.nextInt();
-        String[] stringArray = new String[size];
+        ListNode node4 = new ListNode(4);
+        ListNode node5 = new ListNode(5);
 
-        for (int i = 0; i < size; i++) {
-            stringArray[i] = in.next();
-        }
 
-        array(stringArray, 0);
-//        System.out.println("----");
+        node1.next = node2;
+        node2.next = node3;
+//        node1.next = node2;
+        node4.next = node5;
 
-        for (Object v: treeSet.toArray()) {
-            String value = (String)v;
-            System.out.println(value);
-        }
+        mergeTwoLists(node1,node4);
 
     }
 
-    private static void array(String[] inputString, int k) {
+    public static ListNode mergeTwoLists (ListNode l1, ListNode l2) {
+        ListNode headNode;
 
-        if (k >= inputString.length) {
-//            System.out.println(Arrays.toString(inputString));
-             StringBuilder sb = new StringBuilder();
-            for (String str : inputString) {
-                sb.append(str);
+        ListNode currentL1 = l1;
+        ListNode currentL2 = l2;
+        ListNode mergeListNode;
+
+        if(l1.val < l2.val){
+            mergeListNode = l1;
+            headNode= l1;
+            currentL1 = currentL1.next;
+        }else{
+            mergeListNode = l2;
+            headNode= l2;
+            currentL2 = currentL2.next;
+        }
+
+
+        while(true){
+            if(currentL1 !=null && currentL2 !=null){
+                if(currentL1.val < currentL2.val){
+                    mergeListNode.next = currentL1;
+                    currentL1 = currentL1.next;
+                }else{
+                    mergeListNode.next = currentL2;
+                    currentL2 = currentL2.next;
+                }
+            }else if(currentL1 ==null && currentL2 !=null){
+                mergeListNode.next = currentL2;
+                currentL2 = currentL2.next;
+            }else if(currentL1 !=null && currentL2 ==null){
+                mergeListNode.next = currentL1;
+                currentL1 = currentL1.next;
+            }else{
+                break;
             }
-            treeSet.add(sb.toString());
-            return;
         }
+        return headNode;
 
-        for (int i = k; i < inputString.length; i++) {
-            swap(inputString, i, k);
-            array(inputString, ++k);
-            swap(inputString, i, --k);
-        }
     }
 
-    private static void swap(String[] inputString, int i, int k) {
-        final String temp = inputString[i];
-        inputString[i] = inputString[k];
-        inputString[k] = temp;
-    }
 }

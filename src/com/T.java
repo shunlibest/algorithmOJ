@@ -13,8 +13,12 @@ public class T {
 
     public static void main(String[] args) {
         String attributeValue = "11#1231#88#11#";
-        List<String> strList = findStrList(attributeValue);
-
+        ArrayList<String> strList = new ArrayList<>();
+        int index = 100;
+        while (strList.size() < index) {
+            strList.add(null);
+        }
+        strList.set(index - 1, "111");
         for (String s : strList) {
             System.out.println(s);
         }

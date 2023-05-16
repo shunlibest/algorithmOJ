@@ -39,9 +39,12 @@ public class AESHelper {
     }
 
     public static void main(String[] args) throws Exception {
-        String decrypt = AESHelper.getInstance().decryptAndDecompress("b343031a6c25f74a3219864d99a4e264a23c65888543b45b6d27e2bf05016875e0796733628866bc5c29b9020bcc9e14276210fbd71f8184fdbbb2a3cf5728c311d7515e11218f544934cc55da440299d83a837522a7297226672d0cc75d50272dd89ae808cc3da95d7b1b33e17cfc5ffc74819e54770fd6a855c875fcdc11774191cdd7dee08cad58801381e937dee5c51980baa40f45cb616e34866879d9a136c52e19bb10c80befb735f250e107f579a2f4b6b493678008644ad7ea2f3efb1833c7dba1ab108310253fd6d652c0dac196fa49947862b4c83ca4350f65157210d99b7c3f31ae2bb7808ec1a474732d295c09cdd9a42f367dde1da9869221a53387ac6c3e81f4976b8b24f8b711a831ea6c76b03db7ef0980fe0603213c639094104951b84920c48684574611c2becae630f4b8eeafe33df30f8f007069bbab76edab0b1372b7207e97688bb897afb96a1800cda63adadeeb523113328fea30");
-//        byte[] encrypt = AESHelper.getInstance().encrypt("hello".getBytes());
+        String decrypt = AESHelper.getInstance().decryptAndDecompress("1d278cad089637edef23f70ce76d71e552b2b399e36280ae6b31880f413eecc5abd551a5436bec099f4d4a0e8a507e7460733fe3dd6d2f49aed969ab6ac4ac6da9cd005cff7ddd38aff58308c4e2440f2eb9e1b3a85307211b0cdc20339a3a7822dbce935bd624926cc724b42a1b0274a6828a0cc013aaf82db332e73d1aaecc022ae1d7531a21af5b7d59007d05a81b43cac4b9a5851d00cb0a20bd5179c3d9455970e70ce45d7a094d098c1705b0f026492b0de6d1f51ca560302455c4d005aa7af2f472fd9acc8419d57ac6c94ee90a1bcfc918731763b050108cda63666fd50aa9c07e163b87914a82f334ea557047f8aee846edf4df31d0467667c4de9922ef7bded3580c19fbc4007664ddc31a40e4d027e931c19b8cb3e77d84e013a3da2baf1a2b6a78a4410a2d92c12b95d47f4329be37e2880050b0702c214cc237dc8928b82b0f66ca329d9d141665d80232be06f7bbff03e2b8f427a8a15f0e191dc7ddab6e67bdb098c73f6cc5a185d14b8b9f61bc20e2d61f884ac56c6c77e7a754b78be04ed4064836159166204d0fd806afe8bea2d5602964322a746c5b24a59717f32f301bc47c7fc9c062d635c6");
+//        String encrypt = AESHelper.getInstance().compressAndEncrypt("{\"data\":{\"configDetail\":\"http://poi-collection.oss-cn-hangzhou.aliyuncs.com/taskform/daily/verify_poi_shop/20221222.xml?Expires=1983857904&OSSAccessKeyId=LTAI5tE5n5yE1Tf6zc8vvSip&Signature=Z6dhLDwOIfbzSoI7wP6rwIwzNPs%3D\",\"priceDetail\":{\"guid_map\":100,\"guid_map2\":100},\"configData\":{\"price\":{\"a\":\"100\",\"b\":\"200\"},\"position\":{\"pa\":\"家里\",\"pb\":\" 公司\"}},\"version\":\"20221222\"},\"errinfo\":\"\",\"errno\":0}\n");
+//        String encrypt1 = AESHelper.getInstance().decryptAndDecompress(encrypt);
         System.out.println(decrypt);
+//        System.out.println(encrypt);
+//        System.out.println(encrypt1);
     }
 
     private static synchronized void syncInit() {

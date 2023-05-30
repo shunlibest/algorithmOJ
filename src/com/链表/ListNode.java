@@ -26,4 +26,15 @@ public class ListNode {
         }
     }
 
+    public static ListNode createNode(int... values) {
+        ListNode head = new ListNode(values[0]);
+        ListNode currentNode = head;
+        for (int i = 1; i < values.length; i++) {
+            currentNode.next = new ListNode(values[i]);
+            currentNode = currentNode.next;
+        }
+        return head;
+    }
+
+
 }

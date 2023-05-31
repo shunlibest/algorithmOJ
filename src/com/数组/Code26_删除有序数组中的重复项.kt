@@ -1,32 +1,26 @@
-package com.数组;
+package com.数组
 
-import java.util.Arrays;
+import java.util.*
 
-public class Code26_删除有序数组中的重复项 {
+fun main(args: Array<String>) {
+    val k = intArrayOf(1, 1, 2)
+    val i = removeDuplicates(k)
+    println(i)
+    println(Arrays.toString(k))
+}
 
-
-    public static void main(String[] args) {
-        int[] k = new int[]{1, 1, 2};
-
-        int i = removeDuplicates(k);
-        System.out.println(i);
-        System.out.println(Arrays.toString(k));
-
-    }
-
-
-    public static int removeDuplicates(int[] nums) {
-        int slow = 0, fast = 0;
-        while (fast < nums.length) {
-            while (nums[fast] == nums[slow]) {
-                fast++;
-                if (fast >= nums.length) {
-                    return ++slow;
-                }
+fun removeDuplicates(nums: IntArray): Int {
+    var slow = 0
+    var fast = 0
+    while (fast < nums.size) {
+        while (nums[fast] == nums[slow]) {
+            fast++
+            if (fast >= nums.size) {
+                return ++slow
             }
-            slow++;
-            nums[slow] = nums[fast];
         }
-        return slow;
+        slow++
+        nums[slow] = nums[fast]
     }
+    return slow
 }

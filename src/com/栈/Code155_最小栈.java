@@ -29,7 +29,7 @@ public class Code155_最小栈 {
         }
 
         public int getMin() {
-
+            return 0;
         }
     }
 }

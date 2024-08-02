@@ -1,0 +1,43 @@
+# 思路
+
+    对于正数，直接乘就行，而对于负数，需要挑出偶数个最小的
+    对于0跳过
+
+需要特判几个地方，在代码里体现了。
+
+# Code
+
+* []
+
+```C++
+long long maxStrength(vector<int>& nums) {
+    //只有一个元素，直接返回就可以了
+    if(nums.size() == 1) return nums[0];
+    //记录负数
+    vector<int> negative;
+    long long res = 1;
+    //记录是否存在正数
+    bool positive = false;
+    for (int num : nums) {
+        if (num > 0){
+            res *= num;
+            positive = true;
+        }else if (num < 0){
+            negative.push_back(num);
+        }
+    }
+    sort(negative.begin(), negative.end());
+    //如果是奇数个，那么去掉最后一个
+    if (negative.size() % 2 == 1)
+        negative.resize(negative.size() - 1);
+    //如果正负数都没有，那么就是0
+    if(negative.empty() && !positive){
+        return 0;
+    }
+    for (int i : negative) {
+        res *= i;
+    }
+    return res;
+}
+```
+

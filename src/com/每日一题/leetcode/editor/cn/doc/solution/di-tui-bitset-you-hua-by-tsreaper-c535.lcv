@@ -1,0 +1,54 @@
+## 解法：递推 + bitset 优化
+
+因为只有 `x < rewardValues[i]` 时才能标记下标 `i`，且标记之后还会执行 `x += rewardValues[i]`。由于每个奖励都是正数，因此 `x` 的值增加之后肯定大于等于奖励值了。也就是说，每个奖励只能拿一次。
+
+而且，一定存在一种最优方式，奖励是从小到大拿的。我们贪心地思考一下，在要拿的奖励集合固定的情况下，如果先拿了一个大的奖励，可能会导致 `x` 的值超过小奖励，这样小奖励就拿不到了。
+
+有了以上两个性质，可以想到先将输入排序以及去重，然后用 $f(i, j)$ 表示考虑完第 $i$ 个奖励，当前总分是否可能为 $j$。
+
+$j$ 的上限是多少呢？设所有奖励的最大值是 $m$，如果当前总分大于等于 $m$，显然就不能再拿任何奖励了；如果当前总分小于 $m$，那么拿走 $m$ 可以把总分变成 $(2m - 1)$。因此 $j$ 的上限就是 $(2m - 1)$。
+
+递推方程如下
+
+$$
+\begin{cases}
+f(i, j + r_i) \leftarrow f(i - 1, j) & \text{if } j < r_i \\
+f(i, j) \leftarrow f(i - 1, j) & \text{otherwise}
+\end{cases}
+$$
+
+初值 $f(0, 0) = \text{true}$，答案就是让 $f(n, j) = \text{true}$ 的最大的 $j$。直接计算该递推方程的复杂度是 $\mathcal{O}(nk)$。
+
+对于取值类型为 `bool` 的，且 $f(i, *)$ 的值完全由 $f(i - 1, *)$ 转移而来的二维递推方程，一种常见的优化就是 [bitset 优化](https://oi-wiki.org/lang/csl/bitset/)。将多个连续的 `bool` 值转成一个 `int` 或者 `long long`，用整数位运算的方式同时计算多个位置的取值。优化后的复杂度为 $\mathcal{O}(\frac{nk}{w})$，其中 $w = 32$ 或 $w = 64$，取决于使用的编译器。具体写法详见参考代码。
+
+## 参考代码（c++）
+
+* c++
+
+```c++
+class Solution {
+public:
+    int maxTotalReward(vector<int>& rewardValues) {
+        // 对输入排序并去重
+        sort(rewardValues.begin(), rewardValues.end());
+        int n = unique(rewardValues.begin(), rewardValues.end()) - rewardValues.begin();
+        rewardValues.resize(n);
+        
+        bitset<100000> f, g;
+        f[0] = 1;
+        for (int i = 0, j = 0; i < n; i++) {
+            // 把所有满足 j < rewardValues[i] 的 f(j) 记在 g 里
+            // 由于 rewardValues 排过序了，所以这里通过一个单调指针 j 复用了之前的结果
+            while (j < rewardValues[i]) g[j] = f[j], j++;
+            // 注意体会为什么可以用位运算表示递推方程
+            // 提示：这里相当于把递推方程的第一维空间优化掉了
+            f |= g << rewardValues[i];
+        }
+
+        // 求答案
+        for (int i = rewardValues.back() * 2 - 1; i >= 0; i--) if (f[i]) return i;
+        return -1;
+    }
+};
+```
+

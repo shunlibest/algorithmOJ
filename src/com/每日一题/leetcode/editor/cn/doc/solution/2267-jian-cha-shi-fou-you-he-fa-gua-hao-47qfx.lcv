@@ -1,0 +1,116 @@
+# 解法
+
+## 思路和算法
+
+矩阵 $\textit{grid}$ 的大小是 $m \times n$。根据合法括号路径的规则，合法括号路径的长度是 $m + n - 1$。由于合法括号路径的长度必须是偶数且必须以左括号开始并以右括号结束，因此只有当 $m + n$ 是奇数、$\textit{grid}[0][0]$ 是左括号且 $\textit{grid}[m - 1][n - 1]$ 是右括号时才存在合法括号路径。如果上述条件不成立，则返回 $\text{false}$。以下只考虑上述条件成立的情况。
+
+定义一条括号路径的值为路径上的所有字符对应值之和，左括号对应值为 $1$，右括号对应值为 $-1$。一条括号路径为合法括号路径等价于括号路径的值为 $0$ 且任意前缀的值都非负。为了判断是否存在合法括号路径，对于所有 $0 \le i < m$、$0 \le j < n$ 和 $0 \le k < m + n$，需要计算是否存在从 $(0, 0)$ 到 $(i, j)$ 的值为 $k$ 的括号路径。
+
+由于每次只能向下或向右移动，因此对于矩阵中的每个位置，到达该位置的括号路径是否存在需要通过相邻位置的括号路径是否存在计算得到。可以使用动态规划计算括号路径是否存在。
+
+动态规划的状态定义应包含行下标、列下标与路径值。创建 $m \times n \times (m + n)$ 的三维数组 $\textit{dp}$，其中 $\textit{dp}[i][j][k]$ 表示从 $(0, 0)$ 到达 $(i, j)$ 的值为 $k$ 的括号路径是否存在。
+
+当 $i = 0$ 或 $j = 0$ 时，从 $(0, 0)$ 到达 $(i, j)$ 的括号路径是唯一的，只有当括号路径的每个前缀的值都非负时括号路径才存在。将路径值记为 $v$，动态规划的边界情况是：当 $i = 0$ 或 $j = 0$ 时，如果 $k = v$ 且括号路径的每个前缀的值都非负，则 $\textit{dp}[i][j][k] = \text{true}$，否则 $\textit{dp}[i][j][k] = \text{false}$。
+
+当 $i > 0$ 且 $j > 0$ 时，可以从 $(i - 1, j)$ 向下移动到达 $(i, j)$ 或从 $(i, j - 1)$ 向右移动到达 $(i, j)$。用 $\textit{diff}$ 表示 $\textit{grid}[i][j]$ 对应的值，$\textit{diff}$ 等于 $1$ 或 $-1$。计算 $\textit{dp}[i][j][k]$ 时，如果 $0 \le k - \textit{diff} < m + n$ 且满足 $\textit{dp}[i - 1][j][k - \textit{diff}]$ 和 $\textit{dp}[i][j - 1][k - \textit{diff}]$ 中至少有一个值为 $\text{true}$，则 $\textit{dp}[i][j][k] = \text{true}$，否则 $\textit{dp}[i][j][k] = \text{false}$。因此动态规划的状态转移方程是：$\textit{dp}[i][j][k] = 0 \le k - \textit{diff} < m + n \wedge (\textit{dp}[i - 1][j][k - \textit{diff}] \vee \textit{dp}[i][j - 1][k - \textit{diff}])$。
+
+根据动态规划的状态转移方程，计算 $\textit{dp}[i][j][k]$ 的顺序应从小到大遍历每个 $i$，对于每个 $i$ 从小到大遍历每个 $j$。计算得到 $\textit{dp}[m - 1][n - 1][0]$ 即为答案。
+
+## 代码
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    public boolean hasValidPath(char[][] grid) {
+        int m = grid.length, n = grid[0].length;
+        if ((m + n) % 2 == 0 || grid[0][0] == ')' || grid[m - 1][n - 1] == '(') {
+            return false;
+        }
+        boolean[][][] dp = new boolean[m][n][m + n];
+        dp[0][0][1] = true;
+        int topValue = 1;
+        for (int j = 1; j < n && topValue >= 0; j++) {
+            int diff = grid[0][j] == '(' ? 1 : -1;
+            topValue += diff;
+            if (topValue >= 0) {
+                dp[0][j][topValue] = true;
+            }
+        }
+        int leftValue = 1;
+        for (int i = 1; i < m && leftValue >= 0; i++) {
+            int diff = grid[i][0] == '(' ? 1 : -1;
+            leftValue += diff;
+            if (leftValue >= 0) {
+                dp[i][0][leftValue] = true;
+            }
+        }
+        for (int i = 1; i < m; i++) {
+            for (int j = 1; j < n; j++) {
+                int diff = grid[i][j] == '(' ? 1 : -1;
+                for (int k = 0; k < m + n; k++) {
+                    if (k - diff >= 0 && k - diff < m + n && (dp[i - 1][j][k - diff] || dp[i][j - 1][k - diff])) {
+                        dp[i][j][k] = true;
+                    }
+                }
+            }
+        }
+        return dp[m - 1][n - 1][0];
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    public bool HasValidPath(char[][] grid) {
+        int m = grid.Length, n = grid[0].Length;
+        if ((m + n) % 2 == 0 || grid[0][0] == ')' || grid[m - 1][n - 1] == '(') {
+            return false;
+        }
+        bool[][][] dp = new bool[m][][];
+        for (int i = 0; i < m; i++) {
+            dp[i] = new bool[n][];
+            for (int j = 0; j < n; j++) {
+                dp[i][j] = new bool[m + n];
+            }
+        }
+        dp[0][0][1] = true;
+        int topValue = 1;
+        for (int j = 1; j < n && topValue >= 0; j++) {
+            int diff = grid[0][j] == '(' ? 1 : -1;
+            topValue += diff;
+            if (topValue >= 0) {
+                dp[0][j][topValue] = true;
+            }
+        }
+        int leftValue = 1;
+        for (int i = 1; i < m && leftValue >= 0; i++) {
+            int diff = grid[i][0] == '(' ? 1 : -1;
+            leftValue += diff;
+            if (leftValue >= 0) {
+                dp[i][0][leftValue] = true;
+            }
+        }
+        for (int i = 1; i < m; i++) {
+            for (int j = 1; j < n; j++) {
+                int diff = grid[i][j] == '(' ? 1 : -1;
+                for (int k = 0; k < m + n; k++) {
+                    if (k - diff >= 0 && k - diff < m + n && (dp[i - 1][j][k - diff] || dp[i][j - 1][k - diff])) {
+                        dp[i][j][k] = true;
+                    }
+                }
+            }
+        }
+        return dp[m - 1][n - 1][0];
+    }
+}
+```
+
+## 复杂度分析
+
+- 时间复杂度：$O(mn(m + n))$，其中 $m$ 和 $n$ 分别是网格 $\textit{grid}$ 的行数和列数。动态规划的状态数是 $O(mn(m + n))$，每个状态的计算时间是 $O(1)$，因此时间复杂度是 $O(mn(m + n))$。
+
+- 空间复杂度：$O(mn(m + n))$，其中 $m$ 和 $n$ 分别是网格 $\textit{grid}$ 的行数和列数。需要创建大小为 $m \times n \times (m + n)$ 的三维数组。
+

@@ -1,0 +1,46 @@
+### 解题思路
+
+DP状态: f[i][j] 表示 转移到 (i, j) 点，能走到的最多的格子数。
+相当于以 (i, j) 为起点的状态定义的拓展。
+
+正常DP方法：枚举每个格子，按照行列转移。时间复杂度O(m * n * (m + n))。三次方的复杂度，会超时。
+
+考虑优化DP的方向：因为有 **严格大于** 的条件限制，所以不必关心每个点(i, j)具体由哪些位置转移过来，只需要关心横纵能转移过来的最大值，然后 +1 即可。
+这就需要对遍历的顺序进行更改，需要按照值从小到大的顺序进行遍历，同时维护每一行当前最大值和每一列当前最大值。将mat矩阵变型为 key 为 mat值，value为取对应mat值的点的坐标的集合。然后能够按照key进行排序，因此考虑TreeMap结构。
+
+### 代码
+
+* java
+
+```java
+class Solution {
+    public int maxIncreasingCells(int[][] mat) {
+        var g = new TreeMap<Integer, List<int[]>>();
+        int m = mat.length, n = mat[0].length;
+        for(int i = 0; i < m; i++){
+            for(int j = 0; j < n; j++){
+                // 给定 Key，如果存在返回value，否则返回第二个参数function的结果。
+                g.computeIfAbsent(mat[i][j], k -> new ArrayList<>()).add(new int[]{i, j});
+            }
+        }
+
+        int ans = 0;
+        int[] rowMax = new int[m], colMax = new int[n];
+        for(var pos : g.values()){
+            var mx = new int[pos.size()];
+            for(int i = 0; i < pos.size(); i++){
+                mx[i] = Math.max(rowMax[pos.get(i)[0]], colMax[pos.get(i)[1]]) + 1;
+                ans = Math.max(ans, mx[i]);
+            }
+            for(int k = 0; k < pos.size(); k++){
+                int i = pos.get(k)[0], j = pos.get(k)[1];
+                rowMax[i] = Math.max(rowMax[i], mx[k]);
+                colMax[j] = Math.max(colMax[j], mx[k]);
+            }
+        }
+        
+        return ans;
+    }
+}
+```
+

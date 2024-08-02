@@ -1,0 +1,27 @@
+极易理解的暴力解。一个上升标记，一个下降标记，判断当前是哪个，到了就把它置1，同时修改另一个。等待下个标志的到来。
+
+* 
+
+```
+class Solution {
+    public int wiggleMaxLength(int[] nums) {
+        if(nums.length==0) return 0;
+        int count=1,up=0,down=0;
+        for(int i=1;i<nums.length;i++){
+            int sub=nums[i]-nums[i-1];
+            if(sub>0&&up==0) {
+                count++;
+                up=1;
+                down=0;
+            }
+            if(sub<0&&down==0) {
+                count++;
+                down=1;
+                up=0;
+            }
+        }
+        return count;
+    }
+}
+```
+

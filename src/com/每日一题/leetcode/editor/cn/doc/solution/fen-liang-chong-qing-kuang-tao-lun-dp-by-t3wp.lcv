@@ -1,0 +1,23 @@
+> Problem: [1191. K 次串联后最大子数组之和](https://leetcode.cn/problems/k-concatenation-maximum-sum/description/)
+
+# Code
+
+* []
+
+```Python
+class Solution:
+    def kConcatenationMaxSum(self, arr: List[int], k: int) -> int:
+        n = len(arr)
+        ans = f = 0
+        if k == 1:
+            for i in range(n):
+                f = max(0, f) + arr[i]
+                ans = max(ans, f)
+            return ans
+        cur = arr * 2
+        for i in range(n * 2):
+            f = max(0, f) + cur[i]
+            ans = max(ans, f)
+        return max(ans, sum(arr) * (k - 2) + ans) % (10**9 + 7)
+```
+

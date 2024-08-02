@@ -1,0 +1,153 @@
+> Problem: [329. 矩阵中的最长递增路径](https://leetcode.cn/problems/longest-increasing-path-in-a-matrix/description/)
+
+[TOC]
+
+# 解题方法
+
+## 记忆化搜索
+
+从每一个节点出发，对所有方向上更大的邻居节点进行递归搜索，直到无法找到更大的节点，回溯时取所有方向获得的最长路径的最大值作为当前节点的最长路径即可。
+显然存在重复递归，通过缓存实现记忆化搜索。
+
+### 复杂度
+
+时间复杂度：每个节点只会被遍历1次，O(n)，n为矩阵大小;
+空间复杂度：缓存的空间大小为O(n);
+
+### Code
+
+* Java
+
+```Java
+class Solution {
+    int[][] dirs;
+    int[] cache;
+    public int longestIncreasingPath(int[][] matrix) {
+        int m = matrix.length, n = matrix[0].length;
+        dirs = new int[][]{{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+        cache = new int[m * 201];
+        int ans = 0;
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                ans = Math.max(ans, dfs(i, j, -1, matrix));
+            }
+        }
+        return ans;
+    }
+
+    private int dfs(int i, int j, int parent, int[][] matrix) {
+        if (i < 0 || i >= matrix.length || j < 0 || j >= matrix[0].length || matrix[i][j] <= parent) {
+            return 0;
+        }
+        int key = i * 201 + j;
+        if (cache[key] != 0) {
+            return cache[key];
+        }
+        int max = 0;
+        for (int[] dir : dirs) {
+            max = Math.max(max, dfs(i + dir[0], j + dir[1], matrix[i][j], matrix));
+        }
+        cache[key] = max + 1;
+        return cache[key];
+    }
+}
+```
+
+## 拓扑排序
+
+如果我们想通过广度优先搜索的思路，寻找最大的扩散层次作为最长路径，我们需要解决两个问题：
+**问题1**: 初始节点集合，即哪些节点可以作为路径的初始节点；
+**问题2**: 每扩散遍历一层后，新被遍历的这些节点中，哪些可以作为下一层遍历的出发节点；
+至于广度扩散的依据，显然是往当前节点的相邻且中值更大的节点扩散。
+
+**如何思考这两个核心问题**
+广度优先遍历的基本思路是，遍历到一个节点时，以这个节点为终点的最长路径就是当前广度扩散的层次。如何保证这一点：遍历到当前节点时，该节点的相邻且值更小的节点都被遍历了。
+
+带着这个规则，我们可以使用拓扑排序进行建模。
+
+**如何建模这两个核心问题**
+如果我们对整个矩阵构造一个图，具体地：
+1. 矩阵的每个坐标构成一个节点；
+2. 在矩阵中相邻的两个节点之间，值小的节点到值大的节点之间构造一条有向边；
+
+这样，对于上述的两个问题，我们转换为：
+**问题1的答案**：图中入度为0的节点；
+**问题2的答案**: 每层遍历后，将新遍历的节点入度减1，此时若入度减为0，则作为下一层遍历的出发节点；
+
+### 复杂度
+
+时间复杂度：广度遍历的时间复杂度为O(n), n为节点总个数;
+空间复杂度: O(n);
+
+### Code
+
+* []
+
+```Java
+class Solution {
+    public int longestIncreasingPath(int[][] matrix) {
+        int m = matrix.length, n = matrix[0].length, total = m * n;
+        // node = i * n + j
+        List<Integer>[] graph = new ArrayList[total];
+        int[] degs = new int[total];
+        initGraph(matrix, graph, degs);
+        Queue<Integer> q = new ArrayDeque<> ();
+        for (int i = 0; i < m * n; ++i) {
+            if (degs[i] == 0) {
+                q.offer(i);
+            }
+        }
+        int step = 0;
+        while (!q.isEmpty()) {
+            int size = q.size();
+            step += 1;
+            for (int i = 0; i < size; ++i) {
+                int now = q.poll();
+                List<Integer> nodes = graph[now];
+                for (Integer node : nodes) {
+                    degs[node] -= 1;
+                    if (degs[node] == 0) {
+                        q.offer(node);
+                    }
+                }
+            }
+        }
+        return step;
+        
+    }
+
+    // 初始化图
+    private void initGraph (int[][] matrix, List<Integer>[] graph, int[] degs) {
+        int m = matrix.length, n = matrix[0].length, total = m * n;
+        for (int i = 0; i < total; ++i) {
+            graph[i] = new ArrayList<> ();
+        }
+        int[][] dirs = new int[][] {{0, 1}, {0, -1}, {1, 0}, {-1, 0}};
+        for (int i = 0; i < m; ++i) {
+            for (int j = 0; j < n; ++j) {
+                for (int[] dir : dirs) {
+                    int newI = i + dir[0];
+                    int newJ = j + dir[1];
+                    // 当前节点的值小于下一节点的值，则构造一条有向边
+                    if (isValid(i, j, newI, newJ, matrix)) {
+                        graph[i * n + j].add(newI * n + newJ);
+                        // 下一节点入度加一
+                        degs[newI * n + newJ] ++;
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean isValid(int i, int j, int newI, int newJ, int[][] matrix) {
+        if (newI < 0 || newI >= matrix.length || newJ < 0 || newJ >= matrix[0].length) {
+            return false;
+        }
+        if (matrix[i][j] >= matrix[newI][newJ]) {
+            return false;
+        }
+        return true;
+    }
+}
+```
+

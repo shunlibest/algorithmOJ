@@ -1,0 +1,40 @@
+> Problem: [100316. 施咒的最大总伤害](https://leetcode.cn/problems/maximum-total-damage-with-spell-casting/description/)
+
+[TOC]
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public long maximumTotalDamage(int[] power){
+        Arrays.sort(power);
+        long[] dp=new long[power.length];
+        for (int i = 0; i < dp.length; i++) {
+            int right=i-1;
+            while (i<dp.length-1&&power[i]==power[i+1]){
+                i++;
+            }
+            if (i==dp.length-2&&power[i]==power[i+1]){
+                i=dp.length-1;
+            }
+            int left=right;
+            while(left>=0&&power[i]-power[left]<=2){
+                left--;
+            }
+            if (left<0&&right<0){
+                dp[i]=Math.max((long)(i-right)*power[i],0);
+            } else if (left < 0) {
+                dp[i]=Math.max((long)(i-right)*power[i],(long)dp[right]);
+            } else if (left >= 0) {
+                dp[i]=Math.max((long)(i-right)*power[i]+dp[left],(long)dp[right]);
+            }
+        }
+        return dp[dp.length-1];
+
+
+    }
+}
+```
+

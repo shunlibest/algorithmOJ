@@ -1,0 +1,115 @@
+> Problem: [416. 分割等和子集](https://leetcode.cn/problems/partition-equal-subset-sum/description/)
+
+[TOC]
+
+# 思路
+
+> 看了代码随想录的题解
+
+# 解题方法
+
+这题中的元素只能使用一次，所以原理就是01背包问题
+1.dp数组的含义
+dp[i][j]是指(0~i)的元素中，再总和为j时的最大总和
+2.确定递推公式：
+dp[i][j]的值可以分为两种情况，
+放入元素i：此时i的值小于j可以放入背包中，
+dp[i][j]=dp[i][j-nums[i]]+nums[i]
+不放入物品i:此时元素i的值大于j，放不进背包中
+dp[i][j]=dp[i-1][j]
+所以递推公式就是
+dp[i][j]=max(dp[i-1][j],dp[i][j-nums[i]]+nums[i])
+3.dp数组的初始化：
+dp[0][j]，即：i为0，存放编号0的元素的时候，各个容量的背包所能存放的最大总和。
+当 j < nums[0]的时候，dp[0][j] =0，因为背包容量比编号0的元素的值还小。
+当j >= nums[0]时，dp[0][j]=value[0]，因为背包容量放足够放编号0元素
+4.确定遍历顺序：
+有递推公式知道，dp是由左上角推导出来的，所以遍历顺序为左上角往右下角，所以先遍历物品或者容量都可以
+5.举例推导dp数组：代码随想录的例子为例
+省略
+
+# Code
+
+* []
+
+```C
+int getsum(int *nums,int numsSize){
+    int all=0;
+    for(int i=0;i<numsSize;i++){
+        all+=nums[i];
+    }
+    return all;
+}
+bool canPartition(int* nums, int numsSize) {
+    int sum=getsum(nums,numsSize);
+    if(sum%2)return false;
+    int target=sum/2;
+    int dp[numsSize][target+1];
+    memset(dp,0,sizeof(int)*numsSize*(target+1));
+    for(int j=nums[0];j<=target;j++){
+        dp[0][j]=nums[0];
+    }
+    for(int i=1;i<numsSize;i++){
+        for(int j=1;j<=target;j++){
+           if(j<nums[i]){
+            dp[i][j]=dp[i-1][j];
+           }
+           else{
+             dp[i][j]=fmax(dp[i-1][j],dp[i-1][j-nums[i]]+nums[i]);
+           }
+        }
+    }
+    return dp[numsSize-1][target]==target;
+}
+```
+
+# 复杂度
+
+时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n^2)$
+
+空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n^2)$
+
+# Code
+
+* []
+
+```C
+int getsum(int *nums,int numsSize){
+    int all=0;
+    for(int i=0;i<numsSize;i++){
+        all+=nums[i];
+    }
+    return all;
+}
+bool canPartition(int* nums, int numsSize) {
+    int sum=getsum(nums,numsSize);
+    if(sum%2)return false;
+    int target=sum/2;
+    int dp[target+1];
+    memset(dp,0,sizeof(int)*(target+1));
+    for(int j=nums[0];j<=target;j++){
+        dp[j]=nums[0];
+    }
+    for(int i=1;i<numsSize;i++){
+        for(int j=target;j>=nums[i];j--){
+             dp[j]=fmax(dp[j],dp[j-nums[i]]+nums[i]);
+           }
+        }
+    return dp[target]==target;
+}
+```
+
+# 复杂度
+
+时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n^2)$
+
+空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+

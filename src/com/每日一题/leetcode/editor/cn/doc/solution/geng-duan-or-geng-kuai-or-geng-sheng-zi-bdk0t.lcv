@@ -1,0 +1,95 @@
+> [522. 最长特殊序列 II](https://leetcode.cn/problems/longest-uncommon-subsequence-ii/description/)
+
+[TOC]
+
+# 思路
+
+唰就写完了，因为我看到题目单个字符长度最大是 $10$，全部可能的的子串可能性只有 $1024$ 种可能，而总数量只有 $50$，也就是说，本题，你随意搞，能做到超时比完成更厉害。
+
+那么由于昨天的经验 [521. 最长特殊序列 Ⅰ](https://leetcode.cn/problems/longest-uncommon-subsequence-i/solutions/2812425/nao-jin-ji-zhuan-wan-fen-lei-tao-lun-by-i9we5/) ，也就是说，如果一个字符串跟其他不一样，且又是相对最长的，必然就是它，这个思路唯一难点在于如何发现比它长的字符串不包含它，无非两个方法：
+
+1. 排序后，把比它长的都拿过来比对一下；
+
+2. 排序后，比它长的都分解出全部的子序并哈希，如果没碰撞到，就是独立的，如果碰撞了就跳过；
+
+当然，你甚至能不排序，但这是后话了，论思考过程，个人默认数据就是有序的，能否优化为无序另说。
+
+# 更短
+
+打得少字相对更快终结题目，没有比暴力求解更简单的了。
+
+时间复杂度: $O(2^l*n + nlogn)$
+
+* [Python3]
+
+```Python
+class Solution:
+    def findLUSlength(self, strs: List[str]) -> int:
+        cnt = Counter(strs)
+        book = set()
+        for ss in sorted(cnt.keys(), key=lambda it:-len(it)):
+            if ss in book: continue
+            if cnt[ss] == 1: return len(ss)
+            queue = set([""])
+            for ch in ss:
+                for cc in set(queue): queue.add(cc + ch)
+            book |= queue
+        return -1
+```
+
+# 更快
+
+上面确实很浪费内存，有点为了短而写，但如果用于验证，这非常好使，那一开始也说了，暴力可以有两个方向，另外一个方向就是不求子序串全分析，因为 $n$ 只有 $50$，每次都全部判断也不会有什么不妥，而且计算速度更快。当然[灵神](https://leetcode.cn/problems/longest-uncommon-subsequence-ii/solutions/2813217/mei-ju-pan-duan-zi-xu-lie-pythonjavaccgo-8256/?envType=daily-question&envId=2024-06-17)的方案更简洁一些
+
+* [Python3]
+
+```Python
+class Solution:
+    def findLUSlength(self, strs: List[str]) -> int:
+        cnt = Counter(strs)
+        queue = list(sorted(cnt.keys(), key=lambda it:-len(it)))
+        length = leftLimit = -1
+        for right, ss in enumerate(queue):
+            if cnt[ss] > 1: continue
+            if length != len(ss):
+                length = len(ss)
+                leftLimit = right
+            for leftSS in queue[:leftLimit]:
+                index, m = 0, len(leftSS)
+                for ch in ss:
+                    while index < m and leftSS[index] != ch: index += 1
+                    if index == m: break
+                    index += 1
+                else: break
+            else: return length
+        return -1
+```
+
+# 更省
+
+实际只需要不统计重复数量，不排序，整体判断也能通关，因为范围太小，所以可以不用额外空间存放信息，就单存判断就好，这样就空间 $O(1)$。
+
+* [Python3]
+
+```Python
+class Solution:
+    def findLUSlength(self, strs: List[str]) -> int:
+        ans = -1
+        for i, sa in enumerate(strs):
+            if len(sa) > ans:
+                m = len(sa)
+                res = True
+                for j, sb in enumerate(strs):
+                    if i == j: continue
+                    q = 0
+                    for ch in sb:
+                        if sa[q] == ch:
+                            q += 1
+                            if q == m:
+                                res = False
+                                break
+                    if not res: break
+                if res: ans = m
+        return ans
+```
+

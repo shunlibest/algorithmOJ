@@ -1,0 +1,36 @@
+预先计算每个炸弹能到达的其他炸弹，再用BFS枚举起点即可，类似求岛屿数量。
+
+* []
+
+```Python
+class Solution:
+    def maximumDetonation(self, bombs: List[List[int]]) -> int:
+        n = len(bombs)
+        dis = [[] for _ in range(n)]
+        for i in range(n):
+            for j in range(i+1, n):
+                d = abs(bombs[i][0]-bombs[j][0]) ** 2 + abs(bombs[i][1]-bombs[j][1]) ** 2
+                d = d ** 0.5
+                if d <= bombs[i][-1]: dis[i].append(j)
+                if d <= bombs[j][-1]: dis[j].append(i)
+        
+        ans = 0
+        vis = [-1] * n
+        for i, (x,y,r) in enumerate(bombs):
+            q = [(i, r)]
+            cur = 1
+            vis[i] = i # vis[i]=i 表示第i轮见过
+            while q:
+                tmp = q
+                q = []
+                for idx, range_ in tmp:
+                    for j in dis[idx]:
+                        if vis[j] != i: # 第i轮未见过
+                            cur += 1
+                            q.append((j, bombs[j][-1]))
+                            vis[j] = i
+            if cur == n: return n # 所有炸弹均引爆，提前返回
+            ans = max(ans, cur)
+        return ans
+```
+

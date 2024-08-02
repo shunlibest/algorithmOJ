@@ -1,0 +1,102 @@
+> Problem: [494. 目标和](https://leetcode.cn/problems/target-sum/description/)
+
+[TOC]
+
+# 思路
+
+> 参考代码随想录
+
+# 解题方法
+
+首先所有元素之和为sum，我们要将所有元素正负号相加后为target，那就代表left-right=target，而left+right=sum，所以2*right=sum-target，所以我们只需要凑成right即可。这就变成了一个01背包问题。
+1.确定dp数组的定义
+dp[i][j]表示从前i个元素中凑成大小为j的值的方法的最大数量
+2.dp的递推公式
+dp有两种情况：
+j<nums[i],dp[i][j]=dp[i-1][j]
+j>=nums[i],dp[i][j]=dp[i-1][j-nums[i]]+dp[i-1][j]
+3.dp的初始化
+当ij都为0时，方法也为1，所以dp[0][0]=1
+4.dp的遍历顺序
+左上到右下
+5.举例
+省略
+
+# 复杂度
+
+时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n^2)$
+
+空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n^2)$
+
+# Code
+
+* []
+
+```C
+int findTargetSumWays(int* nums, int numsSize, int target) {
+    int sum=0;
+    for(int i=0;i<numsSize;i++){
+        sum+=nums[i];
+    }
+    int diff=sum-target;
+    //sum=right+left
+    //target=left-right
+    //sum-target=2right
+    if(diff<0||diff%2!=0)return 0;
+    int right=diff/2;
+    int dp[numsSize+1][right+1];
+    memset(dp,0,sizeof(int)*(numsSize+1)*(right+1));
+    dp[0][0]=1;
+    for(int i=1;i<=numsSize;i++){
+        for(int j=0;j<=right;j++){
+           if(j<nums[i-1]) {
+            dp[i][j]=dp[i-1][j];
+            }
+            else{
+                dp[i][j]=dp[i-1][j]+dp[i-1][j-nums[i-1]];
+            }
+        }
+    }
+    return dp[numsSize][right];
+}
+```
+
+# 复杂度
+
+时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n^2)$
+
+空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```C
+int findTargetSumWays(int* nums, int numsSize, int target) {
+    int sum=0;
+    for(int i=0;i<numsSize;i++){
+        sum+=nums[i];
+    }
+    int diff=sum-target;
+    if(diff<0||diff%2!=0)return 0;
+    int right=diff/2;
+    int dp[right+1];
+    memset(dp,0,sizeof(int)*(right+1));
+    dp[0]=1;
+    for(int i=0;i<numsSize;i++){
+        for(int j=right;j>=nums[i];j--){
+                dp[j]+=dp[j-nums[i]];
+            }
+        }
+    return dp[right];
+}
+```
+

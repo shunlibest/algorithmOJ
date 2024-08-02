@@ -1,0 +1,44 @@
+> Problem: [2745. 构造最长的新字符串](https://leetcode.cn/problems/construct-the-longest-new-string/description/)
+
+[TOC]
+
+# 思路
+
+> 讲述看到这一题的思路
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+- 时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+- 空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```PHP
+
+class Solution {
+
+    /**
+     * @param Integer $x
+     * @param Integer $y
+     * @param Integer $z
+     * @return Integer
+     */
+    function longestString($x, $y, $z) {
+        $n = (min($x, $y) * 2 + $z) * 2;
+        if ($x != $y) $n += 2;
+        return $n;
+    }
+}
+```
+

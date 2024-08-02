@@ -1,0 +1,35 @@
+> Problem: [2745. 构造最长的新字符串](https://leetcode.cn/problems/construct-the-longest-new-string/description/)
+
+[TOC]
+
+# 思路
+
+> 一行代码解决
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```C++
+class Solution {
+public:
+    int longestString(int x, int y, int z) {
+        return x>y?(z+y+y+1)*2:(x+(y>x?(x+1):x)+z)*2;
+    }
+};
+```
+

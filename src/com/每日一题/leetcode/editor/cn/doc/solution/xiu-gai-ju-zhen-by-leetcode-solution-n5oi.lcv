@@ -1,0 +1,221 @@
+#### 方法一：遍历
+
+**思路**
+
+使用列遍历，先扫一遍找到每一列的最大值，再扫一遍把 $-1$ 替换成这一列的最大值即可。
+
+**代码**
+
+* [sol1-C++]
+
+```C++
+class Solution {
+public:
+    vector<vector<int>> modifiedMatrix(vector<vector<int>>& matrix) {
+        int n = matrix.size();
+        int m = matrix[0].size();
+        for (int j = 0; j < m; j++) {
+            int zd = -1;
+            for (int i = 0; i < n; i++) {
+                zd = max(zd, matrix[i][j]);
+            }
+            for (int i = 0; i < n; i++) {
+                if (matrix[i][j] == -1) {
+                    matrix[i][j] = zd;
+                }
+            }
+        }
+        return matrix;
+    }
+};
+```
+
+* [sol1-Java]
+
+```Java
+public class Solution {
+    public int[][] modifiedMatrix(int[][] matrix) {
+        int n = matrix.length; 
+        int m = matrix[0].length; 
+        for (int j = 0; j < m; j++) {
+            int zd = -1; 
+            for (int i = 0; i < n; i++) {
+                zd = Math.max(zd, matrix[i][j]); 
+            }
+            for (int i = 0; i < n; i++) {
+                if (matrix[i][j] == -1) {
+                    matrix[i][j] = zd; 
+                }
+            }
+        }
+        return matrix; 
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    public int[][] ModifiedMatrix(int[][] matrix) {
+        int n = matrix.Length;
+        int m = matrix[0].Length;
+        for (int j = 0; j < m; j++) {
+            int zd = -1;
+            for (int i = 0; i < n; i++) {
+                zd = Math.Max(zd, matrix[i][j]);
+            }
+            for (int i = 0; i < n; i++) {
+                if (matrix[i][j] == -1) {
+                    matrix[i][j] = zd;
+                }
+            }
+        }
+        return matrix;
+    }
+}
+```
+
+* [sol1-Golang]
+
+```Go
+func modifiedMatrix(matrix [][]int) [][]int {
+    n := len(matrix)
+    m := len(matrix[0])
+    for j := 0; j < m; j++ {
+        zd := -1
+        for i := 0; i < n; i++ {
+            zd = max(zd, matrix[i][j])
+        }
+        for i := 0; i < n; i++ {
+            if matrix[i][j] == -1 {
+                matrix[i][j] = zd
+            }
+        }
+    }
+    return matrix
+}
+
+func max(a, b int) int {
+    if a > b {
+    return a
+}
+return b
+}
+```
+
+* [sol1-C]
+
+```C
+int** modifiedMatrix(int** matrix, int matrixSize, int* matrixColSize, int* returnSize, int** returnColumnSizes) {
+    int** res = (int**)malloc(matrixSize * sizeof(int *));
+    for (int i = 0; i < matrixSize; i++) {
+        res[i] = (int *)malloc(matrixColSize[0] * sizeof(int));
+        memcpy(res[i], matrix[i], matrixColSize[0] * sizeof(int));
+    }
+    for (int j = 0; j < matrixColSize[0]; j++) {
+        int zd = -1;
+        for (int i = 0; i < matrixSize; i++) {
+            zd = fmax(zd, matrix[i][j]);
+        }
+        for (int i = 0; i < matrixSize; i++) {
+            if (matrix[i][j] == -1) {
+                res[i][j] = zd;
+            }
+        }
+    }
+    *returnSize = matrixSize;
+    *returnColumnSizes = (int *)malloc(matrixSize * sizeof(int));
+    memcpy(*returnColumnSizes, matrixColSize, matrixSize * sizeof(int));
+    return res;
+}
+```
+
+* [sol1-Python3]
+
+```Python
+class Solution:
+    def modifiedMatrix(self, matrix: List[List[int]]) -> List[List[int]]:
+        n, m = len(matrix), len(matrix[0])
+        for j in range(m):
+            zd = -1
+            for i in range(n):
+                zd = max(zd, matrix[i][j])
+            for i in range(n):
+                if matrix[i][j] == -1:
+                    matrix[i][j] = zd
+        return matrix
+```
+
+* [sol1-JavaScript]
+
+```JavaScript
+var modifiedMatrix = function(matrix) {
+    let n = matrix.length;
+    let m = matrix[0].length;
+    for (let j = 0; j < m; j++) {
+        let zd = -1;
+        for (let i = 0; i < n; i++) {
+            zd = Math.max(zd, matrix[i][j]);
+        }
+        for (let i = 0; i < n; i++) {
+            if (matrix[i][j] == -1) {
+                matrix[i][j] = zd;
+            }
+        }
+    }
+    return matrix;
+};
+```
+
+* [sol1-TypeScript]
+
+```TypeScript
+function modifiedMatrix(matrix: number[][]): number[][] {
+    let n = matrix.length;
+    let m = matrix[0].length;
+    for (let j = 0; j < m; j++) {
+        let zd = -1;
+        for (let i = 0; i < n; i++) {
+            zd = Math.max(zd, matrix[i][j]);
+        }
+        for (let i = 0; i < n; i++) {
+            if (matrix[i][j] == -1) {
+                matrix[i][j] = zd;
+            }
+        }
+    }
+    return matrix;
+};
+```
+
+* [sol1-Rust]
+
+```Rust
+impl Solution {
+    pub fn modified_matrix(matrix: Vec<Vec<i32>>) -> Vec<Vec<i32>> {
+        let mut res = matrix.clone();
+        let n = matrix.len();
+        let m = matrix[0].len();
+        for j in 0..m {
+            let mut zd = -1;
+            for i in 0..n {
+                zd = zd.max(res[i][j]);
+            }
+            for i in 0..n {
+                if (res[i][j] == -1) {
+                    res[i][j] = zd;
+                }
+            }
+        }
+        return res;
+    }
+}
+```
+
+**复杂度分析**
+
+- 时间复杂度：$O(n \times m)$，其中 $n$ 表示矩阵的行数，$m$ 表示矩阵的列数。
+
+- 空间复杂度：$O(1)$。
+

@@ -1,0 +1,179 @@
+# 题解思路1
+
+有重复$email$的账号是一个人的（可看做一个连通分量），遂考虑用并查集模拟这种连通分量关系，节点值为$accounts$的$i$下标
+
+构建完并查集后，遍历每个连通分量，提取$emailSet$加入$ans$中
+
+# ver1-代码
+
+未描述到位之处，详情可直接看代码
+
+- 时间 $LlogL$($L$为$email$总长度)
+- 空间 $L$
+
+* []
+
+```go
+// UnionFind 并查集
+type UnionFind struct {
+	root   []int
+	height []int
+}
+
+func newUnionFind(n int) *UnionFind {
+	root := make([]int, n)
+	for i := range root {
+		root[i] = i
+	}
+	return &UnionFind{
+		root:   root,
+		height: make([]int, n),
+	}
+}
+
+// Find 路径压缩
+func (u *UnionFind) Find(x int) int {
+	if u.root[x] != x {
+		u.root[x] = u.Find(u.root[x])
+	}
+	return u.root[x]
+}
+
+// Union 按秩优化
+func (u *UnionFind) Union(x, y int) {
+	rx, ry := u.Find(x), u.Find(y)
+	if rx == ry {
+		return
+	}
+
+	hx, hy := u.height[rx], u.height[ry]
+	if hx >= hy {
+		u.root[ry] = rx
+		u.height[rx] = max(hx, hy+1)
+	} else {
+		u.root[rx] = ry
+	}
+}
+
+// 并查集 相同email的下标i union ， 再次遍历构建各root连通分量账户，最后再次遍历组成ans
+func accountsMerge(accounts [][]string) [][]string {
+	var (
+		n           = len(accounts)
+		uf          = newUnionFind(n)
+		emailIdx    = make(map[string]int)              // key 为email，val为i
+		IdxEmailSet = make(map[int]map[string]struct{}) // key 为i，val为email set
+		ans         [][]string
+	)
+
+	for i, a := range accounts {
+		for _, email := range a[1:] {
+			if j, ok := emailIdx[email]; ok {
+				uf.Union(i, j)
+			} else {
+				emailIdx[email] = i
+			}
+		}
+	}
+
+	for i, a := range accounts {
+		root := uf.Find(i)
+		if _, ok := IdxEmailSet[root]; !ok {
+			IdxEmailSet[root] = make(map[string]struct{})
+		}
+		for _, email := range a[1:] {
+			IdxEmailSet[root][email] = struct{}{}
+		}
+	}
+
+	for i, emailSet := range IdxEmailSet {
+		name := accounts[i][0]
+		account := make([]string, 1, len(emailSet))
+		account[0] = name
+		for email := range emailSet {
+			account = append(account, email)
+		}
+		slices.Sort(account[1:])
+		ans = append(ans, account)
+	}
+	return ans
+}
+```
+
+# 题解思路2
+
+$dfs$
+
+因同一人的不同$accounts$有交集$email$，随可通过此交集$dfs$直至找到此人所有$email$
+
+哈希表存$email$对应$i$下标列表，而后遍历某$i$的$email$时若发现有其他$j$也存在此$email$则$dfs$此$j$（相当于$dfs$了此连通分量），通过$vis$维护已访问
+
+# ver2-代码
+
+未描述到位之处，详情可直接看代码
+
+- 时间 $LlogL$($L$为$email$总长度)
+- 空间 $L$
+
+* []
+
+```go
+// dfs  哈希表存email对应i下标， 遍历某i的email时若发现有其他j则dfs，通过vis维护已访问
+func accountsMerge(accounts [][]string) [][]string {
+	var (
+		n         = len(accounts)
+		emailIdxs = make(map[string][]int) // key 为email，val为i
+		vis       = make([]bool, n)
+		emailSet  = make(map[string]struct{})
+		dfs       func(i int)
+		ans       [][]string
+	)
+
+	for i, a := range accounts {
+		for _, email := range a[1:] {
+			emailIdxs[email] = append(emailIdxs[email], i)
+		}
+	}
+
+	dfs = func(i int) {
+		if vis[i] {
+			return
+		}
+		vis[i] = true
+
+		for _, email := range accounts[i][1:] {
+			emailSet[email] = struct{}{}
+			for _, j := range emailIdxs[email] {
+				if !vis[j] {
+					dfs(j)
+				}
+			}
+		}
+	}
+
+	for i, v := range vis {
+		if v {
+			continue
+		}
+		clear(emailSet)
+		dfs(i)
+
+		account := make([]string, 1, len(emailSet)+1)
+		account[0] = accounts[i][0]
+		for email := range emailSet {
+			account = append(account, email)
+		}
+		slices.Sort(account[1:])
+		ans = append(ans, account)
+	}
+
+	return ans
+}
+
+```
+
+# 感悟知识
+
+有待练习 并查集和$dfs$的设计思想，熟能生巧~
+
+$golang$中用$struct{}$来使$map$转换为$set$还是很巧妙的
+

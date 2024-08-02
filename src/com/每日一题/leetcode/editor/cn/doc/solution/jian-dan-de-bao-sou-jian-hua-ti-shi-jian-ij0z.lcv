@@ -1,0 +1,58 @@
+> Problem: [419. 甲板上的战舰](https://leetcode.cn/problems/battleships-in-a-board/description/)
+
+[TOC]
+
+# 思路
+
+> 数据量那么小，就是你啦，暴搜，根据题意，其实就是搜索特定形状的联通块,
+> 刚开始我以为有非法的数据，所以想分开左右和上下搜索，如果两个都为true，就是非法数据。后面发现好像没有非法数据，所以简单遍历一遍，检查一下就行了
+
+# 解题方法
+
+> 因为只能横着或者竖着，所以最左边或最上面的战舰一定会先被遍历到，就是挑了一个特殊的点，相当于一棵树的根节点，统计了连通块的数量
+
+# 复杂度
+
+时间复杂度:
+
+> $O(m\times n)$
+
+空间复杂度:
+
+> $O(m\times n)$
+
+# Code
+
+* []
+
+```C++
+//优化cin,cout
+auto __FAST__IO__ = []() noexcept -> int {
+    cin.tie(nullptr),cout.tie(nullptr)->ios::sync_with_stdio(false);
+    return 0;
+}();
+class Solution {
+public:
+    int countBattleships(vector<vector<char>>& board) {
+        int m = board.size();    // 行数
+        int n = board[0].size(); // 列数
+        int ans = 0;             // 统计战舰数量
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                // 如果当前格子是'X'
+                if (board[i][j] == 'X') {
+                    // 如果当前格子不是战舰的延续部分（不是在左边或上边有'X'的情况下）
+                    if (i > 0 && board[i - 1][j] == 'X')
+                        continue;
+                    if (j > 0 && board[i][j - 1] == 'X')
+                        continue;
+                    ans++; // 统计战舰数量
+                }
+            }
+        }
+
+        return ans; // 返回总战舰数量
+    }
+};
+```
+

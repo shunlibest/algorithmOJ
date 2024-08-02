@@ -1,0 +1,39 @@
+1. 有点 力扣198.打家劫舍 的意思，但这边是元素值的限制
+2. 排序下就是打家劫舍的dp啊。重复值的问题用TreeMap
+3. 数据范围要离散化
+4. 选不选的dp。跟打家劫舍一样 只考虑前两个就行，后两个不用考虑，后面会自动限制
+5. 在当前 往前找能接上的
+
+* []
+
+```Java
+class Solution {
+    public long maximumTotalDamage(int[] power) {
+        TreeMap<Integer, Integer> tm = new TreeMap<>();
+        for (int i : power) tm.put(i, tm.getOrDefault(i, 0) + 1);
+
+        int len = tm.size();
+        long[] dp = new long[len];
+        //TreeMap的key 要离散化，value放对应的下标idx
+        HashMap<Integer, Integer> map = new HashMap<>();
+        int idx = 0;
+        for (int i : tm.keySet()) {
+            map.put(i, idx); //TreeMap的key 要离散化，value放对应的下标idx
+            if (idx >= 1) dp[idx] = dp[idx - 1]; //不选当前
+
+            long onlyNow =  (long) tm.get(i) * i;
+            dp[idx] = Math.max(dp[idx], onlyNow);  //只选当前
+
+            Integer lower = tm.lowerKey(i - 2); //在当前 往前找能接上的
+            if (lower != null) {
+                dp[idx] = Math.max(dp[idx], onlyNow + dp[map.get(lower)]);
+            }
+
+            idx++;
+        }
+
+        return dp[len - 1];
+    }
+}
+```
+

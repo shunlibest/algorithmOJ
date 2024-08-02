@@ -1,0 +1,742 @@
+#### 方法一：记忆化搜索
+
+**思路与算法**
+
+一个包含 $n$ 个不同整数的数组有 $n!$ 种排列，如果一一枚举（例如使用递归枚举）并判断可能会超时。注意到，将一个长度为 $n-1$ 的特别排列新增一个整数变成长度为 $n$ 的特别排列时，只需要关注最后两个整数是否满足题目要求。因此设 $\textit{dfs}(\textit{state}, i)$ 递归函数用于求解当前排列包含集合 $\textit{state}$ 表示的所有整数，并且最后一个整数为 $\textit{nums}[i]$ 时的特别排列数量。其中 $\textit{state}$ 是状态压缩后的集合，其二进制表示中第 $k$ 位为 $1$ 则表示包含整数 $\textit{nums}[k]$。求解时：
+
+$\textit{dfs}(\textit{state}, i) = \sum_{j \in \textit{state}} \textit{dfs}(\textit{state} \oplus (1 << i), j)$
+
+其中，我们需要考虑 $\textit{state}$ 包含的所有 $j$，并且 $i \neq j$，且 $\textit{nums}[i]$ 可以作为 $\textit{nums}[j]$ 在特别排列中的后续相邻元素。$\oplus$ 表示异或操作，$\textit{state} \oplus (1 << i)$ 用于去除 $\textit{state}$ 中的 $\textit{nums}[i]$。
+
+递归时，当遇到 $\textit{state} = (1 << i)$，表示只包含一个元素，可直接返回 $1$。最后我们需要统计所有 $\textit{dfs}(\textit{state}, i)$ 的和。
+
+**代码**
+
+* [sol1-Python3]
+
+```Python
+class Solution:
+    def specialPerm(self, nums: List[int]) -> int:
+        mod = 10**9 + 7
+        n = len(nums)
+        
+        @cache
+        def dfs(state, i):
+            if state == (1 << i):
+                return 1
+            res = 0
+            x = nums[i]
+            for j, y in enumerate(nums):
+                if i == j or not state >> j & 1:
+                    continue
+                if x % y != 0 and y % x != 0:
+                    continue
+                res = (res + dfs(state ^ (1 << i), j)) % mod
+            return res
+            
+        return sum(dfs((1 << n) - 1, i) for i in range(n)) % mod
+```
+
+* [sol1-C++]
+
+```C++
+class Solution {
+public:
+    static const int mod = 1e9 + 7;
+    int specialPerm(vector<int>& nums) {
+        int n = nums.size();
+        vector<vector<int>> f(1 << n, vector<int>(n, -1));
+
+        function<int(int, int)> dfs = [&](int state, int i) {
+            if (f[state][i] != -1) {
+                return f[state][i];
+            }
+            if (state == (1 << i)) {
+                return 1;
+            }
+            f[state][i] = 0;
+            for (int j = 0; j < n; j++) {
+                if (i == j || !(state >> j & 1)) {
+                    continue;
+                }
+                if (nums[i] % nums[j] != 0 && nums[j] % nums[i] != 0) {
+                    continue;
+                }
+                f[state][i] = (f[state][i] + dfs(state ^ (1 << i), j)) % mod;
+            }
+            return f[state][i];
+        };
+        int res = 0;
+        for (int i = 0; i < n; i++) {
+            res = (res + dfs((1 << n) - 1, i)) % mod;
+        }
+        return res;
+    }
+};
+```
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    static final int MOD = 1000000007;
+    int[] nums;
+    int n;
+    int[][] f;
+
+    public int specialPerm(int[] nums) {
+        this.nums = nums;
+        this.n = nums.length;
+        this.f = new int[1 << n][n];
+        for (int i = 0; i < 1 << n; i++) {
+            Arrays.fill(f[i], -1);
+        }
+        int res = 0;
+        for (int i = 0; i < n; i++) {
+            res = (res + dfs((1 << n) - 1, i)) % MOD;
+        }
+        return res;
+    }
+
+    public int dfs(int state, int i) {
+        if (f[state][i] != -1) {
+            return f[state][i];
+        }
+        if (state == (1 << i)) {
+            return 1;
+        }
+        f[state][i] = 0;
+        for (int j = 0; j < n; j++) {
+            if (i == j || (state >> j & 1) == 0) {
+                continue;
+            }
+            if (nums[i] % nums[j] != 0 && nums[j] % nums[i] != 0) {
+                continue;
+            }
+            f[state][i] = (f[state][i] + dfs(state ^ (1 << i), j)) % MOD;
+        }
+        return f[state][i];
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    const int MOD = 1000000007;
+    int[] nums;
+    int n;
+    int[][] f;
+
+    public int SpecialPerm(int[] nums) {
+        this.nums = nums;
+        this.n = nums.Length;
+        this.f = new int[1 << n][];
+        for (int i = 0; i < 1 << n; i++) {
+            f[i] = new int[n];
+            Array.Fill(f[i], -1);
+        }
+        int res = 0;
+        for (int i = 0; i < n; i++) {
+            res = (res + DFS((1 << n) - 1, i)) % MOD;
+        }
+        return res;
+    }
+
+    public int DFS(int state, int i) {
+        if (f[state][i] != -1) {
+            return f[state][i];
+        }
+        if (state == (1 << i)) {
+            return 1;
+        }
+        f[state][i] = 0;
+        for (int j = 0; j < n; j++) {
+            if (i == j || (state >> j & 1) == 0) {
+                continue;
+            }
+            if (nums[i] % nums[j] != 0 && nums[j] % nums[i] != 0) {
+                continue;
+            }
+            f[state][i] = (f[state][i] + DFS(state ^ (1 << i), j)) % MOD;
+        }
+        return f[state][i];
+    }
+}
+```
+
+* [sol1-C]
+
+```C
+#define MOD 1000000007
+    
+int dfs(int state, int i, int *nums, int numsSize, int **f) {
+    if (f[state][i] != -1) {
+        return f[state][i];
+    }
+    if (state == (1 << i)) {
+        return 1;
+    }
+    f[state][i] = 0;
+    for (int j = 0; j < numsSize; j++) {
+        if (i == j || !(state >> j & 1)) {
+            continue;
+        }
+        if (nums[i] % nums[j] != 0 && nums[j] % nums[i] != 0) {
+            continue;
+        }
+        f[state][i] = (f[state][i] + dfs(state ^ (1 << i), j, nums, numsSize, f)) % MOD;
+    }
+    return f[state][i];
+}
+
+int specialPerm(int* nums, int numsSize) {
+    int n = numsSize;
+    int *f[(1 << n)];
+    for (int i = 0; i < (1 << n); i++) {
+        f[i] = (int *)calloc(n, sizeof(int));
+        for (int j = 0; j < n; j++) {
+            f[i][j] = -1;
+        }
+    }
+    int res = 0;
+    for (int i = 0; i < n; i++) {
+        res = (res + dfs((1 << n) - 1, i, nums, numsSize, f)) % MOD;
+    }
+    for (int i = 0; i < (1 << n); i++) {
+        free(f[i]);
+    }
+    return res;
+}
+```
+
+* [sol1-Go]
+
+```Go
+const mod = 1e9 + 7
+
+func specialPerm(nums []int) int {
+    n := len(nums)
+    f := make([][]int, 1<<n)
+    for i := range f {
+        f[i] = make([]int, n)
+        for j := range f[i] {
+            f[i][j] = -1
+        }
+    }
+
+    var dfs func(int, int) int
+    dfs = func(state, i int) int {
+        if f[state][i] != -1 {
+            return f[state][i]
+        }
+        if state == (1 << i) {
+            return 1
+        }
+        f[state][i] = 0
+        for j := 0; j < n; j++ {
+            if i == j || state>>j&1 == 0 {
+                continue
+            }
+            if nums[i]%nums[j] != 0 && nums[j]%nums[i] != 0 {
+                continue
+            }
+            f[state][i] = (f[state][i] + dfs(state^(1<<i), j)) % mod
+        }
+        return f[state][i]
+    }
+
+    res := 0
+    for i := 0; i < n; i++ {
+        res = (res + dfs((1<<n)-1, i)) % mod
+    }
+    return res
+}
+```
+
+* [sol1-JavaScript]
+
+```JavaScript
+var specialPerm = function(nums) {
+    const mod = 1e9 + 7;
+    const n = nums.length;
+    const f = new Array(1 << n).fill().map(() => new Array(n).fill(-1));
+    
+    const dfs = (state, i) => {
+        if (f[state][i] !== -1) {
+            return f[state][i];
+        }
+        if (state === (1 << i)) {
+            return 1;
+        }
+        f[state][i] = 0;
+        for (let j = 0; j < n; j++) {
+            if (i === j || !(state >> j & 1)) {
+                continue;
+            }
+            if (nums[i] % nums[j] !== 0 && nums[j] % nums[i] !== 0) {
+                continue;
+            }
+            f[state][i] = (f[state][i] + dfs(state ^ (1 << i), j)) % mod;
+        }
+        return f[state][i];
+    };
+
+    let res = 0;
+    for (let i = 0; i < n; i++) {
+        res = (res + dfs((1 << n) - 1, i)) % mod;
+    }
+    return res;
+};
+```
+
+* [sol1-TypeScript]
+
+```TypeScript
+function specialPerm(nums: number[]): number {
+    const mod: number = 1e9 + 7;
+    const n: number = nums.length;
+    const f: number[][] = new Array(1 << n).fill([]).map(() => new Array(n).fill(-1));
+
+    const dfs = (state: number, i: number): number => {
+        if (f[state][i] !== -1) {
+            return f[state][i];
+        }
+        if (state === (1 << i)) {
+            return 1;
+        }
+        f[state][i] = 0;
+        for (let j = 0; j < n; j++) {
+            if (i === j || !(state >> j & 1)) {
+                continue;
+            }
+            if (nums[i] % nums[j] !== 0 && nums[j] % nums[i] !== 0) {
+                continue;
+            }
+            f[state][i] = (f[state][i] + dfs(state ^ (1 << i), j)) % mod;
+        }
+        return f[state][i];
+    };
+
+    let res: number = 0;
+    for (let i = 0; i < n; i++) {
+        res = (res + dfs((1 << n) - 1, i)) % mod;
+    }
+    return res;
+};
+```
+
+* [sol1-Rust]
+
+```Rust
+impl Solution {
+    pub fn special_perm(nums: Vec<i32>) -> i32 {
+        const MOD: i64 = 1_000_000_007;
+        let n = nums.len();
+        let mut f = vec![vec![-1 as i64; n]; 1 << n];
+
+        fn dfs(state: usize, i: usize, nums: &Vec<i32>, f: &mut Vec<Vec<i64>>) -> i64 {
+            let n = nums.len();
+            if f[state][i] != -1 {
+                return f[state][i];
+            }
+            if state == (1 << i) {
+                return 1;
+            }
+            f[state][i] = 0;
+            for j in 0..n {
+                if i == j || state >> j & 1 == 0 {
+                    continue;
+                }
+                if nums[i] % nums[j] != 0 && nums[j] % nums[i] != 0 {
+                    continue;
+                }
+                f[state][i] = (f[state][i] + dfs(state ^ (1 << i), j, nums, f)) % MOD;
+            }
+            f[state][i]
+        };
+
+        let mut res = 0 as i64;
+        for i in 0..n {
+            res = (res + dfs((1 << n) - 1, i, &nums, &mut f)) % MOD;
+        }
+        res as i32
+    }
+}
+```
+
+**复杂度分析**
+
+- 时间复杂度：$O(n^2 \times 2^n)$，其中 $n$ 为 $\textit{nums}$ 的长度。本题共有 $n\times 2^n$ 种状态，每个状态在求解时会遍历一次 $\textit{nums}$，因此总的时间复杂度为 $O(n^2 \times 2^n)$。
+
+- 空间复杂度：$O(n \times 2^n)$，其中 $n$ 为 $\textit{nums}$ 的长度。
+
+#### 方法二：状态压缩动态规划
+
+**思路与算法**
+
+方法一使用记忆化搜索进行求解，在本方法中改用递推进行求解。类似的，设 $f[\textit{state}][i]$ 递归函数用于求解当前排列包含集合 $\textit{state}$ 表示的所有整数，并且最后一个整数为 $\textit{nums}[i]$ 时的特别排列数量。那么转移过程中有：
+
+$f[\textit{state}][i] = \sum_{j \in \textit{state}} f[\textit{state} \oplus (1 << i)][j]$
+
+由于求解时，当前的 $\textit{state}$ 只会依赖更小的 $\textit{state} \oplus (1 << i)$，因此可以从小到大枚举进行求解。枚举的范围是 $[1, 2^n-1]$。
+
+在记忆化搜索方法中，我们将 $\textit{state} = (1 << i)$ 的情况视为递归终点，类似的在递推方法中，我们需要将 $f[1<<i][i]$ 初始化为 $1$。
+
+**代码**
+
+* [sol2-Python3]
+
+```Python
+class Solution:
+    def specialPerm(self, nums: List[int]) -> int:
+        mod = 10**9 + 7
+        n = len(nums)
+        f = [[0] * n for _ in range(1 << n)]
+        for i in range(n):
+            f[1 << i][i] = 1
+        
+        for state in range(1, 1 << n):
+            for i, x in enumerate(nums):
+                if not state >> i & 1:
+                    continue
+                for j, y in enumerate(nums):
+                    if i == j or not state >> j & 1:
+                        continue
+                    if x % y != 0 and y % x != 0:
+                        continue
+                    f[state][i] = (f[state][i] + f[state ^ (1 << i)][j]) % mod
+        
+        return sum(f[(1 << n) - 1][i] for i in range(n)) % mod
+```
+
+* [sol2-C++]
+
+```C++
+class Solution {
+public:
+    static const int mod = 1e9 + 7;
+    int specialPerm(vector<int>& nums) {
+        int n = nums.size();
+        vector<vector<int>> f(1 << n, vector<int>(n, 0));
+        for (int i = 0; i < n; i++) {
+            f[1 << i][i] = 1;
+        }
+        for (int state = 1; state < (1 << n); state++) {
+            for (int i = 0; i < n; i++) {
+                if (!(state >> i & 1)) {
+                    continue;
+                }
+                for (int j = 0; j < n; j++) {
+                    if (i == j || !(state >> j & 1)) {
+                        continue;
+                    }
+                    if (nums[i] % nums[j] != 0 && nums[j] % nums[i] != 0) {
+                        continue;
+                    }
+                    f[state][i] = (f[state][i] + f[state ^ (1 << i)][j]) % mod;
+                }
+            }
+        }
+        int res = 0;
+        for (int i = 0; i < n; i++) {
+            res = (res + f[(1 << n) - 1][i]) % mod;
+        }
+        return res;
+    }
+};
+```
+
+* [sol2-Java]
+
+```Java
+class Solution {
+    static final int MOD = 1000000007;
+
+    public int specialPerm(int[] nums) {
+        int n = nums.length;
+        int[][] f = new int[1 << n][n];
+        for (int i = 0; i < n; i++) {
+            f[1 << i][i] = 1;
+        }
+        for (int state = 1; state < (1 << n); state++) {
+            for (int i = 0; i < n; i++) {
+                if ((state >> i & 1) == 0) {
+                    continue;
+                }
+                for (int j = 0; j < n; j++) {
+                    if (i == j || (state >> j & 1) == 0) {
+                        continue;
+                    }
+                    if (nums[i] % nums[j] != 0 && nums[j] % nums[i] != 0) {
+                        continue;
+                    }
+                    f[state][i] = (f[state][i] + f[state ^ (1 << i)][j]) % MOD;
+                }
+            }
+        }
+        int res = 0;
+        for (int i = 0; i < n; i++) {
+            res = (res + f[(1 << n) - 1][i]) % MOD;
+        }
+        return res;
+    }
+}
+```
+
+* [sol2-C#]
+
+```C#
+public class Solution {
+    const int MOD = 1000000007;
+
+    public int SpecialPerm(int[] nums) {
+        int n = nums.Length;
+        int[][] f = new int[1 << n][];
+        for (int i = 0; i < 1 << n; i++) {
+            f[i] = new int[n];
+        }
+        for (int i = 0; i < n; i++) {
+            f[1 << i][i] = 1;
+        }
+        for (int state = 1; state < (1 << n); state++) {
+            for (int i = 0; i < n; i++) {
+                if ((state >> i & 1) == 0) {
+                    continue;
+                }
+                for (int j = 0; j < n; j++) {
+                    if (i == j || (state >> j & 1) == 0) {
+                        continue;
+                    }
+                    if (nums[i] % nums[j] != 0 && nums[j] % nums[i] != 0) {
+                        continue;
+                    }
+                    f[state][i] = (f[state][i] + f[state ^ (1 << i)][j]) % MOD;
+                }
+            }
+        }
+        int res = 0;
+        for (int i = 0; i < n; i++) {
+            res = (res + f[(1 << n) - 1][i]) % MOD;
+        }
+        return res;
+    }
+}
+```
+
+* [sol2-C]
+
+```C
+#define MOD 1000000007
+
+int specialPerm(int* nums, int numsSize) {
+    int n = numsSize;
+    int f[1 << n][n];
+    for (int i = 0; i < (1 << n); i++) {
+        for (int j = 0; j < n; j++) {
+            f[i][j] = 0;
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        f[1 << i][i] = 1;
+    }
+
+    for (int state = 1; state < (1 << n); state++) {
+        for (int i = 0; i < n; i++) {
+            if (!(state >> i & 1)) {
+                continue;
+            }
+            for (int j = 0; j < n; j++) {
+                if (i == j || !(state >> j & 1)) {
+                    continue;
+                }
+                int x = nums[i];
+                int y = nums[j];
+                if (x % y != 0 && y % x != 0) {
+                    continue;
+                }
+                f[state][i] = (f[state][i] + f[state ^ (1 << i)][j]) % MOD;
+            }
+        }
+    }
+
+    int sum = 0;
+    for (int i = 0; i < n; i++) {
+        sum = (sum + f[(1 << n) - 1][i]) % MOD;
+    }
+
+    return sum;
+}
+```
+
+* [sol2-Go]
+
+```Go
+const MOD int64 = 1000000007
+
+func specialPerm(nums []int) int {
+    n := len(nums)
+	f := make([][]int64, 1 << n)
+	for i := range f {
+		f[i] = make([]int64, n)
+	}
+	for i := 0; i < n; i++ {
+		f[1 << i][i] = 1
+	}
+
+	for state := 1; state < (1 << n); state++ {
+		for i := 0; i < n; i++ {
+			if state >> i & 1 == 0 {
+				continue
+			}
+			for j := 0; j < n; j++ {
+				if i == j || state >> j & 1 == 0 {
+					continue
+				}
+				x := nums[i]
+				y := nums[j]
+				if x % y != 0 && y % x != 0 {
+					continue
+				}
+				f[state][i] = (f[state][i] + f[state ^ (1<<i)][j]) % MOD
+			}
+		}
+	}
+
+	var sum int64
+	for i := 0; i < n; i++ {
+		sum = (sum + f[(1<<n) - 1][i]) % MOD
+	}
+	return int(sum)
+}
+```
+
+* [sol2-JavaScript]
+
+```JavaScript
+var specialPerm = function(nums) {
+    const MOD = 1000000007;
+    const n = nums.length;
+    const f = [...Array(1 << n)].map(() => Array(n).fill(0));
+
+    for (let i = 0; i < n; i++) {
+        f[1 << i][i] = 1;
+    }
+    for (let state = 1; state < (1 << n); state++) {
+        for (let i = 0; i < n; i++) {
+            if (!(state >> i & 1)) {
+                continue;
+            }
+            for (let j = 0; j < n; j++) {
+                if (i === j || !(state >> j & 1)) {
+                    continue;
+                }
+                const x = nums[i];
+                const y = nums[j];
+                if (x % y !== 0 && y % x !== 0) {
+                    continue;
+                }
+                f[state][i] = (f[state][i] + f[state ^ (1 << i)][j]) % MOD;
+            }
+        }
+    }
+
+    let sum = 0;
+    for (let i = 0; i < n; i++) {
+        sum = (sum + f[(1 << n) - 1][i]) % MOD;
+    }
+
+    return sum;
+};
+```
+
+* [sol2-TypeScript]
+
+```TypeScript
+const MOD: number = 1000000007;
+
+function specialPerm(nums: number[]): number {
+    const n: number = nums.length;
+    const f: number[][] = Array.from(Array(1 << n), () => Array(n).fill(0));
+
+    for (let i = 0; i < n; i++) {
+        f[1 << i][i] = 1;
+    }
+
+    for (let state = 1; state < (1 << n); state++) {
+        for (let i = 0; i < n; i++) {
+            if (!(state >> i & 1)) {
+                continue;
+            }
+            for (let j = 0; j < n; j++) {
+                if (i === j || !(state >> j & 1)) {
+                    continue;
+                }
+                const x: number = nums[i];
+                const y: number = nums[j];
+                if (x % y !== 0 && y % x !== 0) {
+                    continue;
+                }
+                f[state][i] = (f[state][i] + f[state ^ (1 << i)][j]) % MOD;
+            }
+        }
+    }
+
+    let sum: number = 0;
+    for (let i = 0; i < n; i++) {
+        sum = (sum + f[(1 << n) - 1][i]) % MOD;
+    }
+
+    return sum;
+};
+```
+
+* [sol2-Rust]
+
+```Rust
+impl Solution {
+    pub fn special_perm(nums: Vec<i32>) -> i32 {
+        const MOD: i64 = 1_000_000_007;
+        let n = nums.len();
+        let mut f = vec![vec![0 as i64; n]; 1 << n];
+
+        for i in 0..n {
+            f[1 << i][i] = 1;
+        }
+
+        for state in 1..(1 << n) {
+            for i in 0..n {
+                if state >> i & 1 == 0 {
+                    continue;
+                }
+                for j in 0..n {
+                    if i == j || state >> j & 1 == 0 {
+                        continue;
+                    }
+                    let x = nums[i];
+                    let y = nums[j];
+                    if x % y != 0 && y % x != 0 {
+                        continue;
+                    }
+                    f[state][i] = (f[state][i] + f[state ^ (1 << i)][j]) % MOD;
+                }
+            }
+        }
+
+        let mut sum = 0 as i64;
+        for i in 0..n {
+            sum = (sum + f[(1 << n) - 1][i]) % MOD;
+        }
+        sum as i32
+    }
+}
+```
+
+**复杂度分析**
+
+- 时间复杂度：$O(n^2 \times 2^n)$，其中 $n$ 为 $\textit{nums}$ 的长度。本题共有 $n\times 2^n$ 种状态，每个状态在求解时会遍历一次 $\textit{nums}$，因此总的时间复杂度为 $O(n^2 \times 2^n)$。
+
+- 空间复杂度：$O(n \times 2^n)$，其中 $n$ 为 $\textit{nums}$ 的长度。
+

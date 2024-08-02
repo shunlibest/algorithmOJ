@@ -1,0 +1,31 @@
+注意到n最大为300,x最小为1,因而x次幂之和为n的数最多不超过300个
+计算出所有x次幂小于或等于n的数,在这些数中选出和为n的数,类似01背包问题,用动态规划解决
+令dp[i][j]表示在前i个数中挑选若干个数，和为j的方案数
+可得状态转移方程dp[i][j]=dp[i-1][j]+dp[i-1][j-nums[i-1]]
+
+* 
+
+```
+class Solution {
+public:
+    int MOD=1e9+7;
+    using LL=long long;
+    int numberOfWays(int n, int x) {
+        vector<int>nums;
+        for(int i=1;pow(i,x)<=n;i++) nums.push_back(pow(i,x));
+        int size=nums.size();
+        LL dp[size+1][n+1];
+        memset(dp,0,sizeof(dp));
+        dp[0][0]=1LL;
+        for(int i=1;i<=size;i++){
+            dp[i][0]=1;
+            for(int j=1;j<=n;j++){
+                dp[i][j]=dp[i-1][j];
+                if(j>=nums[i-1]) dp[i][j]=(dp[i][j]+dp[i-1][j-nums[i-1]])%MOD;
+            }
+        }
+        return dp[size][n];
+    }
+};
+```
+

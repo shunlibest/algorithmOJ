@@ -1,0 +1,42 @@
+* java
+
+```java
+class Solution {
+    public int maxIncreasingCells(int[][] mat) {
+        //直接dp会TLE
+        //数据结构优化dp
+        int m = mat.length;
+        int n = mat[0].length;
+        TreeMap<Integer,List<int[]>> mp = new TreeMap<>();
+        for(int i=0;i<m;i++)
+            for(int j=0;j<n;j++){
+                int x = mat[i][j];
+                //computeIfAbsent:如果指定的键尚未与值相关联（或映射到 null ），则尝试使用给定的映射函数计算其值，并将其输入到此映射中，除非 null 。
+                mp.computeIfAbsent(x,k->(new ArrayList<>())).add(new int[]{i,j});
+            }  
+        int ans = 0;
+        int[] maxRow = new int[m];
+        int[] maxCol = new int[n];
+        for(List<int[]> val:mp.values()){
+            int[] maxRowAndCol = new int[val.size()];
+            for(int i=0;i<val.size();i++){
+                int x =  val.get(i)[0];
+                int y =  val.get(i)[1];
+                maxRowAndCol[i] = Math.max(maxRow[x],maxCol[y])+1;
+                ans = Math.max(ans,maxRowAndCol[i]);
+            }
+            //更新这一层的行、列最大最小值，不能在前面更新，会导致答案错误，因为会在相同值处转移
+            for(int i=0;i<val.size();i++){
+                int x =  val.get(i)[0];
+                int y =  val.get(i)[1];
+                maxRow[x] = Math.max(maxRow[x],maxRowAndCol[i]);
+                maxCol[y] = Math.max(maxCol[y],maxRowAndCol[i]);
+            }
+            
+        }
+
+        return ans;
+    }
+}
+```
+

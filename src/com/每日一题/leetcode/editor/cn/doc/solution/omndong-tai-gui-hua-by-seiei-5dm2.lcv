@@ -1,0 +1,58 @@
+### 解题思路
+
+动态规划。
+
+最普通的方法我们可以想到，dp\[i][j]表示第i行第j列的元素所能得到的最大分数。
+
+那么对于第i行，我们遍历每个j，针对i-1行的每一个元素计算他们的新得分，就能得到当前元素对应的最高得分：
+
+$$ dp\[i][j] = max(dp\[i - 1][k] + abs(k - j)) $$
+
+时间复杂度为O(mn^2)。
+
+#### 优化
+
+对于当前行的j元素，我们从左到右计算在它左方和上方的最大值 `lmax`。每次右移，`lmax` - 1，于是j元素对应的左边的最大值为 $max(lmax - 1, dp[j])$。同理，右边的最大值为 $max(rmax - 1, dp[j])$。
+
+取 `lmax`, `rmax`, `dp\[i - 1][j]`的最大值作为当前j元素之前的最大得分，那么再加上当前得分就是dp\[i][j]对应的最大的分：
+
+$dp[i][j] = max(lmax, rmax, dp[i - 1][j]) + points[i][j]$
+
+这样把查找的时间从O(n^2)降到了O(n), 总的时间复杂度为O(mn)。
+
+### 代码
+
+* java
+
+```java
+class Solution {
+
+    public long maxPoints(int[][] points) {
+        int m = points.length;
+        int n = points[0].length;
+        long[] dp = new long[n];
+        for (int i = 0; i < m; i++) {
+            long[] cur = new long[n + 1];
+            long lmax = 0;
+            for (int j = 0; j < n; j++) {
+                lmax = Math.max(lmax - 1, dp[j]);
+                cur[j] = lmax;
+            }
+            long rmax = 0;
+            for (int j = n - 1; j >= 0; j--) {
+                rmax = Math.max(rmax - 1, dp[j]);
+                cur[j] = Math.max(cur[j], rmax);
+            }
+            for (int j = 0; j < n; j++) {
+                dp[j] = cur[j] + points[i][j];
+            }
+        }
+        long ans = 0;
+        for (int j = 0; j < n; j++) {
+            ans = Math.max(ans, dp[j]);
+        }
+        return ans;
+    }
+}
+```
+

@@ -1,0 +1,118 @@
+### 解题思路
+
+1.这题一开始拿到的思路，一看m和n都在10的五次方，妥妥的DP，因为DFS肯定超时了。
+2.那么直接假设dp[i][j] 为结尾落在行为i 列为j的最大值；
+3.则可得转移方程：dp[i][j] = max{dp[i - 1][0] + points[i][j] - abs(j - 0), dp[i - 1][1] + points[i][j] - abs(j - 1)....} 即上一行的最大值匹配当前行所有可能值后求导的最大值；
+4.初始化条件dp[0][j] = points.front();迭代从i = 1开始计算。
+5.可得代码：
+6.此时时间复杂度：O(m*n*n) m为points的长度，n为points.at(0)的长度
+7.空间复杂度：O(m*n)
+
+### 代码
+
+* cpp
+
+```cpp
+class Solution {
+public:
+    long long maxPoints(vector<vector<int>>& points) {
+        vector<vector<long long>> dp(points.size(), vector<long long>(points.at(0).size(), 0));
+        for (int i = 0; i < dp.front().size(); i++) {
+            dp.front().at(i) = points.front().at(i);
+        }
+        for (int i = 1; i < dp.size(); i++) {
+            for (int j = 0; j < dp.at(i).size(); j++) {
+                for (int k = 0; k < dp.at(i).size(); k++) {
+                    dp[i][j] = max(dp[i][j], dp[i - 1][k] + points[i][j] - abs(j - k));
+                }
+            }
+        }
+        long long result = 0;
+        for (const long long& curCount : dp.back()) {
+            result = max(result, curCount);
+        }
+        return result;
+    }
+};
+```
+
+### 解题思路
+
+1.此处定睛一看，这这这。。。dp[i]的解只和dp[i-1]相关，这不优化一把dp空间吗，将二维压缩为一维；
+2.得以下代码。
+3.此时时间复杂度：O(m*n*n) m为points的长度，n为points.at(0)的长度
+4.空间复杂度：O(n)
+
+### 代码
+
+* cpp
+
+```cpp
+class Solution {
+public:
+    long long maxPoints(vector<vector<int>>& points) {
+        vector<long long> dp(points.at(0).size(), 0);
+        for (int i = 0; i < dp.size(); i++) {
+            dp[i] = points.front().at(i);
+        }
+        for (int i = 1; i < points.size(); i++) {
+            vector<long long> tmpDp(dp);
+            for (int j = 0; j < tmpDp.size(); j++) {
+                for (int k = 0; k < tmpDp.size(); k++) {
+                    dp[j] = max(dp[j], tmpDp[k] + points[i][j] - abs(j - k));
+                }
+            }
+        }
+        long long result = 0;
+        for (const long long& curCount : dp) {
+            result = max(result, curCount);
+        }
+        return result;
+    }
+};
+```
+
+### 解题思路
+
+1.做到这里自信心爆棚，上去就是一提交，结果超时了，仔细分析以下代码，可以看到在进行dp[j]的状态转移时，需要发生O(n²)次的计算。
+2.此处可使用加权前缀和 和 加权后缀和进行优化，将时间复杂度优化至：O(n)
+3.先从左边开始遍历，如果待累加的最大值在当前j的左侧，则实时找到左边的max，此处max需要加权，因为中间还查着一个distance。
+由于在左侧，所以-distance,即先把max对应的j先加上。待计算时再减去当前的index。则可以得到-distance的效果。
+4.同理，3只能处理累加最大值在当前Index左侧的情况，再从右向左重复一波，此处加权需要注意，由于最大值在右侧，所以累加时distance时 max - j，因为在右侧，j是大于当前index的。那么distance = j - index.  -distance = index - j.所以先加权j。index等实时计算时再加。
+5.此时时间复杂度：O(m*n) m为points的长度，n为points.at(0)的长度；
+6.空间复杂度：O(n)，n为points.at(0)的长度；
+
+### 代码
+
+* cpp
+
+```cpp
+class Solution {
+public:
+    long long maxPoints(vector<vector<int>>& points) {
+        vector<long long> dp(points.at(0).size(), 0);
+        for (int i = 0; i < dp.size(); i++) {
+            dp[i] = points.front().at(i);
+        }
+        for (int i = 1; i < points.size(); i++) {
+            vector<long long> tmpDp(dp);
+            long long leftMax = LONG_LONG_MIN;
+            long long rightMax = LONG_LONG_MIN;
+            for (int j = 0; j < tmpDp.size(); j++) {
+                leftMax = max(leftMax, tmpDp[j] + j);
+                dp[j] = max(leftMax + points[i][j] - j, dp[j]);
+            }
+            for (int j = tmpDp.size() - 1; j >= 0; j--) {
+                rightMax = max(rightMax, tmpDp[j] - j);
+                dp[j] = max(rightMax + points[i][j] + j, dp[j]);
+            }
+        }
+        long long result = 0;
+        for (const long long& curCount : dp) {
+            result = max(result, curCount);
+        }
+        return result;
+    }
+};
+```
+

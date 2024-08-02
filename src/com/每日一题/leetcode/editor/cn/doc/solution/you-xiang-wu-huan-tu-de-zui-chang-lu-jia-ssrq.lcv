@@ -1,0 +1,88 @@
+这题的题意不太清楚，题目要求的能访问的单元格的最大数量，指的是一条访问路径能访问的最大单元格数量，而不是所有路径能访问的单元格最大数量。
+
+根据能移动到的单元格的值必须严格大于当前单元格的值这个条件，可以将单元格之间的访问关系描述为一个有向无环图，题目要求的就是有向无环图的最长路，直接动态规划即可，唯一要注意的就是暴力建图，图中边的数量会达到 $O(mn(m+n))$ 量级，因此需要建图优化，有两个点需要优化：
+1. 同一行（列）里，只需要在大小相邻的节点间连边，假设有三个节点 $u<v<w$，那么只需要连接边 $(u,v)$ 和 $(v,w)$，边 $(u,w)$ 可以用上面两条边组合起来代替，这个连边优化类似于 [1340. 跳跃游戏 V](https://leetcode.cn/problems/jump-game-v/description/)。
+2. 因为有同值节点，只有上面的优化还不够，假设同一行（列）里，值为 $x$ 的节点构成集合 $S$，值为 $y$ 的节点构成集合 $T$，且 $x<y$，那么需要从集合 $S$ 向集合 $T$ 连边，暴力连边会使边数达到 $|S||T|$，更好的方法是建立虚拟节点 $dummy$，从集合 $S$ 向虚拟节点 $dummy$ 连边，从虚拟节点 $dummy$ 向集合 $T$ 连边，这样边的数量减少到了 $|S|+|T|$。
+
+### 代码
+
+* cpp
+
+```cpp
+class Solution {
+public:
+    struct Item {
+        int val, idx;
+        bool operator<(Item other) const {
+            return val < other.val;
+        }
+    };
+    
+    int maxIncreasingCells(const vector<vector<int>>& mat) {
+        const int m = mat.size(), n = mat[0].size();
+        vector<vector<int>> graph(m * n);
+        for (int i = 0;i < m;++i) {
+            vector<Item> ord;
+            for (int j = 0;j < n;++j)
+                ord.push_back({mat[i][j], j});
+            sort(ord.begin(), ord.end());
+            // 前一个值对应的区间为 [p, j)，当前值对应的区间为 [j, q)
+            for (int j = 0, p = -1, q = 1;j < n;p = j, j = q++) {
+                while (q < n && ord[q].val == ord[j].val)
+                    ++q;
+                if (p != -1) {
+                    const int t = graph.size();
+                    graph.emplace_back();
+                    for (int k = p;k < j;++k)
+                        graph[n * i + ord[k].idx].push_back(t);
+                    for (int k = j;k < q;++k)
+                        graph[t].push_back(n * i + ord[k].idx);
+                }
+            }
+        }
+        for (int i = 0;i < n;++i) {
+            vector<Item> ord;
+            for (int j = 0;j < m;++j)
+                ord.push_back({mat[j][i], j});
+            sort(ord.begin(), ord.end());
+            // 前一个值对应的区间为 [p, j)，当前值对应的区间为 [j, q)
+            for (int j = 0, p = -1, q = 1;j < m;p = j, j = q++) {
+                while (q < m && ord[q].val == ord[j].val)
+                    ++q;
+                if (p != -1) {
+                    const int t = graph.size();
+                    graph.emplace_back();
+                    for (int k = p;k < j;++k)
+                        graph[n * ord[k].idx + i].push_back(t);
+                    for (int k = j;k < q;++k)
+                        graph[t].push_back(n * ord[k].idx + i);
+                }
+            }
+        }
+        // 拓扑排序动态规划
+        const int l = graph.size();
+        vector<int> deg(l, 0);
+        for (const auto& s : graph)
+            for (int e : s)
+                ++deg[e];
+        queue<int> q;
+        for (int i = 0;i < l;++i)
+            if (deg[i] == 0)
+                q.push(i);
+        int ans = 0;
+        vector<int> dp(l, 0);
+        for (;!q.empty();q.pop()) {
+            const int u = q.front();
+            dp[u] += u < m * n;
+            ans = max(ans, dp[u]);
+            for (int v : graph[u]) {
+                dp[v] = max(dp[v], dp[u]);
+                if (--deg[v] == 0)
+                    q.push(v);
+            }
+        }
+        return ans;
+    }
+};
+```
+

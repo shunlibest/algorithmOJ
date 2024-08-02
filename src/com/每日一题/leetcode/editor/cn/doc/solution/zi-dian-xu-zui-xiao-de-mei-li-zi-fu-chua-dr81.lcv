@@ -1,0 +1,409 @@
+#### 方法一：贪心
+
+**思路**
+
+首先分析一下美丽字符串的第二个条件：不包含任何长度为 $2$ 或者更长的回文字符串。长度为 $2$ 的回文字符串是两个相同字符构成的字符串。长度为 $3$ 的回文字符串中也有两个相同字符，但下标之差为 $2$。而任何长度为 $2$ 或者更长的回文字符串，都包含一个长度为 $2$ 或者 $3$ 的回文字符串。因此，只要一个字符串中的任何字符，都不与它前两个字符相同，这个字符串就不包含任何长度为 $2$ 或者更长的回文字符串。
+
+接下来看其他要求，返回的美丽字符串需要字典序大于 $s$ 并且字典序最小。贪心的思路是修改 $s$ 的末尾字符，一点点将字符变大，如果在变大的同时能够满足美丽字符串的两个条件，那么我们就找到了要求的美丽字符串。修改后的字符不能与前两个字符相同，因此我们在将字符变大的时候只需要将字符逐步变大三次，就能判断出修改当前字符能否满足美丽字符串的条件。如果修改末尾字符达不到美丽字符串的条件，则我们需要将被修改的字符改为倒数第二个字符，仍然按照之前的思路一点点增大，并判断是否满足美丽字符串的两个条件。我们从末尾字符开始，往前一点点判断是否可以修改当前字符来找到目标美丽字符串。一旦我们第一次找到了合适的下标，我们就可以来修改字符来达到目标条件。
+
+首先我们需要修改寻找到的下标的字符，将其修改为最小的满足美丽字符串条件的字符。接下来需要修改它右边的字符。因为之前修改的字符已经能保证返回的字符串在字典序上大于 $s$，我们只需要将后续的字符修改得尽可能小即可，因为每个字符需要与前两个字符不同，因此每个字符只需要遍历 $\text{`a'}\sim\text{`c'}$ 即可。因为 $k \geq$ 4，所以接下来修改的字符一定都能满足美丽字符串的条件。
+
+在代码实现上，我们先用一个循环从 $n-1$ 开始，往前遍历来寻找第一个被修改的字符，找到之后，再用另一个函数 $\textit{generate}(s, \textit{idx}, \textit{offset})$ 来生成修改后的字符，其中 $\textit{idx}$ 是我们找到的下标，$\textit{offset}$ 是将这个下标的字符增大的偏移量。最后返回修改后的字符，如果我们未能找到目标下标，则返回空字符串。
+
+**代码**
+
+* [sol1-Python3]
+
+```Python
+class Solution:
+    def smallestBeautifulString(self, s: str, k: int) -> str:
+        for i in range(len(s) - 1, -1, -1):
+            blockedCharacters = set()
+            for j in range(1, 3):
+                if i - j >= 0:
+                    blockedCharacters.add(s[i - j])
+            for j in range(1, 4):
+                if ord(s[i]) - ord('a') + j + 1 <= k and chr(ord(s[i]) + j) not in blockedCharacters:
+                    return self.generate(s, i, j)
+        return ""
+
+    def generate(self, s: str, idx: str, offset: str) -> str:
+        res = list(s)
+        res[idx] = chr(ord(res[idx]) + offset)
+        for i in range(idx + 1, len(s)):
+            blockedCharacters = set()
+            for j in range(1, 3):
+                if i - j >= 0:
+                    blockedCharacters.add(res[i - j])
+            for j in range(3):
+                if chr(ord('a') + j) not in blockedCharacters:
+                    res[i] = chr(ord('a') + j)
+                    break
+        return ''.join(res)
+```
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    public String smallestBeautifulString(String s, int k) {
+        for (int i = s.length() - 1; i >= 0; i--) {
+            Set<Character> blockedCharacters = new HashSet<Character>();
+            for (int j = 1; j < 3; j++) {
+                if (i - j >= 0) {
+                    blockedCharacters.add(s.charAt(i - j));
+                }
+            }
+            for (int j = 1; j < 4; j++) {
+                if (s.charAt(i) - 'a' + j + 1 <= k && !blockedCharacters.contains((char) (s.charAt(i) + j))) {
+                    return generate(s, i, j);
+                }
+            }
+        }
+        return "";
+    }
+
+    public String generate(String s, int idx, int offset) {
+        char[] res = s.toCharArray();
+        res[idx] += offset;
+        for (int i = idx + 1; i < s.length(); i++) {
+            Set<Character> blockedCharacters = new HashSet<Character>();
+            for (int j = 1; j < 3; j++) {
+                if (i - j >= 0) {
+                    blockedCharacters.add(res[i - j]);
+                }
+            }
+            for (int j = 0; j < 3; j++) {
+                if (!blockedCharacters.contains((char) ('a' + j))) {
+                    res[i] = (char) ('a' + j);
+                    break;
+                }
+            }
+        }
+        return new String(res);
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    public string SmallestBeautifulString(string s, int k) {
+        for (int i = s.Length - 1; i >= 0; i--) {
+            ISet<char> blockedchars = new HashSet<char>();
+            for (int j = 1; j < 3; j++) {
+                if (i - j >= 0) {
+                    blockedchars.Add(s[i - j]);
+                }
+            }
+            for (int j = 1; j < 4; j++) {
+                if (s[i] - 'a' + j + 1 <= k && !blockedchars.Contains((char) (s[i] + j))) {
+                    return Generate(s, i, j);
+                }
+            }
+        }
+        return "";
+    }
+
+    public string Generate(String s, int idx, int offset) {
+        char[] res = s.ToCharArray();
+        res[idx] = (char) (res[idx] + offset);
+        for (int i = idx + 1; i < s.Length; i++) {
+            ISet<char> blockedchars = new HashSet<char>();
+            for (int j = 1; j < 3; j++) {
+                if (i - j >= 0) {
+                    blockedchars.Add(res[i - j]);
+                }
+            }
+            for (int j = 0; j < 3; j++) {
+                if (!blockedchars.Contains((char) ('a' + j))) {
+                    res[i] = (char) ('a' + j);
+                    break;
+                }
+            }
+        }
+        return new string(res);
+    }
+}
+```
+
+* [sol1-C++]
+
+```C++
+class Solution {
+public:
+    string smallestBeautifulString(string s, int k) {
+        for (int i = s.length() - 1; i >= 0; --i) {
+            unordered_set<char> blockedCharacters;
+            for (int j = 1; j <= 2; ++j) {
+                if (i - j >= 0) {
+                    blockedCharacters.insert(s[i - j]);
+                }
+            }
+            for (int j = 1; j <= 3; ++j) {
+                if (s[i] - 'a' + j + 1 <= k && blockedCharacters.find(s[i] + j) == blockedCharacters.end()) {
+                    return generate(s, i, j);
+                }
+            }
+        }
+        return "";
+    }
+
+    string generate(string s, int idx, int offset) {
+        s[idx] += offset;
+        for (int i = idx + 1; i < s.length(); ++i) {
+            unordered_set<char> blockedCharacters;
+            for (int j = 1; j <= 2; ++j) {
+                if (i - j >= 0) {
+                    blockedCharacters.insert(s[i - j]);
+                }
+            }
+            for (int j = 0; j < 3; ++j) {
+                if (blockedCharacters.find('a' + j) == blockedCharacters.end()) {
+                    s[i] = 'a' + j;
+                    break;
+                }
+            }
+        }
+        return s;
+    }
+};
+```
+
+* [sol1-C]
+
+```C
+char* generate(char* s, int idx, int offset) {
+    char* res = (char*)malloc(sizeof(char) * (strlen(s) + 1));
+    strcpy(res, s);
+    res[idx] += offset;
+    int len = strlen(s);
+    for (int i = idx + 1; i < len; ++i) {
+        char blockedCharacters[3] = {'\0'};
+        for (int j = 1; j < 3; ++j) {
+            if (i - j >= 0) {
+                blockedCharacters[j - 1] = res[i - j];
+            }
+        }
+        for (char c = 'a'; c <= 'c'; ++c) {
+            int isBlocked = 0;
+            for (int x = 0; x < 3; ++x) {
+                if (blockedCharacters[x] == c) {
+                    isBlocked = 1;
+                    break;
+                }
+            }
+            if (!isBlocked) {
+                res[i] = c;
+                break;
+            }
+        }
+    }
+    return res;
+}
+
+char * smallestBeautifulString(char * s, int k){
+    int length = strlen(s);
+    char* result = (char*)malloc(sizeof(char) * (length + 1));
+    strcpy(result, "");
+    for (int i = length - 1; i >= 0; --i) {
+        char blockedCharacters[3] = {'\0'};
+        for (int j = 1; j < 3; ++j) {
+            if (i - j >= 0) {
+                blockedCharacters[j - 1] = s[i - j];
+            }
+        }
+        for (int j = 1; j < 4; ++j) {
+            if (s[i] - 'a' + j + 1 <= k) {
+                int isBlocked = 0;
+                for (int x = 0; x < 3; ++x) {
+                    if (blockedCharacters[x] == s[i] + j) {
+                        isBlocked = 1;
+                        break;
+                    }
+                }
+                if (!isBlocked) {
+                    sprintf(result, "%s", generate(s, i, j));
+                    return result;
+                }
+            }
+        }
+    }
+    return result;
+}
+```
+
+* [sol1-Go]
+
+```Go
+func smallestBeautifulString(s string, k int) string {
+    for i := len(s) - 1; i >= 0; i-- {
+		blockedCharacters := make(map[byte]bool)
+		for j := 1; j < 3; j++ {
+			if i-j >= 0 {
+				blockedCharacters[s[i - j]] = true
+			}
+		}
+		for j := 1; j < 4; j++ {
+			if int(s[i] - 'a') + j + 1 <= k && !blockedCharacters[s[i] + byte(j)] {
+				return generate(s, i, j)
+			}
+		}
+	}
+	return ""
+}
+
+func generate(s string, idx int, offset int) string {
+	res := []byte(s)
+	res[idx] += byte(offset)
+	for i := idx + 1; i < len(s); i++ {
+		blockedCharacters := make(map[byte]bool)
+		for j := 1; j < 3; j++ {
+			if i - j >= 0 {
+				blockedCharacters[res[i - j]] = true
+			}
+		}
+		for c := byte('a'); c <= byte('c'); c++ {
+			if !blockedCharacters[c] {
+				res[i] = c
+				break
+			}
+		}
+	}
+	return string(res)
+}
+```
+
+* [sol1-JavaScript]
+
+```JavaScript
+var smallestBeautifulString = function(s, k) {
+    for (let i = s.length - 1; i >= 0; i--) {
+        const blockedCharacters = new Set();
+        for (let j = 1; j < 3; j++) {
+            if (i - j >= 0) {
+                blockedCharacters.add(s[i - j]);
+            }
+        }
+        for (let j = 1; j < 4; j++) {
+            if (s.charCodeAt(i) - 'a'.charCodeAt(0) + j + 1 <= k && !blockedCharacters.has(String.fromCharCode(s.charCodeAt(i) + j))) {
+                return generate(s, i, j);
+            }
+        }
+    }
+    return "";
+};
+
+function generate(s, idx, offset) {
+    const res = [...s];
+    res[idx] = String.fromCharCode(res[idx].charCodeAt(0) + offset);
+    for (let i = idx + 1; i < s.length; i++) {
+        const blockedCharacters = new Set();
+        for (let j = 1; j < 3; j++) {
+            if (i - j >= 0) {
+                blockedCharacters.add(res[i - j]);
+            }
+        }
+        for (let j = 0; j < 3; j++) {
+            if (!blockedCharacters.has(String.fromCharCode('a'.charCodeAt(0) + j))) {
+                res[i] = String.fromCharCode('a'.charCodeAt(0) + j);
+                break;
+            }
+        }
+    }
+    return res.join("");
+}
+```
+
+* [sol1-TypeScript]
+
+```TypeScript
+function smallestBeautifulString(s: string, k: number): string {
+    for (let i = s.length - 1; i >= 0; i--) {
+        const blockedCharacters: Set<string> = new Set();
+        for (let j = 1; j < 3; j++) {
+            if (i - j >= 0) {
+                blockedCharacters.add(s[i - j]);
+            }
+        }
+        for (let j = 1; j < 4; j++) {
+            if (s.charCodeAt(i) - 'a'.charCodeAt(0) + j + 1 <= k && !blockedCharacters.has(String.fromCharCode(s.charCodeAt(i) + j))) {
+                return generate(s, i, j);
+            }
+        }
+    }
+    return "";
+};
+
+function generate(s: string, idx: number, offset: number): string {
+    let res: string[] = s.split("");
+    res[idx] = String.fromCharCode(res[idx].charCodeAt(0) + offset);
+    for (let i = idx + 1; i < s.length; i++) {
+        const blockedCharacters: Set<string> = new Set();
+        for (let j = 1; j < 3; j++) {
+            if (i - j >= 0) {
+                blockedCharacters.add(res[i - j]);
+            }
+        }
+        for (let j = 0; j < 3; j++) {
+            if (!blockedCharacters.has(String.fromCharCode('a'.charCodeAt(0) + j))) {
+                res[i] = String.fromCharCode('a'.charCodeAt(0) + j);
+                break;
+            }
+        }
+    }
+    return res.join("");
+}
+```
+
+* [sol1-Rust]
+
+```Rust
+impl Solution {
+    fn smallest_beautiful_string(s: String, k: i32) -> String {
+        let t = s.as_bytes();
+        for i in (0..s.len()).rev() {
+            let mut blocked_characters = Vec::new();
+            for j in 1..=2 {
+                if (i >= j) {
+                    blocked_characters.push(t[i - j]);
+                }
+            }
+            for j in 1..=3 {
+                if (t[i] - b'a' + j + 1) as i32 <= k && !blocked_characters.iter().any(|&x| x == t[i] + j) {
+                    return Self::generate(&s, i, j as u8);
+                }
+            }
+        }
+        "".to_string()
+    }
+
+    fn generate(s: &String, idx: usize, offset: u8) -> String {
+        let mut res: Vec<char> = s.chars().collect();
+        res[idx] = ((res[idx] as u8) + offset) as char;
+        for i in (idx + 1)..s.len() {
+            let mut blocked_characters = Vec::new();
+            for j in 1..=2 {
+                if (i >= j) {
+                    blocked_characters.push(res[i - j] as u8);
+                }
+            }
+            for j in 0..=2 {
+                if !blocked_characters.iter().any(|&x| x == (b'a' + j)) {
+                    res[i] = (b'a' + j) as char;
+                    break;
+                }
+            }
+        }
+        res.into_iter().collect()
+    }
+}
+```
+
+**复杂度分析**
+
+- 时间复杂度：$O(n)$。
+
+- 空间复杂度：$O(n)$。
+

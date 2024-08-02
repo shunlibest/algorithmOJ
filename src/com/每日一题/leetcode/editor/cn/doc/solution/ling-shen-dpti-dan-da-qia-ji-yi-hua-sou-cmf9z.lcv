@@ -1,0 +1,98 @@
+# 思路
+
+定义$dfs(i,j)$,代表了在以索引$i$结尾的$s1$和以索引$j$为结尾的$s1$,两个字符串相等所需删除字符的 ASCII 值的最小和 。
+- 若$s1[i] = s2[i]$
+  则 $dfs(i,j) = dfs(i - 1,j - 1)$
+- 若$s1[i] \neq s2[i]$
+  则$dfs(i,j) = min(dfs(i,j - 1) + s2[j],dfs(i - 1,j) + s1[i])$
+
+### Code
+
+* [记忆化搜索]
+
+```c++
+int minimumDeleteSum(string s1, string s2) {
+    int n =s1.size(),m = s2.size(),memo[n][m];
+    memset(memo,-1,sizeof(memo));
+    function<int(int,int)> dfs = [&](int i,int j) -> int{
+        int s = 0;
+        if(i < 0){
+            for(int k = 0;k <= j;k++){
+                s += s2[k];
+            }
+            return s;
+        }
+        if(j < 0){
+            for(int k = 0;k <= i;k++){
+                s += s1[k];
+            }
+            return s;
+        }
+        if(memo[i][j] != -1) return memo[i][j];
+        if(s1[i] == s2[j]) memo[i][j] = dfs(i - 1,j - 1);
+        else memo[i][j] = min(dfs(i,j - 1) + s2[j],dfs(i - 1,j) + s1[i]);
+        return memo[i][j];
+    };
+    return dfs(n - 1,m - 1);
+}
+```
+
+* [递推]
+
+```C++
+class Solution {
+public:
+    int minimumDeleteSum(string s1, string s2) {
+        int n =s1.size(),m = s2.size();
+        vector<vector<int>> f(n + 1,vector<int>(m + 1));
+        //初始化第一行
+        int s = 0;
+        for(int j = 0;j <= m ;j++){
+            f[0][j] = s;
+            s += s2[j];
+        }
+        //初始化第一列
+        s = 0;
+        for(int i = 0; i <= n ;i++){
+            f[i][0] = s;
+            s += s1[i];
+        }
+        for(int i = 0;i < n ;i++){
+            for(int j = 0;j < m; j++){
+                if(s1[i] == s2[j]) f[i + 1][j + 1] = f[i][j];
+                else f[i + 1][j + 1] = min(f[i + 1][j] + s2[j],f[i][j + 1] + s1[i]);
+            }
+        }
+        return f[n][m];
+    }
+};
+```
+
+* [空间优化]
+
+```c++
+int minimumDeleteSum(string s1, string s2) {
+    int n =s1.size(),m = s2.size();
+    vector<int> f(m + 1);
+    //初始化第一行
+    int s = 0;
+    for(int j = 0;j <= m ;j++){
+        f[j] = s;
+        s += s2[j];
+    }
+    s = 0;
+    for(int i = 0;i < n ;i++){
+        int pre = s;
+        s += s1[i];
+        f[0] = s;//这里相当于没有优化空间前的给第一列赋值的部分。
+        for(int j = 0;j < m; j++){
+            int t = f[j + 1];
+            if(s1[i] == s2[j]) f[j + 1] = pre;
+            else f[j + 1] = min(f[j] + s2[j],f[j + 1] + s1[i]);
+            pre = t;
+        }
+            }
+    return f[m];
+}
+```
+

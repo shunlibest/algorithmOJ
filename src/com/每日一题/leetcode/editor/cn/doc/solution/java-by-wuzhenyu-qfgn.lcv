@@ -1,0 +1,45 @@
+### 解题思路
+
+根据 大佬 **灵茶山艾府** 分享的题解写的一个自底向上找的版本
+
+比赛时太可惜了, 没有利用flag剪枝, 疯狂超时, 下次加油把!
+
+首先明确一点,从(0,0)到(m,n)只能向右向下, 总个数就定死了, m + n + 1
+从(m,n)到(0,0)也一样
+
+其实从(m,n)到任意一点(x,y)的个数是固定的, (m + n - x - y + 1), 这就是每个点能出现的最大状态个数
+所以定义一个满的boolean[m][n][m + n + 1]太浪费了, 但是没想到什么好方法优化, 目前想到的方法是用一维数组存储, 但是找起始下标很麻烦, 后面想到什么好方法再贴
+
+走m + n + 1步只有在(0,0)时才有用, 我们是直接判断并返回的, 所以矩阵中每个位置最多用到(m + n)个状态
+
+### 代码
+
+* java
+
+```java
+class Solution {
+    char[][] g;
+    boolean[][][] flag; // 记录每个位置的状态是否发生过
+    // m,n 为当前位置, right为当前从根遍历过来时还剩多少个')' 未找到另一半
+    public boolean dfs(int m, int n, int right) {
+        if (m < 0 || n < 0 || flag[m][n][right]) return false;
+        if (m == 0 && n == 0) return right == 1; // 到起点了, 如果')'不是1就匹配不了
+        flag[m][n][right] = true;
+        if (right == 0 && g[m][n] == '(') return false; // 此路不通, 后面都没')'了, 又冒出来个'('
+        if (g[m][n] == ')') right++;
+        else right--;
+        if (m + n < right) return false; // 还剩 m + n 步, 必不能为每个right都找到另一半
+        if (((m + n + right) & 1) == 1) return false; // 当前面的未知个括号+后面剩下的右括号为奇数,定不能全匹配
+        return dfs(m - 1, n, right) || dfs(m, n - 1, right);
+    }
+        
+    public boolean hasValidPath(char[][] grid) {
+        g = grid;
+        int m = g.length, n = g[0].length;
+        if (g[0][0] == ')' || ((m + n + 1) & 1)  == 1) return false; // 开头就是一个')'或者总体个数为奇数,不可能有解
+        flag = new boolean[m][n][m + n]; // 定义m + n就够使的了
+        return dfs(m - 1, n - 1, 0);
+    }
+}
+```
+

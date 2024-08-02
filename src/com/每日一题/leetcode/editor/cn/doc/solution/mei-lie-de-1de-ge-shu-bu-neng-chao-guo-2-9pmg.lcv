@@ -1,0 +1,42 @@
+为什么一列至多一个1？如果两个1，需要4行（偶数行比奇数行更好，所以不考虑5行），四行的每一列，起码要存在：两个1的位置不同的所有情况，（否则：比如缺1100这一列，我第一行，第二行剩余列都至多1个1，两个1的列缺失，不如直接选1，2行），总共要4选2得6种情况，而最大行数5，一定有缺失的列，所以只能选存在1个1或0个1
+
+图解
+1 1 1 0 0 0
+0 0 1 1 1 0
+0 1 0 0 1 1
+1 0 0 1 0 1
+如果我要选每列是两个1，只能是这些所有列组成的，如果少了某一列(最大5列，肯定少一列，1的数目越多，越缺列)
+比如少第一列，那么14行其他列只有更少的1
+
+* 
+
+```
+class Solution {
+public:
+    vector<int> goodSubsetofBinaryMatrix(vector<vector<int>>& grid) {
+        int n = grid.size(),m = grid[0].size();
+        for(int i = 0;i<n;i++){
+            auto &r = grid[i];
+            if(accumulate(r.begin(),r.end(),0) == 0)
+                return {i};
+        }
+        unordered_map<int,int>mp;
+        for(int i = 0;i<n;i++){
+            int mask = 0,cur = 0;
+            for(int j = 0;j<m;j++){
+                if(grid[i][j] ==0)
+                    mask |= (1<<j);
+                else
+                    cur |= (1<<j);
+            }
+            for(int subset = mask;subset;subset = (subset-1)&mask ){
+                if(mp.count(subset))
+                    return{mp[subset],i};
+            }
+            mp[cur] = i;
+        }
+        return {};
+    }
+};
+```
+

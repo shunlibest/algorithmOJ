@@ -1,0 +1,55 @@
+> Problem: [100316. 施咒的最大总伤害](https://leetcode.cn/problems/maximum-total-damage-with-spell-casting/description/)
+
+[TOC]
+
+# 思路
+
+> 显然类似打家劫舍，用dp解决，选与不选，不选就是直接继承上一个，选的话那就是我们要找到j，j恰好满足a[j] >= a[i] - 2;
+> 显然，我们越往后，这个j前面的不可能再看，因为值越来越大，前面遍历过的肯定是满足a[j] < a[i] - 2的，所以j初始化为0(1也可以),一直while循环到刚好满足a[j] >= a[i] - 2.
+> 显然，我们状态转移的是f[j - 1]的状态转移到f[i],此时就是选a[i],把a[i]全选到了就行，最后输出f[n]即可
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```C++
+class Solution {
+public:
+    typedef long long ll;
+    long long maximumTotalDamage(vector<int>& power) {
+        map<int,int>cnt;
+        vector<ll>a;
+        for(int x : power){
+            cnt[x]++;
+        }
+        a.push_back(0);
+        for(auto p : power) a.push_back(p);
+        int n = power.size();
+        sort(a.begin(),a.end());
+        vector<ll>f(n + 10);
+        for(int i = 1,j = 0;i <= n;i++){
+            f[i] = f[i - 1];
+            while(j < i && a[j] < a[i] - 2) j++;
+            if(j - 1 < 0){f[i] = max(f[i],a[i] * cnt[a[i]]);continue;}
+            f[i] = max(f[i],f[j - 1] + a[i] * cnt[a[i]]);
+        }
+        cout << f[1] << " " << f[2] << " " << f[3];
+        return f[n];
+    }
+};
+```
+

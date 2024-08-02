@@ -1,0 +1,81 @@
+今天是我坚持写题解的第 101 天！
+
+![](https://pic.leetcode-cn.com/1636772978-Jkttqt-file_1636772978914)
+
+# 方法、模拟
+
+今天这道题我们直接模拟就可以了，不过，我们还是可以做一些归纳的，观察给定的三条规则，我们可以压缩成两条：
+
+1. 给定的字符串全部都是大写；
+2. 给定的字符串从第二位开始全部都是小写。
+
+满足上面两条规则的就是符合要求的，否则就是不符合要求。
+
+**我这里提供两种写法，你认为哪种方式好呢？欢迎留言评论，一起学习！**
+
+**写法一：分成两个方法**
+
+* java
+
+```java
+class Solution {
+    public boolean detectCapitalUse(String word) {
+        return allUpperCase(word) || allLowerCaseFromSecond(word);
+    }
+
+    private boolean allUpperCase(String s) {
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) < 'A' || s.charAt(i) > 'Z') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean allLowerCaseFromSecond(String s) {
+        for (int i = 1; i < s.length(); i++) {
+            if (s.charAt(i) < 'a' || s.charAt(i) > 'z') {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+```
+
+**写法二：全成一个方法**
+
+* java
+
+```java
+class Solution {
+    public boolean detectCapitalUse(String word) {
+        boolean allUpperCase = true;
+        boolean allLowerCaseFromSecond = true;
+
+        for (int i = 0; i < word.length(); i++) {
+            if (word.charAt(i) < 'A' || word.charAt(i) > 'Z') {
+                allUpperCase = false;
+            }
+            if (i > 0 && (word.charAt(i) < 'a' || word.charAt(i) > 'z')) {
+                allLowerCaseFromSecond = false;
+            }
+        }
+
+        return allUpperCase || allLowerCaseFromSecond;
+    }
+}
+```
+
+- 时间复杂度：$O(n)$。
+- 空间复杂度：$O(1)$​。
+
+运行结果：
+
+![image-20211113110712299](https://pic.leetcode-cn.com/1636772978-OabPwT-file_1636772978373)
+
+# 最后
+
+**如果对你有帮助，请点个赞吧，谢谢^^**
+
+也可以[关注我](https://leetcode-cn.com/u/tong-zhu/)（公号：彤哥来刷题啦），每日分享题解，一起刷题，一起拿全家桶。

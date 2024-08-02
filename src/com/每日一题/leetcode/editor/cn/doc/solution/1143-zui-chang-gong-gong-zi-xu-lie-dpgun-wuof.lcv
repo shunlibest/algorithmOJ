@@ -1,0 +1,162 @@
+# 个人思路1
+
+设两字符串为$s$和$t$
+
+不断考虑两者最后一个字符是否匹配为$LCS$（最长公共子序列）字符之一
+
+隐含着选或不选
+
+从而转换为子问题求解
+
+#### 状态
+
+$dp[i][j]$表示$s[:i+1]$ 和$t[:j+1]$的$LCS$长度
+
+#### 状态转移
+
+$s[i] == t[j]$时，末尾两字符匹配为$LCS$字符之一
+
+$dp[i][j] = dp[i-1][j-1] + 1 $
+
+$s[i] != t[j]$时，末尾两字符无法匹配为$LCS$字符之一，考虑舍去$s$末尾字符或者舍去$t$末尾字符
+
+$dp[i][j] = max(dp[i-1][j], dp[i][j-1])$
+
+#### 边界
+
+$i$ 或 $j < 0 $时 ，$0$
+
+$dp$数组中为兼容下标$<0$情况，多开辟$1$空间，用下标$0$表示边界，状态转移下标统一后移$1$位
+
+#### 答案
+
+$n、m$分别为$s、t$长度
+
+$dp[n-1][m-1]$
+
+# ver1-代码
+
+- 时间 $mn$
+- 空间 $mn$
+
+* []
+
+```go
+func longestCommonSubsequence(text1 string, text2 string) int {
+	var (
+		n, m = len(text1), len(text2)
+		dp   = make([][]int, n+1) // dp[i][j]表示text1[:i+1] 和text2[:j+1]的最长公共子序列
+	)
+
+	//初始化
+	for i := range dp {
+		dp[i] = make([]int, m+1)
+	}
+
+	// 状态转移
+	for i := 0; i < n; i++ {
+		for j := 0; j < m; j++ {
+			if text1[i] == text2[j] {
+				dp[i+1][j+1] = dp[i][j] + 1
+			} else {
+				dp[i+1][j+1] = max(dp[i][j+1], dp[i+1][j])
+			}
+		}
+	}
+
+	return dp[n][m]
+}
+```
+
+# 个人思路2
+
+观察状态转移方程，可知当前状态转移只与当前层和上一层有关，考虑滚动数组优化
+
+第一维用$\%2$巧妙实现滚动数组
+
+# ver2-代码
+
+- 时间 $mn$
+- 空间 $m$
+
+* []
+
+```go
+// 滚动数组优化
+func longestCommonSubsequence(text1 string, text2 string) int {
+	var (
+		n, m = len(text1), len(text2)
+		dp   = make([][]int, 2) // dp[i][j]表示text1[:i+1] 和text2[:j+1]的最长公共子序列
+	)
+
+	//初始化
+	for i := range dp {
+		dp[i] = make([]int, m+1)
+	}
+
+	// 状态转移
+	for i := 0; i < n; i++ {
+		for j := 0; j < m; j++ {
+			if text1[i] == text2[j] {
+				dp[(i+1)%2][j+1] = dp[i%2][j] + 1
+			} else {
+				dp[(i+1)%2][j+1] = max(dp[i%2][j+1], dp[(i+1)%2][j])
+			}
+		}
+	}
+
+	return dp[n%2][m]
+}
+```
+
+# 个人思路3
+
+能用滚动数组优化的，大部分也能用单个数组空间优化
+
+需要注意的是单个数组优化的话，其实大体就是，去掉了所有涉及$dp$的第一维，保留第二维酱紫
+
+递推$dp$时，内层循环需正序，不然倒序的话此处会涉及到需要用新值时旧值还没更新  导致计算出错问题
+
+**例如**：状态转移为$dp[i][j] = dp[i-1][j] + dp[i][j-1]$,可以观察到当前$i、j$是需要当前$i$的上一个$j$的，所以内层循环要正序及时的更新上一个$j$的值，供右侧$j$调用。
+
+# ver3-代码
+
+注意本题状态转移中要用到$dp[i-1][j-1]$，这在单个数组内层的正序循环中已经被覆盖掉了，遂考虑用临时变量$pre$来记录保存
+
+- 时间 $mn$
+- 空间 $m$
+
+* []
+
+```go
+// 单个数组优化
+func longestCommonSubsequence(text1 string, text2 string) int {
+	var (
+		n, m = len(text1), len(text2)
+		dp   = make([]int, m+1) // dp[i][j]表示text1[:i+1] 和text2[:j+1]的最长公共子序列
+	)
+
+	// 状态转移
+	for i := 0; i < n; i++ {
+		pre := 0 // i-1、j-1
+		for j := 0; j < m; j++ {
+			if text1[i] == text2[j] {
+				pre, dp[j+1] = dp[j+1], pre+1
+			} else {
+				pre = dp[j+1]
+				dp[j+1] = max(dp[j+1], dp[j])
+			}
+		}
+	}
+
+	return dp[m]
+}
+```
+
+# 感悟知识
+
+经典$dp$题目，熟能生巧~ 一题多解
+
+单个数组优化还是很有技巧性的，尤其是内层循环的顺序和临时变量的使用
+
+$dp$要草稿纸写写画画明确状态和转移、边界等

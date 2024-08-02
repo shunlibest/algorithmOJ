@@ -1,0 +1,25 @@
+## 解法：分类讨论
+
+不难发现 `AA` 后面只能跟着 `BB`，且 `BB` 前面只能跟着 `AA`，所以我们试着讨论一下 `AA` 和 `BB` 的数量之间的关系。
+
+* 如果 $x > y$，显然 `AA` 最多只能放进来 $(y + 1)$ 个，因为剩下的 `AA` 后面就没东西可以接了。而 `AB` 可以放在最开头，形成 `ABAB...ABAABBAABB...AA` 这样的字符串。因此这种情况的答案是 $(2y + 1 + z) \times 2$。
+* 如果 $x = y$，我们可以形成 `ABAB...ABAABBAABB...AABB` 这样的字符串。因此这种情况的答案是 $(x + y + z) \times 2$。
+* 如果 $x < y$，和第一类情况相似，`BB` 最多只能放进来 $(x + 1)$ 个，否则剩下的 `BB` 前面就没东西可以接了。而 `AB` 可以放在最末尾，形成 `BBAABBAA...BBABAB...AB` 这样的字符串。因此这种情况的答案是 $(2x + 1 + z) \times 2$。
+
+复杂度 $\mathcal{O}(1)$。
+
+## 参考代码（c++）
+
+* c++
+
+```c++
+class Solution {
+public:
+    int longestString(int x, int y, int z) {
+        if (x > y) return (2 * y + 1 + z) * 2;
+        else if (x == y) return (x + y + z) * 2;
+        else return (2 * x + 1 + z) * 2;
+    }
+};
+```
+

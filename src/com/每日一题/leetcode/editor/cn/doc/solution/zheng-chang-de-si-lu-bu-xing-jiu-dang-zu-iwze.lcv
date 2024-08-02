@@ -1,0 +1,63 @@
+### 解题思路
+
+自己看的笔记:
+正常的做法复杂度太高，考虑答案可能只有有限个
+
+### 代码
+
+* cpp
+
+```cpp
+class Solution {
+public:
+    vector<int> goodSubsetofBinaryMatrix(vector<vector<int>>& grid) {
+        //答案只有三种情况：都不符合；全是0的(一个行)；两个行(如果存在2个以上的行，那么其中肯定存在两个行也符合情况)
+        //最后一种情况：自己找几个例子演示一下吧
+        //假如最终存在四个行符合条件，那么其中肯定存在两个行也符合条件；如果两个行的不存在，肯定四个也不存在
+        //四个行，其中每一列最多2个1， 四个行里面选择两个行，总共6中组合方式，由于列的长度最多是5，所以6个组合中肯定
+        //会存在一个组合的每一列的1的数量最多为1个，否则四个行中就存在一列有3个1了；
+        //其余情况类似
+        //所以如果没有全是0的行，同时所有两两组合都不符合条件，则没有符合要求的
+        //列最多5，所有的情况也就2^5个，可以直接暴力位运算了(两个行相交是等于0就符合条件)
+        int source[(1<<5)+1];
+        for(int i =0;i<=(1<<5);i++){
+            source[i] = -1;
+        }
+        vector<int> res;
+        for(int k = 0;k<grid.size();k++){
+            int cur = 0;
+            for(int i = grid[0].size()-1,j=0;i>=0;i--,j++){
+                if(grid[k][i]==1){
+                    cur = cur|(1<<j);
+                }
+            }
+            if(cur == 0){
+                res.emplace_back(k);
+                return res;
+            }
+            if(source[cur] ==-1){
+                source[cur] = k;
+            }
+        }
+        for(int i =0;i<(1<<5);i++){
+            if(source[i]==-1){continue;}
+            for(int j = i+1;j<=(1<<5);j++){
+                if(source[j] !=-1){
+                    if((i&j)==0){
+                        if(source[i]<source[j]){
+                            res.emplace_back(source[i]);
+                            res.emplace_back(source[j]);
+                        }else{
+                            res.emplace_back(source[j]);
+                            res.emplace_back(source[i]);
+                        }
+                        return res;
+                    }
+                }
+            }
+        }
+        return res;
+    }
+};
+```
+

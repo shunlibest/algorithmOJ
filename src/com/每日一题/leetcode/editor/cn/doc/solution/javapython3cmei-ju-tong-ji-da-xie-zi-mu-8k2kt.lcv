@@ -1,0 +1,84 @@
+> [520. 检测大写字母](https://leetcode.cn/problems/detect-capital/)
+
+[TOC]
+
+# 题目
+
+我们定义，在以下情况时，单词的大写用法是正确的：
+
+- 全部字母都是大写，比如 `"USA"` 。
+- 单词中所有字母都不是大写，比如 `"leetcode"` 。
+- 如果单词不只含有一个字母，只有首字母大写， 比如 `"Google"` 。
+
+给你一个字符串 `word` 。如果大写用法正确，返回 `true` ；否则，返回 `false` 。
+
+# 题目分析
+
+## 思路分析
+
+这道题定义了单词的大写正确用法：
+
+- 全部字母都是大写，即**大写字母个数等于单词字母总个数**。
+- 全部字母都不是大写，即 **大写字母个数等于0**。
+- 首字母大写，即 **大写字母个数等于1，且首字母是大写的**。
+
+因此我们可以枚举单词的每个字母，统计大写字母的个数。根据结果判断是否满足大写正确的用法。
+
+![image-20240623135344730.png](https://pic.leetcode.cn/1719122057-ESkzUO-image-20240623135344730.png)
+
+# 代码
+
+* []
+
+```Java
+class Solution {
+    public boolean detectCapitalUse(String word) {
+        int upwordCnts = 0;
+        int n = word.length();
+        for(int i = 0; i < n; i++){
+            char ch = word.charAt(i);
+            if(ch >= 'A' && ch <= 'Z')upwordCnts++;
+        }
+        // 全大写，大写字母个数等于总字符个数
+        // 全小写，大写字母个数等于0
+        // 首字母大写，大写字母个数等于1且首字母大写
+        return upwordCnts == n || upwordCnts == 0 || (upwordCnts == 1 && word.charAt(0) >= 'A' && word.charAt(0) <= 'Z');
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def detectCapitalUse(self, word: str) -> bool:
+        upword_cnts = 0
+        n = len(word)
+        for ch in word:
+            if ch >= 'A' and ch <= 'Z':
+                upword_cnts += 1
+        # 全大写，大写字母个数等于总字符个数
+        # 全小写，大写字母个数等于0
+        # 首字母大写，大写字母个数等于1且首字母大写
+        return upword_cnts == n or upword_cnts == 0 or (upword_cnts == 1 and word[0] >= 'A' and word[0] <= 'Z')
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    bool detectCapitalUse(string word) {
+        int upwordCnts = 0;
+        int n = word.size();
+        for(auto& ch: word){
+            if(ch >= 'A' && ch <= 'Z')upwordCnts++;
+        }
+        // 全大写，大写字母个数等于总字符个数
+        // 全小写，大写字母个数等于0
+        // 首字母大写，大写字母个数等于1且首字母大写
+        return upwordCnts == n || upwordCnts == 0 || (upwordCnts == 1 && word[0] >= 'A' && word[0] <= 'Z');
+    }
+};
+```
+

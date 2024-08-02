@@ -1,0 +1,45 @@
+> Problem: [2787. 将一个数字表示成幂的和的方案数](https://leetcode.cn/problems/ways-to-express-an-integer-as-sum-of-powers/description/)
+
+[TOC]
+
+# 思路
+
+> 直接套一维0-1背包模板，注意一个遇到的坑：取余操作的优先级问题，dp[j] = (dp[j] + dp[j - power]) % mod;和dp[j] = dp[j] + dp[j - power] % mod;前者会先计算和再取余，后者先对一个操作数取余再相加，可能会溢出
+
+# 解题方法
+
+> 对所有x次幂小于n的数遍历，就是把取和不取的情况数目相加就行，注意取余操作的运算符优先级。
+
+# 复杂度
+
+时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n^2)$
+
+空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public int numberOfWays(int n, int x) {
+        long[] dp = new long[n + 1];
+        int mod = (int)1e9 + 7;
+        dp[0] = 1;
+        for(int i = 1; i <= n; i++){
+            int power = (int)Math.pow((double)i, x);
+            if(power > n)
+                break;
+            for(int j = n; j >= power; j--){
+                dp[j] = (dp[j] + dp[j - power]) % mod;
+            }
+        }
+        return (int)dp[n] % mod;
+    }
+}
+```
+

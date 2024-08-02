@@ -1,0 +1,48 @@
+> Problem: [329. 矩阵中的最长递增路径](https://leetcode.cn/problems/longest-increasing-path-in-a-matrix/description/)
+
+# Code
+
+* []
+
+```C++
+const int N = 210;
+
+class Solution {
+public:
+    int res;
+    int f[N][N];
+    int dx[4] = {0, 1, 0, -1};
+    int dy[4] = {1, 0, -1, 0};
+    int longestIncreasingPath(vector<vector<int>>& g) 
+    {
+        int n = g.size(), m = g[0].size();
+
+        memset(f, -1, sizeof f);
+
+        function<int(int, int)> dfs = [&](int a, int b) -> int
+        {
+            if (f[a][b] != -1) return f[a][b];
+
+            int mx = 0;
+            for (int i = 0; i < 4; i ++ )
+            {
+                int x = a + dx[i], y = b + dy[i];
+                if (x >= 0 && x < n && y >= 0 && y < m && g[x][y] < g[a][b])
+                    mx = max(mx, dfs(x, y));
+            }
+
+            if (mx) f[a][b] = mx + 1;
+            else f[a][b] = 1;
+
+            return f[a][b];
+        };
+
+        for (int i = 0; i < n; i ++ )
+            for (int j = 0; j < m; j ++ )
+                res = max(res, dfs(i, j));
+            
+        return res;
+    }
+};
+```
+

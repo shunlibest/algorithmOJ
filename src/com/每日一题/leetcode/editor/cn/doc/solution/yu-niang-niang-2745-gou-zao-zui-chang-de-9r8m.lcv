@@ -1,0 +1,42 @@
+> Problem: [2745. 构造最长的新字符串](https://leetcode.cn/problems/construct-the-longest-new-string/description/)
+
+[TOC]
+
+# 思路
+
+1. AA 后面只能跟 BB
+2. BB 后面可以跟 AA 或者 AB
+3. AB 后面可以跟 AA 或者 AB
+4. 也就是说，共有以下几条有向边：x->y,y->x/y->z/z->x/z->z
+5. 那么可以先通过 x->y->z 形成链，然后其中一些元素会有剩余， 然后可以考虑 x->y 链和 z 自环形成的链：
+   - 只剩 x: 队列后面，可以加一个 x, x->y->z->x
+   - 只剩 y: 队列前面，可以加一个 y, y->x->y->z
+   - 只剩 z: 队列后面，可以加无数个 z, x->y->z->z....
+   - 只剩 x/y: 队列前面，可以加无数个 xy, x->y->x->y->z
+   - 只剩 x/z: 队列后面，加无数个 z，最后加个 x,x->y->z...z->x
+   - 只剩 y/z: 队列前面加一个y，后面加无数个 z, y->x->y->z...z
+6. 然后发现，可以简化，我们可以把 z 单独拿出来，必然能消耗，得到 2*z 的字符串，然后：
+   - 先形成 x和y较小值形成的字符串，长度 4*min(x,y)【**xy**xyxyzzzzzz】
+   - 然后如果有剩余，再增加 2【**y**xyzzzz/zzzzxy**x**】
+
+# 解题方法
+
+1. 答案取 z 的数量乘以 2（每个AB长度是2）
+2. 再取 xy 较小值乘以 4（xy分别是AABB，合起来长度是 4）
+3. 若 xy 不等，则多出来的还可以取出一个拼在前后，再增加两个（**BB**AABBABAB/AABBABAB**AA**）
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public int longestString(int x, int y, int z) {
+        int ans = z*2+4*Math.min(x,y);
+        return x==y?ans:ans+2;
+    }
+}
+```
+
+时间复杂度：O(1)
+空间复杂度：O(1)

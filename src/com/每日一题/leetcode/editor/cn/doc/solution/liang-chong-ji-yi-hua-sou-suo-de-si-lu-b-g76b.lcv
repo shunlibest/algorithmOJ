@@ -1,0 +1,140 @@
+## 从左到右逐个考虑如何添加符号
+
+不妨从 `nums[0]` 开始考虑：
+
+- 如果我们添加 `+`，那么接下来要计算的，就是利用 `nums[1:n-1]`  凑出 `target-nums[0]` 的方法数 `cnt1`
+- 如果我们添加 `-`，那么接下来要计算的，就是利用 `nums[1:n-1]` 凑出 `target+nums[0]`的方法数 `cnt2`
+
+那么利用 `nums[0:n-1]` 凑出 `target` 的方法数就是 `cnt1+cnt2`
+
+显然我们可以归纳出一个与原问题类似且规模更小的子问题：求利用 `nums[i:n-1]` 凑出 `t` 的方法数。考虑设置递归函数 `dfs(i,t)` 来解决：
+
+1. 递归边界：当 `i>=n` 时，我们已用完了所有的数字，若此时 `t==0` ，则恰好说明找到了一组表达式，返回1
+2. 递归过程：`dfs(i+1,t-nums[i])+dfs(i+1,t+nums[i])`
+
+不难看出在递归的过程中存在许多重复的运算，我们可以考虑用 `dp[i][target]` 来存储 `dfs(i,target)` 的结果，为了方便起见，这里我们用 `vector<unordered_map<int, int>>` 来充当 `dp[][]`：
+
+* c++
+
+```c++
+class Solution {
+public:
+    int findTargetSumWays(vector<int> &nums, int target) {
+        int n = nums.size();
+
+        vector<unordered_map<int, int>> dp(n); // dp[i][t]表示用 nums[i:n-1] 凑出 t 的方案数
+        function<int(int, int)> dfs = [&](int i, int t) -> int {
+            if (i == n)
+                return t == 0;
+            if (dp[i].count(t))
+                return dp[i][t];
+            // 如果添加的是+号，那么剩下的元素需要凑出 t-nums[i]
+            // 如果添加的是-号，那么剩下的元素需要凑出 t+nums[i]
+            return dp[i][t] = dfs(i + 1, t - nums[i]) + dfs(i + 1, t + nums[i]);
+        };
+
+        return dfs(0, target);
+    }
+};
+```
+
+时间复杂度：$O(nm)$，其中 $m = \sum_{i=0\sim n-1} nums[i]$
+
+空间复杂度：$O(nm)$
+
+注：这里如果直接翻译为递推，需要开辟完整的 `dp[][]` 数组，并全量遍历。
+
+## 0-1背包法
+
+我们可以对本题做一个转换：从 `nums[]` 中选取一定的元素作为集合1，剩余的元素作为集合2。其中集合1中的元素为我们最终添加正号的元素，设这些元素之和为 `p`。集合2为我们最终要添加负号的元素，设这些元素之和为 `q`，设 `nums` 中的所有元素之和为 `s`，那么有：
+$$
+\left\{\begin{array}{l}
+p+q=s \\
+p-q=target
+\end{array}\right.
+$$
+因此 ，我们可以利用 0-1 背包的思，计算从 `nums[]` 中挑选出和为 `p` 或者 `q` 的方法数，就可以变相的计算出添加符号使得最终所有元素之和为 `target` 的方法数。
+
+由于我们只要计算其中挑选其中一个集合的方法数（剩余的元素自然就是另一个集合的），因此还要进一步考虑应该去计算哪个集合。解得上述方程：
+$$
+\left\{\begin{array}{l}
+p=\frac{s+\text { target }}{2} \\
+q=\frac{s-\text { target }}{2}
+\end{array}\right.
+$$
+容易知道：
+
+- 如果 `target > 0`，显然 `q` 更小
+- 如果 `target < 0` ，显然 `p` 更小
+
+从最小化开销的角度来说，我们应该选择总重量更小的背包，故这里我们可以统一的去计算背包总重量为 $\frac{s-|target|}{2}$ 的方法数（这样一定能保证我们计算的是规模更小的一个背包）。
+
+* c++
+
+```c++
+class Solution {
+public:
+    int findTargetSumWays(vector<int> &nums, int target) {
+        int s = accumulate(nums.begin(), nums.end(), 0) - abs(target);
+        if (s < 0 || s % 2) {
+            return 0;
+        }
+        int m = s / 2; // 背包容量
+
+        // 利用0-1背包的思想，计算从nums[]中取出和为m的方案数
+        int n = nums.size();
+        vector<vector<int>> dp(n, vector<int>(m + 1, -1));
+        function<int(int, int)> dfs = [&](int i, int c) -> int {
+            if (i == n)
+                return c == 0;
+            if (dp[i][c] != -1)
+                return dp[i][c];
+            // 不选nums[i]，则要从 i+1~n-1中选取和为c的方案数
+            int res = dfs(i + 1, c);
+            // 选取nums[i]，则要从 i+1~n-1中选取和为c-nums[i]的方案数
+            if (c >= nums[i])
+                res += dfs(i + 1, c - nums[i]);
+            return dp[i][c] = res;
+        };
+
+        return dfs(0, m);
+    }
+};
+```
+
+将上述递归的过程翻译为递推，就可以得到动态规划的实现
+
+* c++
+
+```c++
+class Solution {
+public:
+    int findTargetSumWays(vector<int> &nums, int target) {
+        int s = accumulate(nums.begin(), nums.end(), 0) - abs(target);
+        if (s < 0 || s % 2) {
+            return 0;
+        }
+        int m = s / 2; // 背包容量
+
+        // 利用0-1背包的思想，计算从nums[]中取出和为m的方案数
+        int n = nums.size();
+        vector<vector<int>> dp(n + 1, vector<int>(m + 1));
+        dp[n][0] = 1;
+        for (int i = n - 1; i >= 0; i--) {
+            for (int j = 0; j <= m; j++) {
+                dp[i][j] = dp[i + 1][j];
+                if (j >= nums[i]) {
+                    dp[i][j] += dp[i + 1][j - nums[i]];
+                }
+            }
+        }
+
+        return dp[0][m];
+    }
+};
+```
+
+时间复杂度：$O(mn)$，$m = \sum_{i=0 \sim n-1} nums[i] - |target|$
+
+空间复杂度：$O(mn)$
+

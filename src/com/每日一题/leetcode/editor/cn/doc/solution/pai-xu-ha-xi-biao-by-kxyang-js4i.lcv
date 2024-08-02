@@ -1,0 +1,42 @@
+### 思路：
+
+越长的序列越可能是答案，如果最长的字串没有重复出现，那答案就是其长度；否则，就考虑次长的字串。
+结合上述思路，可以使用排序+哈希表。
+
+### 算法：
+
+- 1.先对字串排序，再使用哈希表进行统计出现次数。
+- 2.从最长的字串开始考虑，若最长的只出现一次，返回长度。
+- 3.否则，记录当前字串，考虑下一个长度；若下一个长度只出现一次，还需判断其是否为前面一个长度的子序列。
+- 4.直到找到答案，否则返回-1。
+
+* []
+
+```Python
+class Solution:
+    def findLUSlength(self, strs: List[str]) -> int:
+        strs.sort(key=lambda x:-len(x))
+        cnt = defaultdict(int)
+        for i in strs:
+            cnt[i] += 1
+        
+        def check(long, short): # 采用双指针判断short是否为long的子序列
+            i = j = 0
+            while i < len(long) and j < len(short):
+                if long[i] == short[j]:
+                    j += 1
+                i += 1
+            return j == len(short)
+        
+        cand = []
+        for k, v in cnt.items():
+            if v == 1:
+                if not cand:
+                    return len(k)
+                else: # 判断k是否为前面所有长度更长字串的子序列
+                    if all(not check(q,k) for q in cand):
+                        return len(k)
+            cand.append(k)
+        return -1
+```
+

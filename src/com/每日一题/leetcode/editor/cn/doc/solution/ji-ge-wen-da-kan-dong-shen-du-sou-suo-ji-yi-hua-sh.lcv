@@ -1,0 +1,86 @@
+### 解题思路：
+
+`matrix` 为储存原本数字的矩阵
+创建一个新矩阵 `store`，每一个格子 `(i,j)` 表示在 `matrix` 上走到格子 `(i,j)`，最长的递增路径长度
+&ensp;
+旁白：每次当我们看到一个新格子，我们问什么问题？
+&ensp;
+小明问：我能从哪里走到这个格子？
+小红答：上、下、左、右四个格子中，`matrix` 中储存的数字小于我这个格子的地方，都可以走到我现在这个格子
+&ensp;
+小明问：那我在能选的选项里选哪个？
+小红答：选上、下、左、右中 `store 值` 最大的
+&ensp;
+小明问：那我现在这个格子的 `store 值` 应该存多少？
+小红答：就是我选择的上一个格子储存的 `store 值` +1 呗
+&ensp;
+小明问：那我怎么算上、下、左、右每个格子储存了多长的路径？
+小红答：重复上面相同的搜索方式(查看这些格子各自的上下左右)，直到我遇到一个格子，这个格子上下左右比它 `matrix 值` 小的格子的 `store 值` 都已知了
+&ensp;
+小明问：可是我没有初始化我的 store 矩阵，怎么可能一开始就深搜到一个周围 `store 值` 都已知的格子呢？
+小红说：当你搜到一个格子，这个格子里的 `matrix` 数字很小，上下左右格子都比它大，你说我现在这个格子的 `store 值` 的计算，还需要看上下左右的 `store 值` 吗？这个格子的 `store 值` 直接填1就可以啦
+&ensp;
+小红补充说：从某个格子开始的深搜，不能保证整个 `matrix` 都被覆盖，所以你每次 `matrix` 里遇到一个还没有 `store 值` 的格子，就从它开始往底下深搜就行啦。
+小明说：啦啦啦啦啦啦
+&ensp;
+【我已经不是一个小学生了，为什么我还是只能想到小明和小红 = = ...】
+&ensp;
+
+### 附Python代码
+
+![截屏2020-07-26 下午5.46.18.png](https://pic.leetcode-cn.com/eb61a25a90263b1458cf70897dcdf88dc82942648dad6a415c73ef63930cb71e-%E6%88%AA%E5%B1%8F2020-07-26%20%E4%B8%8B%E5%8D%885.46.18.png)
+
+* []
+
+```Python
+class Solution:
+    def longestIncreasingPath(self, matrix: List[List[int]]) -> int:
+        if not matrix:
+            return 0
+
+        h,w = len(matrix),len(matrix[0])
+
+        store = [[None]*(w) for i in range(h)]
+
+        m = 0 #储存max路径值
+
+        def search_nearby(i,j):
+            nonlocal m
+
+            compare = [] #储存可以比较的候选人
+
+            #这个楼主很懒,还没想怎么简化下面的代码
+            #反正下面四个代码块就是分别看一下上、下、左、右哪些格子的值可以当做候选人比较
+
+            #上
+            if i != 0 and matrix[i-1][j] < matrix[i][j]: #有上边且上边小于当前数的话
+                compare.append(store[i-1][j]) if store[i-1][j] else compare.append(search_nearby(i-1,j))
+
+            #左
+            if j != 0 and matrix[i][j-1] < matrix[i][j]: #有左边且左边小于当前数的话
+                compare.append(store[i][j-1]) if store[i][j-1] else compare.append(search_nearby(i,j-1))
+
+            #下
+            if i != h-1 and matrix[i+1][j] < matrix[i][j]: #有下边且下边小于当前数的话
+                compare.append(store[i+1][j]) if store[i+1][j] else compare.append(search_nearby(i+1,j))
+
+            #右
+            if j != w-1 and matrix[i][j+1] < matrix[i][j]: #有右边且右边小于当前数的话
+                compare.append(store[i][j+1]) if store[i][j+1] else compare.append(search_nearby(i,j+1))
+            
+            store[i][j] = max(compare)+1 if compare else 1
+            #如果没有compare说明这是一个很小的数，是一个起始点，能组成的长度只有1
+            #有的话就原来最长路径+1
+
+            m = max(m,store[i][j])
+            return (store[i][j])
+        
+        for i in range(h):
+            for j in range(w):
+                if not store[i][j]:
+                    search_nearby(i,j)
+        
+        return m
+
+```
+

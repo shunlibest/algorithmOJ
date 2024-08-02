@@ -1,0 +1,75 @@
+官方题解的链接:
+https://leetcode-cn.com/problems/tallest-billboard/solution/zui-gao-de-yan-gao-pai-by-leetcode/
+官方题解语文不及格, 可以看一下这个清晰的描述:
+https://leetcode-cn.com/problems/tallest-billboard/solution/yi-quan-ji-ben-mei-shuo-ming-bai-de-zhe-pian-kan-l/
+
+这篇文章试图还原一下这个动态规划算法是如何被思考出来的.
+有以下线索:
+
+线索1: 钢筋的长度总和最多为 5000
+专门提示了钢筋长度总和的限制范围.
+那么"钢筋长度总和"很有可能可以作为一个状态变量.
+
+线索2: 对于钢筋rods[i], 只有三种选择: (1) 放到左边 (2) 放到右边 (3) 跳过(不选择)
+令a为到序号i - 1为止, 左边的累积和, b为到序号i - 1为止, 右边的累积和.
+定义这两个变量, 是非常自然的想法, 因为题目要求的就是最终两边的累积和相等.
+
+如果选择(1), 则a += rods[i];
+如果选择(2), 则b += rods[i]
+如果选择(3), 则什么也不做.
+
+线索1提到了"钢筋长度总和", 对应的就是S0 = a + b
+状态转移方程为 dp[S0] = max(dp[S0], a)
+但是这有一些明显的缺点:
+1 随着i的增长, S0总是单调递增的, 状态重复率太低了.
+2 结束迭代时, 要求return的dp[S0]中的S0具体是多少是不知道的
+3 结束迭代时, 无法保证满足约束条件 S0 == a + b == a + a == 2 * a
+
+想办法微调一下S0的定义, 克服以上缺点.
+从结束迭代时, 约束条件 a == b, 不难想到另一种定义:
+S1 = a - b, 也是线性表达式.
+状态转移方程为 dp[S1] = max(dp[S1], a)
+1 随着i的增长, S1值忽高忽低, 状态重复率很高.
+2 结束迭代时, 很明显, 只要return dp[0].
+3 dp[0]可以保证满足约束条件a == b
+
+**根据S1的定义, 不难理解官方题解"总和"中的系数+1, -1, 0.**
+
+* []
+
+```C++
+class Solution {
+public:
+	int tallestBillboard(vector<int>& rods) {
+		unordered_map<int, int> dp;
+		dp[0] = 0;
+		for (auto rod : rods) {
+			unordered_map<int, int> dp2(dp);
+			for (auto p : dp2) {
+				int s{ p.first };
+				int a{ p.second };
+				dp[s + rod] = max(dp[s + rod], a + rod);
+				dp[s - rod] = max(dp[s - rod], a);
+			}
+		}
+		return dp[0];
+	}
+};
+```
+
+* []
+
+```python
+from collections import defaultdict
+class Solution:
+    def tallestBillboard(self, rods: List[int]) -> int:
+        dp = defaultdict(int)
+        dp[0] = 0
+        for rod in rods:
+            for s, a in list(dp.items()):
+                dp[s + rod] = max(dp[s + rod], a + rod)
+                dp[s - rod] = max(dp[s - rod], a)
+        return dp[0]
+```
+
+代码基本上是一样的, 除了使用了defaultdict, 默认取值为0, 正好符合本题要求的最小值(找不到的情况下).

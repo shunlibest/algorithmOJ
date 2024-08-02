@@ -1,0 +1,31 @@
+### 解题思路：
+
+每次比较前 `i 项和和后 `i` 项和(前项和与后项和均包含 `nums[i]`)。
+1. 如果相等就返回 `i`。
+2. 不相等进行下次循环直到最后。
+
+![724.题解.png](https://pic.leetcode-cn.com/1611798539-LdwDFR-724.%E9%A2%98%E8%A7%A3.png)
+
+* []
+
+```Java
+class Solution {
+    public int pivotIndex(int[] nums) {
+        int sum1 = 0;
+        for(int num: nums){
+            sum1 += num;
+        }
+        int sum2 = 0;
+        for(int i = 0; i<nums.length; i++){           
+            sum2 += nums[i];
+            if(sum1 == sum2){
+                return i;
+            }
+            sum1 = sum1 - nums[i];
+        }
+        return -1;
+    }
+}
+```
+
+![image.png](https://pic.leetcode-cn.com/1611797655-xspvSK-image.png)

@@ -1,0 +1,74 @@
+### 解题思路
+
+这题的本质是，判断是否存在一条从左上角到右下角的路径，正括号的数量等于反括号的数量，并且在路径上的每一个位置，正括号的数量都大于等于反括号的数量。
+
+因此如果左上角是反括号，或者右下角是正括号，直接返回false
+
+路径上的总括号数m+n-1如果是奇数，也可以直接返回false
+
+每一个格子的状态，与它左边格子，和上边格子有关，因此可以考虑动态规划
+
+建立三维dp布尔数组
+dp[i][j][k] = true，表示走到第i行，第j列，正括号与负括号之差可以为k
+dp[i][j][k] = false，表示走到第i行，第j列，正括号与负括号之差不可以为k
+
+初始条件为dp[0][0][1] = true
+
+转移方程：
+
+如果grid[i][j] = '('
+dp[i][j][k] = dp[i-1][j][k-1] ||  dp[i][j-1][k-1]
+
+如果grid[i][j] = ')'
+dp[i][j][k] = dp[i-1][j][k+1] ||  dp[i][j-1][k+1]
+
+最后检查dp[m-1][n-1][0]是否为true即可
+
+也可以进一步压缩为二维dp，周赛时间有限，就没优化了。。
+
+### 代码
+
+* cpp
+
+```cpp
+class Solution {
+public:
+    bool hasValidPath(vector<vector<char>>& grid) {
+        if(grid[0][0] == ')' || grid.back().back() == '(')
+            return false;
+        int m = grid.size();
+        int n = grid[0].size();
+        //有m+n-1个格子
+        if((m+n-1) % 2 == 1)
+            return false;
+        //最多有(m+n-1)/2个正括号
+        int max = (m+n-1)/2;
+        vector<vector<vector<bool>>> dp(m, vector<vector<bool>>(n, vector<bool>(max+1, false)));
+        dp[0][0][1] = true;
+        for(int i = 0; i < m; ++i)
+        {
+            for(int j = 0; j < n; ++j)
+            {
+                //走到第i行，第j列，最多可能有i+j+1个正括号
+                for(int k = 0; k <= i+j+1 && k <= max; ++k)
+                {
+                    if(grid[i][j] == '(')
+                    {
+                        if(k == 0) continue;
+                        if((i-1 >= 0 && dp[i-1][j][k-1]) || (j-1 >= 0 && dp[i][j-1][k-1]))
+                            dp[i][j][k] = true;
+                    }
+                    else
+                    {
+                        if(k == max) continue;
+                        if((i-1 >= 0 && dp[i-1][j][k+1]) || (j-1 >= 0 && dp[i][j-1][k+1]))
+                            dp[i][j][k] = true;
+                    }
+                }
+            }
+        }
+        return dp.back().back()[0];
+    }
+};
+```
+

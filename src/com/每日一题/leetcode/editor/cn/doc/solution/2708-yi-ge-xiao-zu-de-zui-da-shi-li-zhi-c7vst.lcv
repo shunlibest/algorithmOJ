@@ -1,0 +1,360 @@
+# 前言
+
+最直观的思路是遍历数组 $\textit{nums}$ 的所有非空子集，对于每个非空子集计算子集所有元素的乘积作为该子集的小组实力值，然后得到小组的最大实力值。可以使用回溯或迭代枚举的方法遍历数组 $\textit{nums}$ 的所有非空子集。用 $n$ 表示数组 $\textit{nums}$ 的长度，则数组 $\textit{nums}$ 的非空子集数目是 $2^n - 1$。
+
+时间复杂度更低的做法是利用贪心或动态规划的思想，不需要遍历数组 $\textit{nums}$ 的所有非空子集。
+
+# 解法一
+
+## 思路和算法
+
+使用回溯遍历所有非空子集时，需要遍历数组 $\textit{nums}$ 中的每个元素，对于每个元素，可以不加入子集或加入子集。
+
+回溯的过程中需要维护当前已经遍历过的加入子集的元素的乘积 $\textit{strength}$、当前下标 $\textit{index}$ 和子集元素个数 $\textit{groupSize}$，初始时 $\textit{strength} = 1$，$\textit{index} = 0$，$\textit{groupSize} = 0$。
+
+回溯的终止条件是 $\textit{index} = n$，此时所有的元素都已经遍历过，如果 $\textit{groupSize} > 0$ 则子集非空，使用 $\textit{strength}$ 更新小组的最大实力值。
+
+当 $\textit{index} < n$ 时，$\textit{nums}[\textit{index}]$ 可以不加入子集或加入子集，因此需要对如下两种情况分别计算。
+
+- 使用乘积 $\textit{strength}$、下标 $\textit{index} + 1$ 和子集元素个数 $\textit{groupSize}$ 继续调用回溯。
+
+- 使用乘积 $\textit{strength} \oplus \textit{nums}[\textit{index}]$、下标 $\textit{index} + 1$ 和子集元素个数 $\textit{groupSize} + 1$ 继续调用回溯。
+
+遍历所有的子集之后，即可得到小组的最大实力值。
+
+## 代码
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    int[] nums;
+    long maximumStrength;
+
+    public long maxStrength(int[] nums) {
+        this.nums = nums;
+        this.maximumStrength = Long.MIN_VALUE;
+        backtrack(1, 0, 0);
+        return maximumStrength;
+    }
+
+    public void backtrack(long strength, int index, int groupSize) {
+        if (index == nums.length) {
+            if (groupSize > 0) {
+                maximumStrength = Math.max(maximumStrength, strength);
+            }
+        } else {
+            backtrack(strength, index + 1, groupSize);
+            backtrack(strength * nums[index], index + 1, groupSize + 1);
+        }
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    int[] nums;
+    long maximumStrength;
+
+    public long MaxStrength(int[] nums) {
+        this.nums = nums;
+        this.maximumStrength = long.MinValue;
+        Backtrack(1, 0, 0);
+        return maximumStrength;
+    }
+
+    public void Backtrack(long strength, int index, int groupSize) {
+        if (index == nums.Length) {
+            if (groupSize > 0) {
+                maximumStrength = Math.Max(maximumStrength, strength);
+            }
+        } else {
+            Backtrack(strength, index + 1, groupSize);
+            Backtrack(strength * nums[index], index + 1, groupSize + 1);
+        }
+    }
+}
+```
+
+## 复杂度分析
+
+- 时间复杂度：$O(2^n)$，其中 $n$ 是数组 $\textit{nums}$ 的长度。需要遍历的子集数目是 $O(2^n)$，对于每个子集的计算时间是 $O(1)$，因此时间复杂度是 $O(2^n)$。
+
+- 空间复杂度：$O(n)$，其中 $n$ 是数组 $\textit{nums}$ 的长度。递归调用栈的空间是 $O(n)$。
+
+# 解法二
+
+## 思路和算法
+
+也可以使用迭代枚举的方法遍历数组 $\textit{nums}$ 的所有子集。
+
+范围 $[0, 2^n - 1]$ 中的每个整数 $\textit{mask}$ 都对应一个子集，对应方法如下：将 $\textit{mask}$ 看成 $n$ 位二进制数，该二进制数的从低到高的第 $i$ 位表示 $\textit{nums}[i]$ 是否属于子集，每个 $1$ 对应一个属于子集的元素，每个 $0$ 对应一个不属于子集的元素。当 $\textit{mask} = 0$ 时对应的子集是空集，当 $\textit{mask} > 0$ 时对应的子集不是空集，因此应遍历范围 $[1, 2^n - 1]$ 中的每个整数 $\textit{mask}$ 并分别计算每个非空子集的元素的乘积。
+
+对于每个子集，计算所有属于子集的元素的乘积 $\textit{strength}$，使用 $\textit{strength}$ 更新小组的最大实力值。
+
+遍历所有的子集之后，即可得到小组的最大实力值。
+
+## 代码
+
+* [sol2-Java]
+
+```Java
+class Solution {
+    public long maxStrength(int[] nums) {
+        long maximumStrength = Long.MIN_VALUE;
+        int n = nums.length;
+        int total = 1 << n;
+        for (int mask = 1; mask < total; mask++) {
+            long strength = 1;
+            for (int i = 0; i < n; i++) {
+                if ((mask & (1 << i)) != 0) {
+                    strength *= nums[i];
+                }
+            }
+            maximumStrength = Math.max(maximumStrength, strength);
+        }
+        return maximumStrength;
+    }
+}
+```
+
+* [sol2-C#]
+
+```C#
+public class Solution {
+    public long MaxStrength(int[] nums) {
+        long maximumStrength = long.MinValue;
+        int n = nums.Length;
+        int total = 1 << n;
+        for (int mask = 1; mask < total; mask++) {
+            long strength = 1;
+            for (int i = 0; i < n; i++) {
+                if ((mask & (1 << i)) != 0) {
+                    strength *= nums[i];
+                }
+            }
+            maximumStrength = Math.Max(maximumStrength, strength);
+        }
+        return maximumStrength;
+    }
+}
+```
+
+## 复杂度分析
+
+- 时间复杂度：$O(n \times 2^n)$，其中 $n$ 是数组 $\textit{nums}$ 的长度。需要遍历的子集数目是 $O(2^n)$，对于每个子集的遍历和计算时间是 $O(n)$，因此时间复杂度是 $O(n \times 2^n)$。
+
+- 空间复杂度：$O(1)$。
+
+# 解法三
+
+## 思路和算法
+
+当 $n = 1$ 时，数组 $\textit{nums}$ 中只有一个元素，只有一个非空子集，因此小组的最大实力值等于数组 $\textit{nums}$ 中的唯一元素。
+
+当 $n > 1$ 时，数组 $\textit{nums}$ 中至少有两个元素，小组的最大实力值一定为非负数，理由如下。
+
+- 如果数组 $\textit{nums}$ 中至少有两个负数，则两个负数的乘积为正数，一定存在小组的实力值为正数。
+
+- 如果数组 $\textit{nums}$ 中只有一个负数且其余元素都是零，则小组的最大实力值为零。
+
+- 如果数组 $\textit{nums}$ 中至少有一个正数，则一定存在小组的实力值为正数。
+
+当 $n > 1$ 时，为了计算小组的最大实力值，可以使用贪心策略，分别计算数组 $\textit{nums}$ 中的所有正数的乘积 $\textit{positiveProduct}$ 和最小的偶数个负数的乘积 $\textit{negativeProduct}$（最小的负数等价于绝对值最大的负数），如果数组 $\textit{nums}$ 中没有正数则 $\textit{positiveProduct} = 1$，如果数组 $\textit{nums}$ 中的负数少于两个则 $\textit{negativeProduct} = 1$。为了方便计算 $\textit{positiveProduct}$ 和 $\textit{negativeProduct}$，可以将数组 $\textit{nums}$ 按升序排序，然后从数组 $\textit{nums}$ 的两端分别遍历数组计算 $\textit{positiveProduct}$ 和 $\textit{negativeProduct}$。计算过程中需要维护参与计算的正数个数 $\textit{positiveCount}$ 和负数个数 $\textit{negativeCount}$。
+
+由于要求子集非空，因此小组的最大实力值计算如下。
+
+- 当 $\textit{positiveCount} + \textit{negativeCount} > 0$ 时，小组的最大实力值等于 $\textit{positiveProduct} \times \textit{negativeProduct}$。
+
+- 当 $\textit{positiveCount} + \textit{negativeCount} = 0$ 时，实力值最大的小组一定包含元素 $0$，小组的最大实力值等于 $0$。
+
+贪心策略的正确性说明如下：当小组的最大实力值为正数时，应使小组内的所有元素的乘积的绝对值最大化，因此应选择数组 $\textit{nums}$ 中的绝对值最大的元素且确保选择的元素乘积为整数，如果不遵循贪心策略，则选择的元素乘积不可能更大。
+
+## 代码
+
+* [sol3-Java]
+
+```Java
+class Solution {
+    public long maxStrength(int[] nums) {
+        int n = nums.length;
+        if (n == 1) {
+            return nums[0];
+        }
+        Arrays.sort(nums);
+        long positiveProduct = 1;
+        int positiveCount = 0;
+        for (int i = n - 1; i >= 0 && nums[i] > 0; i--) {
+            positiveProduct *= nums[i];
+            positiveCount++;
+        }
+        long negativeProduct = 1;
+        int negativeCount = 0;
+        for (int i = 1; i < n && nums[i] < 0; i += 2) {
+            negativeProduct *= nums[i - 1] * nums[i];
+            negativeCount += 2;
+        }
+        return positiveCount + negativeCount > 0 ? positiveProduct * negativeProduct : 0;
+    }
+}
+```
+
+* [sol3-C#]
+
+```C#
+public class Solution {
+    public long MaxStrength(int[] nums) {
+        int n = nums.Length;
+        if (n == 1) {
+            return nums[0];
+        }
+        Array.Sort(nums);
+        long positiveProduct = 1;
+        int positiveCount = 0;
+        for (int i = n - 1; i >= 0 && nums[i] > 0; i--) {
+            positiveProduct *= nums[i];
+            positiveCount++;
+        }
+        long negativeProduct = 1;
+        int negativeCount = 0;
+        for (int i = 1; i < n && nums[i] < 0; i += 2) {
+            negativeProduct *= nums[i - 1] * nums[i];
+            negativeCount += 2;
+        }
+        return positiveCount + negativeCount > 0 ? positiveProduct * negativeProduct : 0;
+    }
+}
+```
+
+## 复杂度分析
+
+- 时间复杂度：$O(n \log n)$，其中 $n$ 是数组 $\textit{nums}$ 的长度。数组 $\textit{nums}$ 排序的时间是 $O(n \log n)$，排序之后最多需要遍历数组 $\textit{nums}$ 的每个元素一次。
+
+- 空间复杂度：$O(\log n)$，其中 $n$ 是数组 $\textit{nums}$ 的长度。排序的递归调用栈空间是 $O(\log n)$。
+
+# 解法四
+
+## 思路和算法
+
+为了得到小组的最大实力值，对于每个 $0 \le i < n$ 需要分别计算以下标 $i$ 结尾的子数组中的小组的最大实力值，当遍历到下标 $n - 1$ 时即可得到整个数组的小组的最大实力值。
+
+由于数组 $\textit{nums}$ 中的每个元素都可能是正数、负数或零，零与任何数做乘法运算的结果都是零，非零数与正数做乘法运算之后符号不变，非零数与负数做乘法运算之后符号改变，因此为了得到小组的最大实力值，需要分别考虑以每个下标结尾的子数组的小组的最大实力值与最小实力值。
+
+由于当 $i > 0$ 时，以下标 $i$ 结尾的子数组的小组的最大实力值与最小实力值可以通过以下标 $i - 1$ 结尾的子数组的小组的最大实力值与最小实力值计算得到，因此可以使用动态规划计算以每个下标结尾的小组的最大实力值与最小实力值。
+
+创建长度为 $n$ 的数组 $\textit{dpMax}$ 和 $\textit{dpMin}$，其中 $\textit{dpMax}[i]$ 为以下标 $i$ 结尾的子数组的小组的最大实力值，$\textit{dpMin}[i]$ 为以下标 $i$ 结尾的子数组的小组的最小实力值。
+
+当 $i = 0$ 时，以下标 $i$ 结尾的子数组只有一个，元素乘积为 $\textit{nums}[0]$，因此动态规划的边界情况是 $\textit{dpMax}[0] = \textit{dpMin}[0] = \textit{nums}[0]$。
+
+当 $i > 0$ 时，$\textit{dpMax}[i - 1]$ 和 $\textit{dpMin}[i - 1]$ 已知，小组可以不包含或包含元素 $\textit{nums}[i]$。
+
+- 当小组不包含元素 $\textit{nums}[i]$ 时，小组的最大实力值和最小实力值分别为 $\textit{dpMax}[i - 1]$ 和 $\textit{dpMin}[i - 1]$。
+
+- 当小组包含元素 $\textit{nums}[i]$ 时，小组的最大实力值和最小实力值分别为 $\textit{dpMax}[i - 1] \times \textit{nums}[i]$、$\textit{dpMin}[i - 1] \times \textit{nums}[i]$ 和 $\textit{nums}[i]$ 三项中的最大值和最小值。
+
+因此动态规划的状态转移方程是 $\textit{dpMax}[i] = \max(\textit{dpMax}[i - 1], \textit{dpMax}[i - 1] \times \textit{nums}[i], \textit{dpMin}[i - 1] \times \textit{nums}[i], \textit{nums}[i])$，$\textit{dpMin}[i] = \min(\textit{dpMin}[i - 1], \textit{dpMax}[i - 1] \times \textit{nums}[i], \textit{dpMin}[i - 1] \times \textit{nums}[i], \textit{nums}[i])$。
+
+由于每一项依赖于前一项，因此应从小到大遍历每个 $i$ 并计算 $\textit{dpMax}[i]$ 和 $\textit{dpMin}[i]$。计算得到 $\textit{dpMax}[n - 1]$ 即为小组的最大实力值。
+
+上述做法的时间复杂度和空间复杂度都是 $O(n)$。
+
+实现方面，由于 $\textit{dpMax}[i]$ 和 $\textit{dpMin}[i]$ 只取决于 $\textit{dpMax}[i - 1]$ 和 $\textit{dpMin}[i - 1]$，和更早的状态无关，因此可以使用滚动数组的思想，对于 $\textit{dpMax}$ 和 $\textit{dpMin}$ 分别只保留前一项，将空间复杂度降到 $O(1)$。
+
+## 代码
+
+下面的代码为不优化空间的实现。
+
+* [sol4_1-Java]
+
+```Java
+class Solution {
+    public long maxStrength(int[] nums) {
+        int n = nums.length;
+        long[] dpMax = new long[n];
+        long[] dpMin = new long[n];
+        dpMax[0] = nums[0];
+        dpMin[0] = nums[0];
+        for (int i = 1; i < n; i++) {
+            long product1 = dpMax[i - 1] * nums[i];
+            long product2 = dpMin[i - 1] * nums[i];
+            dpMax[i] = Math.max(dpMax[i - 1], Math.max(Math.max(product1, product2), nums[i]));
+            dpMin[i] = Math.min(dpMin[i - 1], Math.min(Math.min(product1, product2), nums[i]));
+        }
+        return dpMax[n - 1];
+    }
+}
+```
+
+* [sol4_1-C#]
+
+```C#
+public class Solution {
+    public long MaxStrength(int[] nums) {
+        int n = nums.Length;
+        long[] dpMax = new long[n];
+        long[] dpMin = new long[n];
+        dpMax[0] = nums[0];
+        dpMin[0] = nums[0];
+        for (int i = 1; i < n; i++) {
+            long product1 = dpMax[i - 1] * nums[i];
+            long product2 = dpMin[i - 1] * nums[i];
+            dpMax[i] = Math.Max(dpMax[i - 1], Math.Max(Math.Max(product1, product2), nums[i]));
+            dpMin[i] = Math.Min(dpMin[i - 1], Math.Min(Math.Min(product1, product2), nums[i]));
+        }
+        return dpMax[n - 1];
+    }
+}
+```
+
+下面的代码为优化空间的实现。
+
+* [sol4_2-Java]
+
+```Java
+class Solution {
+    public long maxStrength(int[] nums) {
+        int n = nums.length;
+        long dpMax = nums[0];
+        long dpMin = nums[0];
+        for (int i = 1; i < n; i++) {
+            long product1 = dpMax * nums[i];
+            long product2 = dpMin * nums[i];
+            long dpMaxNew = Math.max(dpMax, Math.max(Math.max(product1, product2), nums[i]));
+            long dpMinNew = Math.min(dpMin, Math.min(Math.min(product1, product2), nums[i]));
+            dpMax = dpMaxNew;
+            dpMin = dpMinNew;
+        }
+        return dpMax;
+    }
+}
+```
+
+* [sol4_2-C#]
+
+```C#
+public class Solution {
+    public long MaxStrength(int[] nums) {
+        int n = nums.Length;
+        long dpMax = nums[0];
+        long dpMin = nums[0];
+        for (int i = 1; i < n; i++) {
+            long product1 = dpMax * nums[i];
+            long product2 = dpMin * nums[i];
+            long dpMaxNew = Math.Max(dpMax, Math.Max(Math.Max(product1, product2), nums[i]));
+            long dpMinNew = Math.Min(dpMin, Math.Min(Math.Min(product1, product2), nums[i]));
+            dpMax = dpMaxNew;
+            dpMin = dpMinNew;
+        }
+        return dpMax;
+    }
+}
+```
+
+## 复杂度分析
+
+- 时间复杂度：$O(n)$，其中 $n$ 是数组 $\textit{nums}$ 的长度。状态数是 $O(n)$，每个状态的计算时间是 $O(1)$，因此时间复杂度是 $O(n)$。
+
+- 空间复杂度：$O(n)$ 或 $O(1)$，其中 $n$ 是数组 $\textit{nums}$ 的长度。空间复杂度取决于实现方式，不优化空间的实现需要创建长度为 $n$ 的数组 $\textit{dpMax}$ 和 $\textit{dpMin}$ 因此空间复杂度是 $O(n)$，优化空间的实现的空间复杂度是 $O(1)$。
+

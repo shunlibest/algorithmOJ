@@ -1,0 +1,122 @@
+# 解法
+
+## 思路和算法
+
+矩阵 $\textit{mat}$ 的大小是 $m \times n$。对于 $0 \le i < m$ 和 $0 \le j < n$，以单元格 $(i, j)$ 作为结束单元格的经过单元格最大数量有如下两种情况。
+
+- 如果矩阵 $\textit{mat}$ 的第 $i$ 行和第 $j$ 列都没有严格小于 $\textit{mat}[i][j]$ 的元素值，则以单元格 $(i, j)$ 作为结束单元格的经过单元格最大数量等于 $1$。
+
+- 如果矩阵 $\textit{mat}$ 的第 $i$ 行或第 $j$ 列有严格小于 $\textit{mat}[i][j]$ 的元素值，将元素值严格小于 $\textit{mat}[i][j]$ 的单元格的经过单元格最大数量记为 $x$，则则以单元格 $(i, j)$ 作为结束单元格的经过单元格最大数量等于 $x + 1$。
+
+根据上述分析，可以使用动态规划计算以矩阵 $\textit{mat}$ 的每个单元格作为结束单元格的经过单元格最大数量。
+
+创建大小为 $m \times n$ 的二维数组 $\textit{dp}$，其中 $\textit{dp}[i][j]$ 表示以单元格 $(i, j)$ 作为结束单元格的经过单元格最大数量。当 $0 \le i < m$ 且 $0 \le j < n$ 时，$\textit{dp}[i][j] \ge 1$。
+
+为方便处理，规定当 $(i, j)$ 不在矩阵 $\textit{mat}$ 的单元格下标范围中时 $\textit{mat}[i][j] = -\infty$，对应 $\textit{dp}[i][j] = 0$。该情况即为动态规划的边界情况。
+
+当 $0 \le i < m$ 且 $0 \le j < n$ 时，计算 $\textit{dp}[i][j]$ 需要在矩阵 $\textit{mat}$ 的第 $i$ 行和第 $j$ 列的元素值严格小于 $\textit{mat}[i][j]$ 的单元格中寻找经过单元格的最大数量。因此动态规划的状态转移方程是：对于所有满足 $i' \ne i$ 且 $\textit{mat}[i'][j] < \textit{mat}[i][j]$ 的 $i'$ 和所有满足 $j' \ne j$ 且 $\textit{mat}[i][j'] < \textit{mat}[i][j]$ 的 $j'$，$\textit{dp}[i][j] = \max(\max\{\textit{dp}[i'][j]\}, \max\{\textit{dp}[i][j']\}) + 1$。
+
+计算 $\textit{dp}[i][j]$ 时，如果直接遍历矩阵 $\textit{mat}$ 的第 $i$ 行和第 $j$ 列，则每个状态的计算时间是 $O(m + n)$，总时间复杂度是 $O(mn(m + n))$，该时间复杂度过高，需要优化。
+
+由于状态转移时只会从元素值小的单元格转移到元素值大的单元格，因此计算 $\textit{dp}[i][j]$ 的顺序为 $\textit{mat}[i][j]$ 递增的顺序。可以升序遍历矩阵 $\textit{mat}$ 中的元素值并计算相应位置的动态规划状态值。
+
+使用哈希表记录矩阵 $\textit{mat}$ 中的每个元素值的所有单元格，然后升序遍历矩阵 $\textit{mat}$ 中的每个元素值并计算每个元素所在单元格的动态规划状态值。为了方便计算，需要维护矩阵 $\textit{mat}$ 的已经遍历的元素中的每一行和每一列的最大动态规划状态值。创建长度为 $m$ 的数组 $\textit{rowsMax}$ 和长度为 $n$ 的数组 $\textit{colsMax}$，其中 $\textit{rowsMax}[i]$ 和 $\textit{colsMax}[j]$ 分别表示矩阵 $\textit{mat}$ 的已经遍历的元素中的第 $i$ 行和第 $j$ 列的最大动态规划状态值，初始时数组 $\textit{rowsMax}$ 和 $\textit{colsMax}$ 中的元素都是 $0$。
+
+对于遍历到的矩阵 $\textit{mat}$ 中的每个元素值，执行如下操作。
+
+1. 遍历该元素值的所有单元格，计算并维护每个单元格的动态规划状态值。对于单元格 $(\textit{row}, \textit{col})$，该单元格的动态规划状态值为 $\textit{maxValue} = \max(\textit{rowsMax}[\textit{row}], \textit{colsMax}[\textit{col}]) + 1$，使用 $\textit{maxValue}$ 更新答案。
+
+2. 再次遍历该元素值的所有单元格，更新数组 $\textit{rowsMax}$ 和 $\textit{colsMax}$ 的元素值。对于单元格 $(\textit{row}, \textit{col})$，将该单元格的动态规划状态值记为 $\textit{maxValue}$，使用 $\textit{maxValue}$ 更新 $\textit{rowsMax}[\textit{row}]$ 和 $\textit{colsMax}[\textit{col}]$。
+
+遍历结束之后，即可得到经过单元格最大数量。
+
+实现方面，不需要创建二维数组 $\textit{dp}$，只需要维护数组 $\textit{rowsMax}$ 和 $\textit{colsMax}$。
+
+## 代码
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    public int maxIncreasingCells(int[][] mat) {
+        int maxIncreasing = 1;
+        Map<Integer, List<int[]>> numPositions = new HashMap<Integer, List<int[]>>();
+        int m = mat.length, n = mat[0].length;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                numPositions.putIfAbsent(mat[i][j], new ArrayList<int[]>());
+                numPositions.get(mat[i][j]).add(new int[]{i, j});
+            }
+        }
+        List<Integer> nums = new ArrayList<Integer>(numPositions.keySet());
+        Collections.sort(nums);
+        int[] rowsMax = new int[m];
+        int[] colsMax = new int[n];
+        for (int num : nums) {
+            List<Integer> maxValues = new ArrayList<Integer>();
+            List<int[]> positions = numPositions.get(num);
+            for (int[] position : positions) {
+                int row = position[0], col = position[1];
+                int maxValue = Math.max(rowsMax[row], colsMax[col]) + 1;
+                maxValues.add(maxValue);
+                maxIncreasing = Math.max(maxIncreasing, maxValue);
+            }
+            int size = positions.size();
+            for (int i = 0; i < size; i++) {
+                int[] position = positions.get(i);
+                int row = position[0], col = position[1], maxValue = maxValues.get(i);
+                rowsMax[row] = Math.max(rowsMax[row], maxValue);
+                colsMax[col] = Math.max(colsMax[col], maxValue);
+            }
+        }
+        return maxIncreasing;
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    public int MaxIncreasingCells(int[][] mat) {
+        int maxIncreasing = 1;
+        IDictionary<int, IList<int[]>> numPositions = new Dictionary<int, IList<int[]>>();
+        int m = mat.Length, n = mat[0].Length;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                numPositions.TryAdd(mat[i][j], new List<int[]>());
+                numPositions[mat[i][j]].Add(new int[]{i, j});
+            }
+        }
+        IList<int> nums = new List<int>(numPositions.Keys);
+        ((List<int>) nums).Sort();
+        int[] rowsMax = new int[m];
+        int[] colsMax = new int[n];
+        foreach (int num in nums) {
+            IList<int> maxValues = new List<int>();
+            IList<int[]> positions = numPositions[num];
+            foreach (int[] position in positions) {
+                int row = position[0], col = position[1];
+                int maxValue = Math.Max(rowsMax[row], colsMax[col]) + 1;
+                maxValues.Add(maxValue);
+                maxIncreasing = Math.Max(maxIncreasing, maxValue);
+            }
+            int size = positions.Count;
+            for (int i = 0; i < size; i++) {
+                int[] position = positions[i];
+                int row = position[0], col = position[1], maxValue = maxValues[i];
+                rowsMax[row] = Math.Max(rowsMax[row], maxValue);
+                colsMax[col] = Math.Max(colsMax[col], maxValue);
+            }
+        }
+        return maxIncreasing;
+    }
+}
+```
+
+## 复杂度分析
+
+- 时间复杂度：$O(mn \log (mn))$，其中 $m$ 和 $n$ 分别是矩阵 $\textit{mat}$ 的行数和列数。记录每个元素值的单元格的时间是 $O(mn)$，将元素值排序的时间是 $O(mn \log (mn))$，动态规划的状态数是 $O(mn)$，每个状态的计算时间是 $O(1)$，因此时间复杂度是 $O(mn \log (mn))$。
+
+- 空间复杂度：$O(mn)$，其中 $m$ 和 $n$ 分别是矩阵 $\textit{mat}$ 的行数和列数。哈希表的空间是 $O(mn)$，数组 $\textit{rowsMax}$ 和 $\textit{colsMax}$ 的空间是 $O(m + n)$，因此空间复杂度是 $O(mn)$。
+

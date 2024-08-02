@@ -1,0 +1,70 @@
+> Problem: [2787. 将一个数字表示成幂的和的方案数](https://leetcode.cn/problems/ways-to-express-an-integer-as-sum-of-powers/description/)
+
+[TOC]
+
+# 思路
+
+> 利用0-1背包的思路可以用动态规划解决此题，考虑数据量少且答案固定，所以直接预处理
+> ![image.png](https://pic.leetcode.cn/1718372137-JYahlf-image.png)
+
+# 复杂度
+
+不考虑预处理时间和空间开销
+时间复杂度:
+
+> $O(1)$
+
+空间复杂度:
+
+> $O(1)$
+
+# Code
+
+* []
+
+```C++
+#define MOD 1000000007
+constexpr int N = 300;
+constexpr int X = 5;
+
+constexpr int power(int base, int exp) {
+	int result = 1;
+	for (int i = 0; i < exp; ++i) {
+		result *= base;
+	}
+	return result;
+}
+
+struct DP {
+	int ans[N + 1][X + 1] = {};
+};
+
+constexpr DP f() {
+	DP dp;
+	for (int i = 1; i <= X; ++i) {
+		int temp[N + 1] = {};
+		temp[0] = 1;
+		for (int j = 1; j <= N; ++j) {
+			int p = power(j, i);
+			if (p > N) break;
+			for (int k = N; k >= p; --k) {
+				temp[k] = (temp[k] + temp[k - p]) % MOD;
+			}
+		}
+		for (int m = 0; m <= N; ++m) {
+			dp.ans[m][i] = temp[m];
+		}
+	}
+	return dp;
+}
+
+constexpr DP dp = f();
+
+class Solution {
+public:
+	int numberOfWays(int n, int x) {
+		return dp.ans[n][x];
+	}
+};
+```
+

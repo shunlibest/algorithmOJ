@@ -1,0 +1,43 @@
+* 
+
+```
+public int wiggleMaxLength(int[] nums) {
+    int len=nums.length;
+    if (len<2) return len;
+    List<Integer> wig_list=new ArrayList<>();
+    wig_list.add(nums[0]);
+    if(nums[1]!=nums[0]) wig_list.add(nums[1]);
+    int PreDvalue=nums[1]-nums[0];
+    for (int i = 2; i < len; i++) {
+        int curDvalue=nums[i]-nums[i-1];
+        if(curDvalue<0&&PreDvalue>=0||curDvalue>0&&PreDvalue<=0){
+            wig_list.add(nums[i]);
+            PreDvalue=curDvalue;
+        }else wig_list.set(wig_list.size()-1,nums[i]);
+    }
+    return wig_list.size();
+}
+```
+
+优化：
+
+* 
+
+```
+public int wiggleMaxLength(int[] nums) {
+    int len=nums.length;
+    if (len<2) return len;
+    int ans=1;
+    if(nums[1]!=nums[0]) ans++;
+    int PreDvalue=nums[1]-nums[0];
+    for (int i = 2; i < len; i++) {
+        int curDvalue=nums[i]-nums[i-1];
+        if(curDvalue<0&&PreDvalue>=0||curDvalue>0&&PreDvalue<=0){
+            ans++;
+            PreDvalue=curDvalue;
+        }
+    }
+    return ans;
+}
+```
+

@@ -1,0 +1,376 @@
+### 前言
+
+背包问题 (Knapsack problem) 是一种组合优化的 NP (NP-Complete) 完全问题。问题可以描述为：给定一组物品，每种物品都有自己的重量和价格，在限定的总重量内，我们如何选择，才能使得物品的总价格最高。问题的名称来源于如何选择最合适的物品放置于给定背包中。[@百度百科](https://baike.baidu.com/item/%E8%83%8C%E5%8C%85%E9%97%AE%E9%A2%98)
+
+<br> </br>
+
+**一般问题：**   我们有 $n$ 件物品和一个容量 $(capacity)$ 为 $C$ 的背包，记第 $i$ 件物品的重量 $(weight)$ 为 $w_i$，价值 $(value)$ 为 $v_i$，求将哪些物品装入背包可使价值总和最大。
+
+> **0-1背包：** 如果限定每件物品最多只能选取 $1$ 次（即 $0\ 或\ 1$ 次），则问题称为 `0-1背包问题`。
+
+> **完全背包：** 如果每件物品最多可以选取无限次，则问题称为 `完全背包问题`。
+
+假设放入背包中的物品 $i$ 的数目为 $k_{i}$，则上述背包问题在数学上可表达为：
+
+$\max \  \sum_{i=0}^{n-1}\ k_{i} \cdot v_{i} \ ,$
+受限于 $s.t.$
+$$\sum_{i=0}^{n-1}\ k_{i} \cdot w_{i}  \leqslant C, \quad
+
+\begin{cases}
+\ k_{i} \in\{0,1\} \quad \quad \quad \quad \quad \ \ \textcolor{red}{\longleftarrow} \quad 「{0-1背包问题}」\\
+\ k_{i} \in\{0,1,2,...,+\infty\} \quad \textcolor{red}{\longleftarrow} \quad 「{完全背包问题}」
+\end{cases}
+$$
+
+<br> </br>
+
+**0-1背包** 和 **完全背包** 是两种最为常见的背包问题，其他类型的背包问题，如多重背包、分组背包等可参考网上的一些资料， 如：《背包问题九讲》[（网页版）](http://cuitianyi.com/Pack/) [（PDF版）](https://comzyh.com/upload/PDF/Pack-PDF-Comzyh.pdf)
+
+---
+
+### 解题思路
+
+**题目回顾：** 给定一个整数数组 $nums$ 和一个整数 $target$，向数组中的每个整数前添加 `+` 或 `-`，构造出一个加减表达式，使得运算结果等于 $target$，问有多少种构造方式？
+
+下面介绍两种通用的解决此类问题的方法：
+* 方法一：记忆化搜索
+* 方法二：动态规划
+
+---
+
+**拓展：**
+* 掌握模板，可解决一众「0-1 背包问题」：
+
+  | 题号 |  题解 | 难度 |
+  | :-----| :---- | :----: |
+  | [416. 分割等和子集](https://leetcode-cn.com/problems/partition-equal-subset-sum/) |  [记忆化搜索、动态规划 + 空间优化](https://leetcode-cn.com/problems/partition-equal-subset-sum/solution/by-flix-szk7/) | 中等 |
+  | [474. 一和零](https://leetcode-cn.com/problems/ones-and-zeroes/) |   [记忆化搜索、动态规划 + 空间优化](https://leetcode-cn.com/problems/ones-and-zeroes/solution/by-flix-a384/) | 中等 |
+  | （本题）[494. 目标和](https://leetcode-cn.com/problems/target-sum/) |  [记忆化搜索、动态规划 + 空间优化](https://leetcode-cn.com/problems/target-sum/solution/by-flix-rkb5/) | 中等 |
+  | （雷同题目）[剑指 Offer II 102. 加减的目标值](https://leetcode.cn/problems/YaVDxD) |  [记忆化搜索、动态规划 + 空间优化](https://leetcode.cn/problems/YaVDxD/solution/by-flix-n3q2/) | 中等 |
+  | （接近本题） [1049. 最后一块石头的重量 II](https://leetcode-cn.com/problems/last-stone-weight-ii/) |  [记忆化搜索、动态规划 + 空间优化](https://leetcode-cn.com/problems/last-stone-weight-ii/solution/by-flix-m5mx/) | 中等 |
+
+&nbsp;
+
+* 对「0-1 背包」模板稍加拓展，可用于解决一众「完全背包问题」：
+
+  | 题号 |  题解 | 难度 |
+  | :-----| :---- | :----: |
+  | [322. 零钱兑换](https://leetcode-cn.com/problems/coin-change/) |  [从0-1背包到完全背包，逐层深入+推导](https://leetcode-cn.com/problems/coin-change/solution/by-flix-su7s/) | 中等 |
+  | [518. 零钱兑换 II](https://leetcode-cn.com/problems/coin-change-2/) |  [从0-1背包到完全背包，逐层深入+数学推导](https://leetcode-cn.com/problems/coin-change-2/solution/by-flix-e1vv/) | 中等 |
+  | [279. 完全平方数](https://leetcode-cn.com/problems/perfect-squares/) |  [详解完全背包（含数学推导）](https://leetcode-cn.com/problems/perfect-squares/solution/by-flix-sve5/) | 中等 |
+
+---
+
+**方法一：记忆化搜索**
+
+**递归搜索：** 常规的递归搜索 $dfs(i,\ *args)$ 在到达一个位置 $i$ 时无非有两种情况（选或不选）：
+* 跳过 $i$ 位置：直接考虑下一步；
+* 选择 $i$ 位置：根据实际情况判断该选择是否可行，以及选择 $i$ 之后的下一步操作如何进行。
+
+本题则为对于 $i$  位置元素，给其加加号`+`还是减号`-`，类比于选或不选第 $i$ 个位置上的元素。
+
+> **递归搜索**本质上是暴力解法，时间复杂度通常在指数级别，在数据量较大时显然不是较好的实现方式。
+
+在搜索中加入记忆化后，对应的代码如下：
+
+#### 代码
+
+* []
+
+```Python
+class Solution:
+    def findTargetSumWays(self, nums: List[int], target: int) -> int:
+        
+        cache = {}      # 记忆化单元
+        
+        # @functools.cache  # Python functools自带记忆化单元【启用后可省去自定义cache单元】
+        def dfs(i, summ, t):
+            '''summ: 前i个元素的表达式之和; t: 目标值'''
+            if (i, summ) in cache:          # 记忆化：已存在，直接返回
+                return cache[(i, summ)]
+
+            if i == len(nums):              # 遍历完了全部的元素，递归中止
+                if summ == t:               # 找到了一个满足要求的组合
+                    cache[(i, summ)] = 1
+                else:
+                    cache[(i, summ)] = 0
+                return cache[(i, summ)]
+            
+            pos_cnt = dfs(i+1, summ + nums[i], t)       # nums[i]前面添加'+'号
+            neg_cnt = dfs(i+1, summ - nums[i], t)       # nums[i]前面添加'-'号
+            cache[(i, summ)] = pos_cnt + neg_cnt        # 以上两种情况的组合数之和
+            return cache[(i, summ)]
+        
+        return dfs(0, 0, target)
+```
+
+&nbsp;
+上述算法的时间复杂度接近 $O(2^n),\ n=len(nums)$，因此不适合 $nums$ 中元素较多的情况。
+
+很多**自上而下**的递归搜索过程都可以修改为复杂度更低的**自下而上的**动态规划过程，下面介绍一下动态规划的实现方法。
+
+---
+
+**方法二：动态规划**
+
+**题目分析：**
+
+记数组的元素和为 $total$，添加 `+` 号的元素之和为 $pos$，添加 `-` 号的元素之和为 $neg$，则有以下关系：
+
+$$
+\begin{cases}
+pos + neg = total \\
+
+pos - neg = target
+\end{cases}
+$$
+
+进一步可得：
+
+$$
+\begin{cases}
+pos = (total + target) / 2 \\
+
+neg = (total - target) / 2
+\end{cases}
+$$
+
+**问题转化**：
+此时不难发现，本题实质上是一道「0-1 背包问题」：给定一个只包含正整数的非空数组 $nums$，判断是否可以从数组中选出一些数字（每个元素最多选一次），使得选出的这些数字的和刚好等于 $pos$ 或者 $neg$。
+
+> 程序执行前可先判断 $nums$ 是否满足一些基本条件，如 $total>target$、$total+target$ 能被 $2$ 整除等，若不满足程序则可直接返回 $0$。
+
+---
+
+**「0-1 背包问题」一般形式：**
+动态规划是解决「0−1 背包问题」的标准做法。一般地，我们定义：$dp[i][j]$ 表示前 $i$ 件物品放入一个容量为 $j$ 的背包可以获得的最大价值，则状态转移过程可表示为：
+
+* **不选择**第 $i$ 件物品：问题转化为了前 $i-1$ 件物品放入容量为 $j$ 的背包中所获得的价值：$dp[i][j] =dp[i-1][j]$ ；
+* **选择**第 $i$ 件物品：第 $i$ 件物品占据容量 $w_i$，前 $i-1$ 件物品放入剩下的容量为 $j-w_i$ 的背包中，问题也就转化为了前 $i-1$ 件物品放入容量为 $j-w_i$ 的背包中所获得的价值 $dp[i-1][j-w_i]$ 加上要放入的第 $i$ 件物品的价值 $v_i$：$dp[i][j] =dp[i-1][j-w_i] + v_i$ 。注意，能放入第 $i$ 件物品的前提为：$w_i \leq j$。
+
+两种情况取较大者：
+
+$dp[i][j] = \max\left\{ \ dp[i-1][j],\quad dp[i-1][j-w_i] + v_i \  \right\}\ .\quad \quad \quad （1）$
+
+> ⚠️ 求最优解的背包问题中，有的题目要求`恰好装满背包`时的最优解，有的题目则要求`不超过背包容量`时的最优解。一种区别这两种问法的实现方法是在状态初始化的时候有所不同。[摘自@《背包问题九讲》[（网页版）](http://cuitianyi.com/Pack/) [（PDF版）](https://comzyh.com/upload/PDF/Pack-PDF-Comzyh.pdf)]
+> 初始化的 $dp$ 数组事实上就是在背包中没有放入任何物品时的合法状态：
+> 1. 如果要求`恰好装满背包`，那么在初始化时 $dp[i][0]=0$，其它 $dp[i][1,2,...,*]$ 均设为 $-∞$。这是因为此时只有容量为 $0$ 的背包可能被价值为 $0$ 的 nothing “恰好装满”，而其它容量的背包均没有合法的解，属于未定义的状态。
+> 2. 如果只是要求`不超过背包容量`而使得背包中的物品价值尽量大，初始化时应将  $dp[*][*]$ 全部设为 $0$。这是因为对应于任何一个背包，都有一个合法解为 “什么都不装”，价值为 $0$。
+
+---
+
+<br> </br>
+
+**本题题目分析：**
+
+对于本题而言，$nums[i]$ 则对应于常规背包问题中第 $i$ 件物品的重量。我们要做的是从数组 $nums$ 中选出若干个数字（每个元素最多选一次）使得其和刚好等于 $pos$ 或者 $neg$，并计算有多少种不同的选择方式。
+
+<br> </br>
+
+**I. 状态定义**
+
+$\ \quad$ 对于本题，定义 $dp[i][j]$ 表示：从前 $i$ 个数字中选出若干个，使得被选出的数字其和为 $j$ 的方案数目。
+
+<br> </br>
+
+**II. 状态转移**
+
+$\ \quad$ 根据本题的要求，上述「0-1 背包问题」的状态转移方程（1）可修改为：
+
+$dp[i][j] =   dp[i-1][j] \ + \ dp[i-1][j-nums[i]] \ . \quad \quad \quad \quad （2）$
+
+<br> </br>
+
+**III. 初始化**
+
+$\ \quad$ 记数组 `nums` 的长度为 $n$。为便于状态更新，减少对边界的判断，初始二维 $dp$ 数组维度为 ${(n+1) \times (*)}$，其中第一维为 $n+1$ 也意味着：第 $i$ 个数字为 $nums[i-1]$，第 $1$ 个数字为 $nums[0]$，第 $0$ 个数字为空。
+
+初始化时：
+* $dp[0][0] = 1$：表示从前 $0$ 个数字中选出若干个数字使得其和为 $0$ 的方案数为 $1$，即「空集合」不选任何数字即可得到 $0$。
+* 对于其他 $dp[0][j],\ \ j\geq 1$，则有 $dp[0][j] = 0$：「空集合」无法选出任何数字使得其和为 $j\geq 1$。
+
+  > $dp[i][0] = 1$ 在程序迭代实现中已有体现，在此无需提前重复定义。
+
+&nbsp;
+
+---
+
+#### 代码
+
+**1. 【二维DP】** 动态规划的基础代码如下：
+
+* []
+
+```Python
+class Solution:
+    def findTargetSumWays(self, nums: List[int], target: int) -> int:
+        ''' pos + neg = total  '''
+        ''' pos - neg = target '''
+        total = sum(nums)
+        if abs(target) > total:         # target可能为负
+            return 0
+        if (total + target) % 2 == 1:   # 不能被2整除【对应于pos不是整数】
+            return 0
+        
+        '''【0/1背包】：从nums中选出数字组成pos或neg'''
+        pos = (total + target) // 2
+        neg = (total - target) // 2
+        capcity = min(pos, neg)         # 取pos和neg中的较小者，以使得dp空间最小
+        n = len(nums)
+
+        # 初始化
+        dp = [[0] * (capcity+1) for _ in range(n+1)]
+        # dp[i][j]: 从前i个元素中选出若干个其和为j的方案数
+        dp[0][0] = 1        # 其他 dp[0][j]均为0
+
+        # 状态更新
+        for i in range(1, n+1):
+            for j in range(capcity+1):
+                if j < nums[i-1]:       # 容量有限，无法选择第i个数字nums[i-1]
+                    dp[i][j] = dp[i-1][j]
+                else:                   # 可选择第i个数字nums[i-1]，也可不选【两种方式之和】
+                    dp[i][j] = dp[i-1][j] + dp[i-1][j-nums[i-1]]
+        
+        return dp[n][capcity]
+```
+
+**复杂度分析**
+* 时间复杂度：$O(n×capcity)$，其中 $n$ 是数组的长度，$capcity$ 是 $pos$ 和 $neg$ 中的较小者。
+
+* 空间复杂度：$O(n×capcity)$。
+
+&nbsp;
+
+**2. 【一维DP】** 动态规划的滚动数组优化如下：
+
+在上面的状态转移方程中，每一行的 $dp$ 状态值都只与上一行的 $dp$ 状态值有关，因此可基于**滚动数组**的思想进行对状态空间 $dp$ 进行优化而省去第一维度：
+
+$\textcolor{red}{dp2[j]}=dp[j] + dp[j−nums[i-1]]\ .$
+
+* []
+
+```Python
+class Solution:
+    def findTargetSumWays(self, nums: List[int], target: int) -> int:
+        ''' pos + neg = total  '''
+        ''' pos - neg = target '''
+        total = sum(nums)
+        if abs(target) > total:         # target可能为负
+            return 0
+        if (total + target) % 2 == 1:   # 不能被2整除【对应于pos不是整数】
+            return 0
+        
+        '''【0/1背包】：从nums中选出数字组成pos或neg'''
+        pos = (total + target) // 2
+        neg = (total - target) // 2
+        capcity = min(pos, neg)         # 取pos和neg中的较小者，以使得dp空间最小
+        n = len(nums)
+
+        # 初始化
+        dp = [0] * (capcity+1)
+        dp[0] = 1
+
+        # 状态更新
+        for i in range(1, n+1):
+            dp2 = [0] * (capcity+1)     # 滚动数组
+            for j in range(capcity+1):
+                if j < nums[i-1]:       # 容量有限，无法选择第i个数字nums[i-1]
+                    dp2[j] = dp[j]
+                else:                   # 可选择第i个数字nums[i-1]，也可不选【两种方式之和】
+                    dp2[j] = dp[j] + dp[j-nums[i-1]]
+            dp = dp2
+        
+        return dp[capcity]
+```
+
+* []
+
+```Python
+class Solution:
+    def findTargetSumWays(self, nums: List[int], target: int) -> int:
+        ''' pos + neg = total  '''
+        ''' pos - neg = target '''
+        total = sum(nums)
+        if abs(target) > total:         # target可能为负
+            return 0
+        if (total + target) % 2 == 1:   # 不能被2整除【对应于pos不是整数】
+            return 0
+        
+        '''【0/1背包】：从nums中选出数字组成pos或neg'''
+        pos = (total + target) // 2
+        neg = (total - target) // 2
+        capcity = min(pos, neg)         # 取pos和neg中的较小者，以使得dp空间最小
+
+        # 初始化
+        dp = [0] * (capcity+1)
+        dp[0] = 1
+
+        # 状态更新
+        for num in nums:
+            dp2 = [0] * (capcity+1)     # 滚动数组
+            for j in range(capcity+1):
+                if j < num:             # 容量有限，无法选择当前数字num
+                    dp2[j] = dp[j]
+                else:                   # 可选择当前数字num，也可不选【两种方式之和】
+                    dp2[j] = dp[j] + dp[j-num]
+            dp = dp2
+        
+        return dp[capcity]
+```
+
+**复杂度分析**
+* 时间复杂度：$O(n×capcity)$，其中 $n$ 是数组的长度，$capcity$ 是 $pos$ 和 $neg$ 中的较小者。
+
+* 空间复杂度：$O(capcity)$。
+
+<br> </br>
+
+**3. 【一维DP】内层循环倒序：**
+
+在状态转移过程中，每一行的 $dp$ 状态值都只与其**正上方**和**左上方**的状态值有关，因此可对状态空间 $dp$ 进一步优化而省去滚动数组 $dp2$：
+
+$\textcolor{red}{dp[j]}=dp[j]\ +\ dp[j−nums[i-1]] \  .$
+
+![LeetCode-416-2.png](https://pic.leetcode-cn.com/1650882398-pnsvHV-LeetCode-416-2.png)
+
+考虑到我我们在更新 $dp[j]$ 时，使用的其实是上一行的  $dp$ 值；而如果第二层循环**从小到大**计算的话，那么 $dp[j−nums[i-1]]$ 先于 $dp[j]$ 被更新，因此当我们计算 $dp[j]$ 值的时候，$dp[j−nums[i-1]]$ 已经是被更新过的状态，而不再是上一行的 $dp$ 值了。
+
+而在第二层循环中，通过**从大到小**倒序计算则可巧妙地保证在计算 $dp[j]$ 时所用到的 $dp[j]$ 和 $dp[j-nums[i-1]]$ 均来自上一行。
+
+* []
+
+```Python
+class Solution:
+    def findTargetSumWays(self, nums: List[int], target: int) -> int:
+        ''' pos + neg = total  '''
+        ''' pos - neg = target '''
+        total = sum(nums)
+        if abs(target) > total:         # target可能为负
+            return 0
+        if (total + target) % 2 == 1:   # 不能被2整除【对应于pos不是整数】
+            return 0
+        
+        '''【0/1背包】：从nums中选出数字组成pos或neg'''
+        pos = (total + target) // 2
+        neg = (total - target) // 2
+        capcity = min(pos, neg)         # 取pos和neg中的较小者，以使得dp空间最小
+
+        # 初始化
+        dp = [0] * (capcity+1)
+        dp[0] = 1
+
+        # 状态更新
+        for num in nums:
+            for j in range(capcity, num-1, -1): # 内层循环倒序，且j>=num 【j<num时无需更新dp[j]】
+                dp[j] += dp[j-num]              # 可选择当前数字num，也可不选【两种方式之和】
+        
+        return dp[capcity]
+```
+
+**复杂度分析**
+* 时间复杂度：$O(n×capcity)$，其中 $n$ 是数组的长度，$capcity$ 是 $pos$ 和 $neg$ 中的较小者。
+
+* 空间复杂度：$O(capcity)$。
+
+![494_runtime.png](https://pic.leetcode-cn.com/1650946575-aEGXhc-494_runtime.png)
+

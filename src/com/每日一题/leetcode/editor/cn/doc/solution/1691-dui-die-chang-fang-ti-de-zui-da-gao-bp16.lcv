@@ -1,0 +1,116 @@
+# 解法
+
+## 思路和算法
+
+由于长方体可以旋转，因此可以将每个长方体的三个维度尺寸按升序排序。
+
+如果存在两个长方体的三个维度尺寸分别为 $\textit{cuboid}_1 = [a_1, b_1, c_1]$ 和 $\textit{cuboid}_2 = [a_2, b_2, c_2]$，其中 $a_1 \le b_1 \le c_1$ 且 $a_2 \le b_2 \le c_2$，则当 $a_1 \ge a_2$、$b_1 \ge b_2$ 和 $c_1 \ge c_2$ 都成立时可以将 $\textit{cuboid}_2$ 堆叠在 $\textit{cuboid}_1$ 上，否则不能将 $\textit{cuboid}_2$ 堆叠在 $\textit{cuboid}_1$ 上。理由如下。
+
+- 如果 $a_1 < a_2$，则必有 $a_1 < b_2$ 和 $a_1 < c_2$，因此 $a_1$ 不可能大于等于 $\textit{cuboid}_2$ 的任何一个维度的尺寸，此时不能将 $\textit{cuboid}_2$ 堆叠在 $\textit{cuboid}_1$ 上。
+
+- 如果 $b_1 < b_2$，则必有 $a_1 < b_2$ 和 $a_1 < c_2$，无论是否旋转都不可能使 $a_1$ 和 $b_1$ 同时大于等于 $\textit{cuboid}_2$ 的对应维度的尺寸，此时不能将 $\textit{cuboid}_2$ 堆叠在 $\textit{cuboid}_1$ 上。
+
+- 如果 $c_1 < c_2$，则必有 $b_1 < c_2$ 和 $a_1 < c_2$，因此 $c_2$ 不可能小于等于 $\textit{cuboid}_1$ 的任何一个维度的尺寸，此时不能将 $\textit{cuboid}_2$ 堆叠在 $\textit{cuboid}_1$ 上。
+
+因此，可以将 $\textit{cuboid}_2$ 堆叠在 $\textit{cuboid}_1$ 上，等价于 $a_1 \ge a_2$、$b_1 \ge b_2$ 和 $c_1 \ge c_2$ 都成立。为了方便处理，将数组 $\textit{cuboids}$ 中的每个长方体的三个维度按升序排序，然后将整个数组 $\textit{cuboids}$ 按每个维度的尺寸降序排序。将整个数组 $\textit{cuboids}$ 排序时，比较两个长方体 $\textit{cuboid}_1$ 和 $\textit{cuboid}_2$ 的方法如下。
+
+1. 如果 $\textit{cuboid}_1[0] \ne \textit{cuboid}_2[0]$，则根据 $\textit{cuboid}_1[0]$ 和 $\textit{cuboid}_2[0]$ 按降序排序。
+
+2. 如果 $\textit{cuboid}_1[0] = \textit{cuboid}_2[0]$ 且 $\textit{cuboid}_1[1] \ne \textit{cuboid}_2[1]$，则根据 $\textit{cuboid}_1[1]$ 和 $\textit{cuboid}_2[1]$ 按降序排序。
+
+3. 如果 $\textit{cuboid}_1[0] = \textit{cuboid}_2[0]$ 且 $\textit{cuboid}_1[1] = \textit{cuboid}_2[1]$，则根据 $\textit{cuboid}_1[2]$ 和 $\textit{cuboid}_2[2]$ 按降序排序。
+
+用 $n$ 表示数组 $\textit{cuboids}$ 的长度。将数组排序之后，对于任意 $0 \le j < i < n$，当 $\textit{cuboids}[i]$ 和 $\textit{cuboids}[j]$ 的尺寸不完全相同时，一定不可能出现 $\textit{cuboids}[j]$ 可以堆叠在 $\textit{cuboids}[i]$ 上的情况。
+
+为了使堆叠长方体的高度最大化，应将每个长方体的尺寸最大的维度作为高度的维度。对于每个 $0 \le i < n$ 需要分别计算将 $\textit{cuboids}[i]$ 作为顶端长方体时的堆叠长方体的最大高度，然后在这 $n$ 个最大高度中寻找整个数组的堆叠长方体的最大高度，即可得到答案。
+
+当 $i > 0$ 时，如果存在下标 $j$ 满足 $0 \le j < i$ 且 $\textit{cuboids}[i][0] \le \textit{cuboids}[j][0]$、$\textit{cuboids}[i][1] \le \textit{cuboids}[j][1]$ 和 $\textit{cuboids}[i][2] \le \textit{cuboids}[j][2]$ 都成立，则可以将 $\textit{cuboids}[i]$ 堆叠到 $\textit{cuboids}[j]$ 上。因此可以使用动态规划计算将每个长方体作为顶端长方体时的堆叠长方体的最大高度。
+
+创建长度为 $n$ 的数组 $\textit{dp}$，其中 $\textit{dp}[i]$ 为将 $\textit{cuboids}[i]$ 作为顶端长方体时的堆叠长方体的最大高度。由于任意一个长方体都可以作为独立的长方体，因此对于所有 $0 \le i < n$ 将 $\textit{dp}[i]$ 初始化为 $\textit{cuboids}[i][2]$。
+
+当 $i = 0$ 时，将 $\textit{cuboids}[i]$ 作为顶端长方体时的堆叠长方体只有一个长方体，高度为 $\textit{cuboids}[0][2]$，因此动态规划的边界情况是 $\textit{dp}[0] = \textit{cuboids}[0][2]$。
+
+当 $i > 0$ 时，对于满足 $0 \le j < i$ 且 $\textit{cuboids}[i][0] \le \textit{cuboids}[j][0]$、$\textit{cuboids}[i][1] \le \textit{cuboids}[j][1]$ 和 $\textit{cuboids}[i][2] \le \textit{cuboids}[j][2]$ 都成立的任意下标 $j$，$\textit{dp}[i] \ge \textit{dp}[j] + \textit{cuboids}[i][2]$，为了使 $\textit{dp}[i]$ 最大化，应寻找符合要求的最大的 $\textit{dp}[j]$，此时 $\textit{dp}[i] = \max\{\textit{dp}[j]\} + \textit{cuboids}[i][2]$。因此动态规划的状态转移方程是：对于所有满足 $0 \le j < i$ 且 $\textit{cuboids}[i][0] \le \textit{cuboids}[j][0]$、$\textit{cuboids}[i][1] \le \textit{cuboids}[j][1]$ 和 $\textit{cuboids}[i][2] \le \textit{cuboids}[j][2]$ 都成立的下标 $j$，$\textit{dp}[i] = \max \{\textit{dp}[j]\} + \textit{cuboids}[i][2]$。
+
+由于每一项依赖于之前的项，因此应从小到大遍历每个 $i$ 并计算 $\textit{dp}[i]$。计算得到 $\textit{dp}$ 中的所有状态值之后，其中的最大值即为堆叠长方体的最大高度。
+
+## 代码
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    public int maxHeight(int[][] cuboids) {
+        for (int[] cuboid : cuboids) {
+            Arrays.sort(cuboid);
+        }
+        Arrays.sort(cuboids, (a, b) -> {
+            if (a[0] != b[0]) {
+                return b[0] - a[0];
+            } else if (a[1] != b[1]) {
+                return b[1] - a[1];
+            } else {
+                return b[2] - a[2];
+            }
+        });
+        int n = cuboids.length;
+        int[] dp = new int[n];
+        for (int i = 0; i < n; i++) {
+            dp[i] = cuboids[i][2];
+        }
+        int maxHeight = dp[0];
+        for (int i = 1; i < n; i++) {
+            for (int j = i - 1; j >= 0; j--) {
+                if (cuboids[j][0] >= cuboids[i][0] && cuboids[j][1] >= cuboids[i][1] && cuboids[j][2] >= cuboids[i][2]) {
+                    dp[i] = Math.max(dp[i], dp[j] + cuboids[i][2]);
+                }
+            }
+            maxHeight = Math.max(maxHeight, dp[i]);
+        }
+        return maxHeight;
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    public int MaxHeight(int[][] cuboids) {
+        foreach (int[] cuboid in cuboids) {
+            Array.Sort(cuboid);
+        }
+        Array.Sort(cuboids, (a, b) => {
+            if (a[0] != b[0]) {
+                return b[0] - a[0];
+            } else if (a[1] != b[1]) {
+                return b[1] - a[1];
+            } else {
+                return b[2] - a[2];
+            }
+        });
+        int n = cuboids.Length;
+        int[] dp = new int[n];
+        for (int i = 0; i < n; i++) {
+            dp[i] = cuboids[i][2];
+        }
+        int maxHeight = dp[0];
+        for (int i = 1; i < n; i++) {
+            for (int j = i - 1; j >= 0; j--) {
+                if (cuboids[j][0] >= cuboids[i][0] && cuboids[j][1] >= cuboids[i][1] && cuboids[j][2] >= cuboids[i][2]) {
+                    dp[i] = Math.Max(dp[i], dp[j] + cuboids[i][2]);
+                }
+            }
+            maxHeight = Math.Max(maxHeight, dp[i]);
+        }
+        return maxHeight;
+    }
+}
+```
+
+## 复杂度分析
+
+- 时间复杂度：$O(n^2)$，其中 $n$ 是数组 $\textit{cuboids}$ 的长度。排序需要 $O(n \log n)$ 的时间，动态规划的状态数是 $O(n)$，每个状态的计算时间是 $O(n)$，因此时间复杂度是 $O(n^2)$。
+
+- 空间复杂度：$O(n)$，其中 $n$ 是数组 $\textit{cuboids}$ 的长度。对整个数组 $\textit{cuboids}$ 排序时，由于待排序数组的元素是数组，因此排序需要 $O(n)$ 的空间，动态规划需要创建长度为 $n$ 的数组 $\textit{dp}$。
+

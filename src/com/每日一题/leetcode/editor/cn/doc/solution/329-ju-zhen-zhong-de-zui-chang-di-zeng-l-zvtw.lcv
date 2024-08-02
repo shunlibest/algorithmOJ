@@ -1,0 +1,228 @@
+# 解法一
+
+## 思路和算法
+
+如果矩阵中的两个相邻单元格的值不同，则存在一条从较小值单元格到较大值单元格的递增路径，以较大值单元格结束的最长递增路径的长度需要根据以较小值单元格结束的最长递增路径的长度计算得到，因此可以使用动态规划计算以每个单元格结束的最长递增路径的长度，并得到矩阵中的最长递增路径的长度。
+
+如果使用自底向上的动态规划，则需要找到最长递增路径的起始单元格作为边界情况，起始单元格应满足单元格的值小于等于所有相邻单元格的值，这个边界情况并不直观。这道题更合适的做法是自顶向下的记忆化搜索。
+
+用 $\textit{dp}(i, j)$ 表示以单元格 $(i, j)$ 结束的最长递增路径的长度。记忆化搜索时，需要使用备忘录 $\textit{memo}$ 记录以每个单元格结束的最长递增路径的长度，$\textit{memo}$ 是与矩阵 $\textit{matrix}$ 大小相同的二维数组。由于以任意一个单元格结束的最长递增路径的长度至少是 $1$，因此初始时所有状态值都是 $0$，表示尚未计算。
+
+动态规划的边界情况是：对于单元格 $(\textit{row}, \textit{col})$，如果没有值更小的相邻单元格，则 $\textit{dp}(\textit{row}, \textit{col}) = 1$。
+
+动态规划的状态转移方程是：对于单元格 $(\textit{row}, \textit{col})$，遍历其所有的值更小的相邻单元格 $(\textit{newRow}, \textit{newCol})$，$\textit{dp}(\textit{row}, \textit{col}) = \max\{\textit{dp}(\textit{newRow}, \textit{newCol})\} + 1$。
+
+使用记忆化搜索可以确保每个单元格的状态值只会计算一次。计算得到所有单元格的状态值之后，其中的最大状态值即为矩阵中的最长递增路径的长度。
+
+## 代码
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    static int[][] dirs = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+    int[][] matrix;
+    int m, n;
+    int[][] memo;
+
+    public int longestIncreasingPath(int[][] matrix) {
+        this.matrix = matrix;
+        this.m = matrix.length;
+        this.n = matrix[0].length;
+        this.memo = new int[m][n];
+        int maxLength = 0;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                maxLength = Math.max(maxLength, dp(i, j));
+            }
+        }
+        return maxLength;
+    }
+
+    public int dp(int row, int col) {
+        if (memo[row][col] == 0) {
+            memo[row][col] = 1;
+            for (int[] dir : dirs) {
+                int newRow = row + dir[0], newCol = col + dir[1];
+                if (newRow >= 0 && newRow < m && newCol >= 0 && newCol < n && matrix[row][col] > matrix[newRow][newCol]) {
+                    memo[row][col] = Math.max(memo[row][col], dp(newRow, newCol) + 1);
+                }
+            }
+        }
+        return memo[row][col];
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    static int[][] dirs = {new int[]{-1, 0}, new int[]{1, 0}, new int[]{0, -1}, new int[]{0, 1}};
+    int[][] matrix;
+    int m, n;
+    int[][] memo;
+
+    public int LongestIncreasingPath(int[][] matrix) {
+        this.matrix = matrix;
+        this.m = matrix.Length;
+        this.n = matrix[0].Length;
+        this.memo = new int[m][];
+        for (int i = 0; i < m; i++) {
+            this.memo[i] = new int[n];
+        }
+        int maxLength = 0;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                maxLength = Math.Max(maxLength, DP(i, j));
+            }
+        }
+        return maxLength;
+    }
+
+    public int DP(int row, int col) {
+        if (memo[row][col] == 0) {
+            memo[row][col] = 1;
+            foreach (int[] dir in dirs) {
+                int newRow = row + dir[0], newCol = col + dir[1];
+                if (newRow >= 0 && newRow < m && newCol >= 0 && newCol < n && matrix[row][col] > matrix[newRow][newCol]) {
+                    memo[row][col] = Math.Max(memo[row][col], DP(newRow, newCol) + 1);
+                }
+            }
+        }
+        return memo[row][col];
+    }
+}
+```
+
+## 复杂度分析
+
+- 时间复杂度：$O(mn)$，其中 $m$ 和 $n$ 分别是矩阵 $\textit{matrix}$ 的行数和列数。状态数是 $O(mn)$，每个状态的计算时间是 $O(1)$，因此时间复杂度是 $O(mn)$。
+
+- 空间复杂度：$O(mn)$，其中 $m$ 和 $n$ 分别是矩阵 $\textit{matrix}$ 的行数和列数。递归调用栈的深度和备忘录需要存储的状态数是 $O(mn)$。
+
+## 解法二
+
+## 思路和算法
+
+记忆化搜索为自顶向下的做法。也可以使用自底向上的做法计算矩阵中的最长递增路径的长度，该做法为拓扑排序。
+
+将矩阵看成有向图，矩阵中的每个单元格看成结点，矩阵中的每对相邻且元素不相等的单元格之间存在一条从较小值单元格指向较大值单元格的有向边。入度为 $0$ 的单元格没有值更小的相邻单元格，因此可能是最长递增路径的起始单元格，从入度为 $0$ 的单元格开始，使用广度优先搜索实现拓扑排序。
+
+拓扑排序时，对于每个单元格，执行如下操作。
+
+1. 得到该单元格的所有后继单元格，即所有的值更大的相邻单元格。
+
+2. 对于每个后继单元格，将后继单元格的入度减 $1$。如果在更新入度之后，后继单元格的入度变为 $0$，则继续对该后继单元格执行搜索。
+
+使用广度优先搜索实现拓扑排序时应按层遍历，即每一轮遍历与起始单元格的距离相等的所有单元格。遍历的轮数即为矩阵中的最长递增路径的长度。
+
+## 代码
+
+* [sol2-Java]
+
+```Java
+class Solution {
+    static int[][] dirs = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+
+    public int longestIncreasingPath(int[][] matrix) {
+        int m = matrix.length, n = matrix[0].length;
+        int[][] indegrees = new int[m][n];
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                for (int[] dir : dirs) {
+                    int newRow = i + dir[0], newCol = j + dir[1];
+                    if (newRow >= 0 && newRow < m && newCol >= 0 && newCol < n && matrix[i][j] > matrix[newRow][newCol]) {
+                        indegrees[i][j]++;
+                    }
+                }
+            }
+        }
+        Queue<int[]> queue = new ArrayDeque<int[]>();
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (indegrees[i][j] == 0) {
+                    queue.offer(new int[]{i, j});
+                }
+            }
+        }
+        int maxLength = 0;
+        while (!queue.isEmpty()) {
+            maxLength++;
+            int size = queue.size();
+            for (int i = 0; i < size; i++) {
+                int[] cell = queue.poll();
+                int row = cell[0], col = cell[1];
+                for (int[] dir : dirs) {
+                    int newRow = row + dir[0], newCol = col + dir[1];
+                    if (newRow >= 0 && newRow < m && newCol >= 0 && newCol < n && matrix[row][col] < matrix[newRow][newCol]) {
+                        indegrees[newRow][newCol]--;
+                        if (indegrees[newRow][newCol] == 0) {
+                            queue.offer(new int[]{newRow, newCol});
+                        }
+                    }
+                }
+            }
+        }
+        return maxLength;
+    }
+}
+```
+
+* [sol2-C#]
+
+```C#
+public class Solution {
+    static int[][] dirs = {new int[]{-1, 0}, new int[]{1, 0}, new int[]{0, -1}, new int[]{0, 1}};
+
+    public int LongestIncreasingPath(int[][] matrix) {
+        int m = matrix.Length, n = matrix[0].Length;
+        int[][] indegrees = new int[m][];
+        for (int i = 0; i < m; i++) {
+            indegrees[i] = new int[n];
+            for (int j = 0; j < n; j++) {
+                foreach (int[] dir in dirs) {
+                    int newRow = i + dir[0], newCol = j + dir[1];
+                    if (newRow >= 0 && newRow < m && newCol >= 0 && newCol < n && matrix[i][j] > matrix[newRow][newCol]) {
+                        indegrees[i][j]++;
+                    }
+                }
+            }
+        }
+        Queue<Tuple<int, int>> queue = new Queue<Tuple<int, int>>();
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (indegrees[i][j] == 0) {
+                    queue.Enqueue(new Tuple<int, int>(i, j));
+                }
+            }
+        }
+        int maxLength = 0;
+        while (queue.Count > 0) {
+            maxLength++;
+            int size = queue.Count;
+            for (int i = 0; i < size; i++) {
+                Tuple<int, int> cell = queue.Dequeue();
+                int row = cell.Item1, col = cell.Item2;
+                foreach (int[] dir in dirs) {
+                    int newRow = row + dir[0], newCol = col + dir[1];
+                    if (newRow >= 0 && newRow < m && newCol >= 0 && newCol < n && matrix[row][col] < matrix[newRow][newCol]) {
+                        indegrees[newRow][newCol]--;
+                        if (indegrees[newRow][newCol] == 0) {
+                            queue.Enqueue(new Tuple<int, int>(newRow, newCol));
+                        }
+                    }
+                }
+            }
+        }
+        return maxLength;
+    }
+}
+```
+
+## 复杂度分析
+
+- 时间复杂度：$O(mn)$，其中 $m$ 和 $n$ 分别是矩阵 $\textit{matrix}$ 的行数和列数。拓扑排序的时间复杂度是 $O(mn)$。
+
+- 空间复杂度：$O(mn)$，其中 $m$ 和 $n$ 分别是矩阵 $\textit{matrix}$ 的行数和列数。队列需要 $O(mn)$ 的空间。
+

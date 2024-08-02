@@ -1,0 +1,75 @@
+# 
+
+## 记忆化搜索写法：
+
+![image-20240415151220708.png](https://pic.leetcode.cn/1713166429-HpJbHN-image-20240415151220708.png)
+
+![image-20240415151556360.png](https://pic.leetcode.cn/1713166444-DKjJMi-image-20240415151556360.png)
+
+* go
+
+```go
+func lengthOfLongestSubsequence(nums []int, target int) int {
+	n := len(nums)
+	cache := make([][]int, n+1)
+	for i := range cache {
+		cache[i] = make([]int, target+1)
+		for j := range cache[i] {
+			cache[i][j] = -1
+		}
+	}
+	var dfs func(int, int) int
+	dfs = func(i, c int) (res int) {
+		if i < 0 {
+			if c == 0 {
+				return 0
+			}
+			return math.MinInt
+		}
+		C := &cache[i][c]
+		if *C > -1 {
+			return *C
+		}
+		defer func() { *C = res }()
+		if c-nums[i] < 0 {
+			return dfs(i-1, c)
+		}
+		return max(dfs(i-1, c), dfs(i-1, c-nums[i])+1)
+	}
+	return ans
+}
+```
+
+## 1：1转化成递推
+
+![image-20240415151954656.png](https://pic.leetcode.cn/1713166461-RfwcSX-image-20240415151954656.png)
+
+* go
+
+```go
+func lengthOfLongestSubsequence(nums []int, target int) int {
+	n := len(nums)
+	f := make([][]int, n+1)
+	for i := range f {
+		f[i] = make([]int, target+1)
+		for j := range f[i] {
+			f[i][j] = math.MinInt
+		}
+	}
+	f[0][0] = 0
+	for i, x := range nums {
+		for c := 0; c <= target; c++ {
+			if c < x {
+				f[i+1][c] = f[i][c]
+			} else {
+				f[i+1][c] = max(f[i][c], f[i][c-x]+1)
+			}
+		}
+	}
+	if f[n][target] <= 0 {
+		return -1
+	}
+	return f[n][target]
+}
+```
+

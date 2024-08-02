@@ -1,0 +1,67 @@
+> Problem: [956. 最高的广告牌](https://leetcode.cn/problems/tallest-billboard/description/)
+
+[TOC]
+
+# 思路
+
+> 本题的关键就是状态的设置，假设 $dp[i][d]$ 表示只使用前 $i$ 根棍，焊接后得到两根棍的长度之差为 $d$ 的两棍长度之和的最大值。
+> 1. 假设不使用第 $i$ 根棍，则最大长度之和为 $dp[i - 1][d]$；
+> 2. 如果使用第 $i$ 根棍，我们考虑两种情况：
+>
+> - 将第 $i$ 根棍焊接在较短的棍上，且焊接完后的棍仍然是较短的那根棍，此时答案为：$dp[i - 1][d + rods[i]] + rods[i]$
+> - 将第 $i$ 根棍焊接在较短或者较长的棍上，且焊接完后的棍是较长的那根棍，此时答案为：$dp[i - 1][|d - rods[i]|] + rods[i]$
+>   ![image.png](https://pic.leetcode.cn/1693910130-LsabyS-image.png)
+>   综上，我们就得到了状态转移方程：
+>   $$
+>   dp[i][d] = max\{dp[i - 1][d], dp[i - 1][d + rods[i]] + rods[i], dp[i - 1][|d - rods[i]|] + rods[i]\}
+>   $$
+>   假设一共有 $n$ 根棍，下标从 $0$ 开始，$\frac{dp[n - 1][0]}{2}$ 即为最终答案。
+
+# 解题方法
+
+> 基于以上分析，我们可以使用记忆化搜索来解决本题，递归出口为 $i = 0$。
+
+# 复杂度
+
+- 时间复杂度:
+
+> $O(n \sum_{i = 0} ^ {n - 1} rods[i])$
+
+- 空间复杂度:
+
+> $O(n \sum_{i = 0} ^ {n - 1} rods[i])$
+
+# Code
+
+* []
+
+```C++
+class Solution {
+private:
+    const int inf = 0x3f3f3f3f;
+public:
+    int tallestBillboard(std::vector<int>& rods) {
+        int n = rods.size(), md = std::accumulate(rods.begin(), rods.end(), 0);
+        std::vector<std::vector<int>> dp(n, std::vector<int>(md + 1, -1));
+        // dp[i][d] 表示取前 i 根铁棍，焊接后两根铁棍差距为 d，两根铁棍长度的和的最大值
+        std::function<int(int, int)> dfs = [&](int i, int d) -> int {
+            if (d > md) return -inf; 
+            if (~dp[i][d]) return dp[i][d];
+            if (i == 0) {
+                if (rods[i] == d) return d;
+                if (d == 0) return 0;
+                return -inf;
+            }
+            int res = dfs(i - 1, d); // 不选择第 i 根铁棍
+
+            res = std::max(res, dfs(i - 1, d + rods[i]) + rods[i]); // 焊接后的铁棍是短棍             
+            res = std::max(res, dfs(i - 1, std::abs(d - rods[i])) + rods[i]); // 焊接后的铁棍是长棍
+
+            return dp[i][d] = res;
+        };
+
+        return dfs(n - 1, 0) > 0 ? dfs(n - 1, 0) / 2 : 0;
+    }
+};
+```
+

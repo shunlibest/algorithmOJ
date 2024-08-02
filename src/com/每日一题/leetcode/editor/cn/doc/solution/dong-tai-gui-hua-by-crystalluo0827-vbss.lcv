@@ -1,0 +1,69 @@
+> Problem: [494. 目标和](https://leetcode.cn/problems/target-sum/description/)
+
+[TOC]
+
+# 思路
+
+> 定义一个二维数组 dp，其中 dp[i][j] 表示在数组 nums 的前 i 个元素中，能够得到和为 j 的表达式的数量。
+
+# 解题方法
+
+> 初始化:
+> 首先计算数组的总和 sum，以便确定 dp 数组的大小。
+> 初始化 dp[0]。有两种情况：在第一个数字前添加 '+' 或 '-'。
+
+> 填充 dp 数组:
+> 从 dp[1] 开始遍历数组中的每个元素。
+> 对于每一个元素，考虑两种情况：加上该元素或减去该元素。
+> dp[i][j + nums[i] + sum] 和 dp[i][j - nums[i] + sum] 都需要从 dp[i - 1][j + sum] 继承。
+
+> 返回结果:
+> 最终 dp[nums.length - 1][target + sum] 即为所求的结果
+
+# 复杂度
+
+时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public int findTargetSumWays(int[] nums, int target) {
+        int sum = 0;
+        for (int num : nums) {
+            sum += num;
+        }
+        
+        if (target > sum || target < -sum) {
+            return 0;
+        }
+        
+        int[][] dp = new int[nums.length][2 * sum + 1];
+        
+        // 初始化 dp 数组
+        dp[0][nums[0] + sum] = 1;
+        dp[0][-nums[0] + sum] += 1; // 使用 += 是因为 nums[0] 可能为 0
+        
+        // 填充 dp 数组
+        for (int i = 1; i < nums.length; i++) {
+            for (int j = -sum; j <= sum; j++) {
+                if (dp[i - 1][j + sum] > 0) {
+                    dp[i][j + nums[i] + sum] += dp[i - 1][j + sum];
+                    dp[i][j - nums[i] + sum] += dp[i - 1][j + sum];
+                }
+            }
+        }
+        
+        return dp[nums.length - 1][target + sum];
+    }
+}
+```
+

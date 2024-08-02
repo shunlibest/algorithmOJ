@@ -1,0 +1,60 @@
+> Problem: [2369. 检查数组是否存在有效划分](https://leetcode.cn/problems/check-if-there-is-a-valid-partition-for-the-array/description/)
+
+[TOC]
+
+# 解题方法
+
+典型的划分型dp，考虑3种情况
+* 分成两个元素，此时必须满足这两个元素相等，以及剩下的元素的组合情况必须至少有一种能返回true，才能返回true
+* 分成3个元素，查看是否大小可以相等，如果相等且剩下的元素的组合至少有一种能返回true，才能返回true
+* 分成3个元素，查看是否连续，如果连续且剩下的组合至少有一种能返回true，才能返回true
+  综上所述，还需考虑nums为[1,1,2,3]的特例情况，此时如果划分成3钟连续的情况时，剩下只有一个元素了，那么此时根本构成不了大小为2的组合或者大小为3的组合，那么直接记录当前状态为false，并返回即可
+
+# 复杂度
+
+时间复杂度:
+O(n)
+
+# Code
+
+* []
+
+```C++
+
+const int N=1e5+10;
+class Solution {
+    vector<int> nums;
+    int f[N];
+    int n;
+    int dfs(int node)
+    {
+        if(node<0)
+            return 1;
+        auto & v=f[node];
+        if(v!=-1)
+            return v;
+         //使得可以保留正号的性质
+        if(node-1>=0)
+            v=max(v,(int)(dfs(node-2)&&(nums[node]==nums[node-1] )  )  );
+
+        if(node-2>=0){
+            v=max(v,(int)(dfs(node-3)&&(nums[node-2]==nums[node-1]&&nums[node-1]==nums[node]   )  ));
+            v=max(v,(int)(dfs(node-3)&&(nums[node-2]+1==nums[node-1]&&nums[node-1]+1==nums[node]   )  ));
+        }
+        if(v==-1)  //这一步考虑剩下单个元素，根本组合不成大小为2或者大小为3的子数组，固然直接返回false
+            v=0;
+        return v;
+    }
+
+public:
+    bool validPartition(vector<int>& nums) {
+        n=nums.size();
+        this->nums=nums;
+        memset(f,-1,sizeof(f) );
+        return dfs(n-1);
+    }
+};
+
+
+```
+

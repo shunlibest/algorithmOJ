@@ -1,0 +1,109 @@
+# 灵神题单打卡 状态机dp从二维到常量
+
+* [二维]
+
+```java
+class Solution {
+    public int getMaxLen(int[] nums) {
+        int n = nums.length;
+        // f[i][0]代表0-i位置的能获得到负数的子元素长度
+        // f[i][1]代表0-i位置的能获得到正数的子元素长度
+        var f = new int[n][2];
+        if (nums[0] < 0) {
+            f[0][0] = 1;
+        }
+        if (nums[0] > 0) {
+            f[0][1] = 1;
+        }
+        int ans = f[0][1];
+        for (int i = 1; i < n; i++) {
+            //如果当前位i是正数，那么能得到正数的数量就是上一位(i-1)能获得正数的数量+1，能得到负数的数量就是上一位（i-1）能获得负数的数量+1。
+            if (nums[i] > 0) {
+                // 这边要做一个判断因为 如果当前位之前的全是正数，那么将无法得到负数，只有有负数的时候，当前位是正数你才能获得负数的结果
+                if (f[i - 1][0] > 0)
+                    f[i][0] = f[i - 1][0] + 1;
+                f[i][1] = f[i - 1][1] + 1;
+            }
+            // 同上
+            if (nums[i] < 0) {
+                f[i][0] = f[i - 1][1] + 1;
+                if (f[i - 1][0] > 0)
+                    f[i][1] = f[i - 1][0] + 1;
+            }
+            ans = Math.max(f[i][1], ans);
+        }
+        return ans;
+    }
+}
+```
+
+* [一维]
+
+```java
+class Solution {
+    public int getMaxLen(int[] nums) {
+        int n = nums.length;
+        var f = new int[2];
+        int ans = f[1];
+        for (int i = 0; i < n; i++) {
+            if (nums[i] > 0) {
+                if (f[0] > 0)
+                    f[0] += 1;
+                f[1] = f[1] + 1;
+            }
+            if (nums[i] < 0) {
+                //因为后续f[1]有可能变更但是我们计算f[0]还需要原先值，所以先储存起来
+                int tmp = f[1];
+                if (f[0] > 0)
+                    f[1] = f[0] + 1;
+                //二维数组中，如果没有满足上面的if条件，f[i][1]会被自动重制为0，但是一维数组中需要手动处理
+                //nums[i]>0的情况不需要处理是因为如果不把f[1]变为0，在后续遍历到正数的时候会累积f[1]的结果
+                // 例子：
+                // [1，2，3，-1，4]
+                // 这个的正确答案应该是3，但是如果不把f[1]重置为0，f[1]的结果在遍历4的时候依旧会是3 导致最后ans更新为4。
+                else {
+                    f[1] = 0;
+                }
+                f[0] = tmp + 1;
+            }
+            //二维数组中，如果遇到0直接跳过了 f[i][0]和f[i][1]都会自动重置为0，但是在一维数组中，需要我们手动处理
+            if (nums[i] == 0) {
+                f[1] = 0;
+                f[0] = 0;
+            }
+            ans = Math.max(f[1], ans);
+        }
+        return ans;
+    }
+}
+```
+
+* [常量空间]
+
+```java
+class Solution {
+    public int getMaxLen(int[] nums) {
+        int n = nums.length, f0 = 0, f1 = 0;
+        int ans = f1;
+        for (int i = 0; i < n; i++) {
+            if (nums[i] > 0) {
+                if (f0 > 0)
+                    f0 += 1;
+                f1 = f1 + 1;
+            }
+            if (nums[i] < 0) {
+                int tmp = f1;
+                f1 = f0 > 0 ? f0 + 1 : 0;
+                f0 = tmp + 1;
+            }
+            if (nums[i] == 0) {
+                f1 = 0;
+                f0 = 0;
+            }
+            ans = Math.max(f1, ans);
+        }
+        return ans;
+    }
+}
+```
+

@@ -1,0 +1,83 @@
+# 解法
+
+## 思路和算法
+
+当魔法师使用了特定伤害值的咒语之后，就不能使用伤害值与当前伤害值之差的绝对值等于 $1$ 或 $2$ 的咒语。因此，应按照伤害值递增的顺序遍历所有的咒语，并计算最大总伤害。
+
+计算最大总伤害时，需要考虑每个伤害值的出现次数，因此首先遍历数组 $\textit{power}$ 计算每个伤害值的出现次数并使用哈希表记录，然后计算最大总伤害。以下使用 $\textit{counts}[\textit{num}]$ 表示伤害值 $\textit{num}$ 在数组 $\textit{power}$ 中的出现次数。
+
+使用哈希表记录每个伤害值的出现次数之后，将哈希表的关键字集合转换成数组 $\textit{powerDistinct}$，则数组 $\textit{power}$ 中的每个元素值在数组 $\textit{powerDistinct}$ 中恰好出现一次。将数组 $\textit{powerDistinct}$ 按升序排序，然后遍历数组 $\textit{powerDistinct}$ 计算最大总伤害。由于最大伤害值不超过特定值的最大总伤害取决于更小的伤害值对应的最大总伤害，因此可以使用动态规划计算最大总伤害。
+
+用 $n$ 表示数组 $\textit{powerDistinct}$ 的长度。创建长度为 $n + 1$ 的数组 $\textit{dp}$，其中 $\textit{dp}[i]$ 为使用 $\textit{powerDistinct}$ 的前 $i$ 个不同伤害值的咒语可以到达的最大总伤害。
+
+当 $i = 0$ 时，没有任何咒语可以使用，最大总伤害等于 $0$，因此动态规划的边界情况是 $\textit{dp}[0] = 0$。
+
+对于 $1 \le i \le n$，记 $\textit{currPower} = \textit{powerDistinct}[i - 1]$，分别考虑不使用伤害值为 $\textit{currPower}$ 的咒语和使用伤害值为 $\textit{currPower}$ 的咒语的情况。
+
+- 当不使用伤害值为 $\textit{currPower}$ 的咒语时，使用 $\textit{powerDistinct}$ 的前 $i$ 个不同伤害值的咒语可以到达的最大总伤害等于使用 $\textit{powerDistinct}$ 的前 $i - 1$ 个不同伤害值的咒语可以到达的最大总伤害，此时的最大总伤害等于 $\textit{dp}[i - 1]$。
+
+- 当使用伤害值为 $\textit{currPower}$ 的咒语时，为了使总伤害最大，应使用全部的伤害值为 $\textit{currPower}$ 的咒语，此时伤害值为 $\textit{currPower}$ 的咒语的伤害值之和为 $\textit{currPower} \times \textit{counts}[\textit{currPower}]$。其余可以使用的咒语的最大伤害值应小于 $\textit{currPower} - 2$，需要找到满足 $\textit{powerDistinct}[j - 1] < \textit{currPower} - 2$ 的最大下标 $j$，此时的最大总伤害等于 $\textit{dp}[j] + \textit{currPower} \times \textit{counts}[\textit{currPower}]$。可以使用双指针的方法寻找最大下标 $j$，初始时 $j = 0$，对于遍历到的每个 $i$，当 $\textit{powerDistinct}[j] < \textit{currPower} - 2$ 时将 $j$ 向右移动直到 $\textit{powerDistinct}[j] \ge \textit{currPower} - 2$，则此时的 $j$ 是满足 $\textit{powerDistinct}[j - 1] < \textit{currPower} - 2$ 的最大下标 $j$。
+
+使用 $\textit{powerDistinct}$ 的前 $i$ 个不同伤害值的咒语可以到达的最大总伤害为上述两种情况的最大值，因此动态规划的状态转移方程是：定位到满足 $\textit{powerDistinct}[j - 1] < \textit{powerDistinct}[i - 1] - 2$ 的最大下标 $j$，$\textit{dp}[i] = \max(\textit{dp}[i - 1], \textit{dp}[j] + \textit{powerDistinct}[i - 1] \times \textit{counts}[\textit{powerDistinct}[i - 1]])$。
+
+根据动态规划的状态转移方程，应从小到大遍历每个 $i$ 并计算 $\textit{dp}[i]$。计算得到 $\textit{dp}[n]$ 即为最大总伤害。
+
+## 代码
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    public long maximumTotalDamage(int[] power) {
+        Map<Integer, Integer> counts = new HashMap<Integer, Integer>();
+        for (int num : power) {
+            counts.put(num, counts.getOrDefault(num, 0) + 1);
+        }
+        List<Integer> powerDistinct = new ArrayList<Integer>(counts.keySet());
+        Collections.sort(powerDistinct);
+        int n = powerDistinct.size();
+        long[] dp = new long[n + 1];
+        for (int i = 1, j = 0; i <= n; i++) {
+            int currPower = powerDistinct.get(i - 1);
+            while (powerDistinct.get(j) < currPower - 2) {
+                j++;
+            }
+            dp[i] = Math.max(dp[i - 1], dp[j] + (long) currPower * counts.get(currPower));
+        }
+        return dp[n];
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    public long MaximumTotalDamage(int[] power) {
+        IDictionary<int, int> counts = new Dictionary<int, int>();
+        foreach (int num in power) {
+            counts.TryAdd(num, 0);
+            counts[num]++;
+        }
+        IList<int> powerDistinct = new List<int>(counts.Keys);
+        ((List<int>) powerDistinct).Sort();
+        int n = powerDistinct.Count;
+        long[] dp = new long[n + 1];
+        for (int i = 1, j = 0; i <= n; i++) {
+            int currPower = powerDistinct[i - 1];
+            while (powerDistinct[j] < currPower - 2) {
+                j++;
+            }
+            dp[i] = Math.Max(dp[i - 1], dp[j] + (long) currPower * counts[currPower]);
+        }
+        return dp[n];
+    }
+}
+```
+
+## 复杂度分析
+
+- 时间复杂度：$O(n \log n)$，其中 $n$ 是数组 $\textit{power}$ 的长度。遍历数组 $\textit{power}$ 计算每个元素的出现次数的时间是 $O(n)$，创建数组 $\textit{powerDistinct}$ 并排序的时间是 $O(n \log n)$，动态规划的状态数是 $O(n)$，每个状态的平均计算时间是 $O(1)$，因此时间复杂度是 $O(n \log n)$。
+
+- 空间复杂度：$O(n)$，其中 $n$ 是数组 $\textit{power}$ 的长度。哈希表、数组 $\textit{powerDistinct}$ 和数组 $\textit{dp}$ 的空间是 $O(n)$。
+

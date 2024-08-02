@@ -1,0 +1,61 @@
+> Problem: [2787. 将一个数字表示成幂的和的方案数](https://leetcode.cn/problems/ways-to-express-an-integer-as-sum-of-powers/description/)
+
+[TOC]
+
+# 思路
+
+> 对于这道题，我们要做的是用一系列 小于等于n的数 的 x次方 来凑得n，要求的是凑成的方案数
+> 每次选或不选当前数，会对最终结果有影响，即具有后效性，因此可以考虑动态规划
+
+# 解题方法
+
+> 对于一个数n，要将其表示为幂的和将会出现两种情况：
+> 1.以幂为1的数表示 2.以幂不为1的数表示
+> 由于我们枚举的是基数，当幂为1时，最大可以枚举到n
+> 而当幂大于等于2时，最大只能枚举到logN
+> 对于每一个基数，我们再去枚举它可能从哪种状态转移而来
+> 例如当我们求例2：4 1时，当我们枚举到基数为3，目标值为4时，它就可以从目标值为1的状态转移而来
+> 又由于我们在动态更新每一行的最优值，因此此时应从基数为2，目标值为3的状态转移而来,其次，由于我们至少要保留当前的最优解，因此应该加上f[i-1][j]
+> 即：f[i][j] = f[i-1][j]+f[i-1][j-基数的x次幂]
+
+# 复杂度
+
+时间复杂度:
+
+> $O(NlongN)$
+
+空间复杂度:
+
+> $O(NlongN)$
+
+# Code
+
+* []
+
+```C++
+class Solution {
+public:
+    int lim;
+    int numberOfWays(int n, int x) 
+    {
+        lim = x == 1? n: sqrt(n);
+        vector<vector<int>> f(lim+1, vector<int>(n+1));
+
+        for(int i = 1; i <= lim; ++i)//枚举基数
+            for(int j = 1; j <= n; ++j)//枚举目标值
+            {
+                int val = x == 1? i: pow(i, x);
+                if(val > j)
+                    f[i][j] = f[i-1][j];
+                else
+                    f[i][j] = f[i-1][j]+f[i-1][j-val];
+                if(val == j)
+                    f[i][j]++;
+                f[i][j] %= 1000000007;
+            }
+
+        return f[lim][n];
+    }   
+};
+```
+

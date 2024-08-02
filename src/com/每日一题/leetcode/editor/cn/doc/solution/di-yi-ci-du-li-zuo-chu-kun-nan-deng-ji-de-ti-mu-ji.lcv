@@ -1,0 +1,46 @@
+### 解题思路
+
+![329-1.png](https://pic.leetcode-cn.com/2288c22dabf70fa1779bcc9b3b8f39ad19eb5ec3f47045d7c2cd3b2f632ec57f-329-1.png)
+把每一个位置分别作为起点，进行深度优先搜索遍历
+中间利用二维数组进行储存结果，实现加速
+
+### 代码
+
+* python3
+
+```python
+class Solution:
+    def longestIncreasingPath(self, matrix: List[List[int]]) -> int:
+        max_way = 0
+        store = [[0]* len(matrix[-1]) for _ in range(len(matrix))]
+        def helper(path):
+            nonlocal max_way, store
+            x, y = path[-1]
+            this_num = matrix[x][y]
+            if store[x][y] > 0: return store[x][y]
+            res = 0
+            if x > 0 and matrix[x-1][y] > this_num:
+                u = helper(path+[(x-1, y), ])+1
+                if u > res: res = u
+            if x < len(matrix)-1 and matrix[x+1][y] > this_num:
+                d = helper(path+[(x+1, y), ])+1
+                if d > res: res = d
+            if y > 0 and matrix[x][y-1] > this_num:
+                l = helper(path+[(x, y-1), ])+1
+                if l > res: res = l
+            if y < len(matrix[-1])-1 and matrix[x][y+1] > this_num:
+                r = helper(path+[(x, y+1), ])+1
+                if r > res: res = r
+            if res:
+                store[x][y] = res
+                if store[x][y] > max_way: max_way = store[x][y]
+                return store[x][y]
+            else:
+                if max_way < 1: max_way = 1
+                return 1
+        for x in range(len(matrix)):
+            for y in range(len(matrix[-1])):
+                helper([(x, y), ])
+        return max_way
+```
+

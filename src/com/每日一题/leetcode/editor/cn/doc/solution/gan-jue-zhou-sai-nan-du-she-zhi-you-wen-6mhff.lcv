@@ -1,0 +1,53 @@
+* 
+
+```
+/**
+ * Note: The returned array must be malloced, assume caller calls free().
+ */
+int* goodSubsetofBinaryMatrix(int** grid, int gridSize, int* gridColSize, int* returnSize){
+    int idx = 0;
+    int* res = (int*)malloc(sizeof(int)*2);
+    *returnSize=0;
+    if(gridSize == 1)
+    {
+        int m = 0;
+        while(m<gridColSize[0])
+        {
+            if(grid[0][m] != 0)
+            {
+                return res;
+            }
+            m++;
+        }
+        *returnSize = 1;
+        res[0] = 0;
+        return res;
+
+    }
+    
+    for(int i =0;i<gridSize;i++)
+    {
+        for(int j =i+1;j<gridSize;j++)
+        {
+            idx = 0;
+            for(int k=0;k<gridColSize[0];k++)
+            {
+                if(grid[i][k] + grid[j][k] == 2)
+                {
+                    idx=1;
+                    break;
+                }
+            }
+            if(idx == 0)
+            {
+                res[0] = i;
+                res[1] = j;
+                *returnSize =2;
+                return res;
+            }
+        }
+    }
+    return res;
+}
+```
+

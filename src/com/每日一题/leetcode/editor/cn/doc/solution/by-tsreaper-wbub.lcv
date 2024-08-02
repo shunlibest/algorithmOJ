@@ -1,0 +1,46 @@
+## 解法：DP
+
+判断一个括号序列是否合法是经典问题。对于一个括号序列，我们从左向右遍历每个字符，同时维护变量 `now`（初值为 $0$）。遇到左括号时，`now += 1`，遇到右括号时，`now -= 1`。如果过程中 `now` 始终非负，且最后 `now` 变成 $0$ 则序列合法。详见 [leetcode 32 - 最长有效括号](https://leetcode.cn/problems/longest-valid-parentheses/)。
+
+对于本题，我们把 `now` 放进 dp 状态里即可。记 $f(i, j, k)$ 表示是否存在以格子 $(i, j)$ 为结尾，且 `now` 值是 $k$ 的括号序列。由于只能往右或往下走，我们有如下转移：
+
+$$
+f(i, j, k) \leftarrow \begin{cases}
+f(i - 1, j, k - c) & \text{if } i > 0 \text{（从上面转移过来）} \\
+f(i, j - 1, k - c) & \text{if } j > 0 \text{（从左边转移过来）}
+\end{cases}
+$$
+
+其中若 `grid[i][j] == '('` 则 $c = 1$ 否则 $c = -1$。$k$ 的范围是 $[0, n + m)$（因为过程中 `now` 不能为负数，且最长路径只有 $n + m - 1$ 这么长）， 初始值即为 $f(0, 0, 1) = \text{true}$（因为 `grid[0][0]` 必须是左括号，否则不合法）。复杂度 $\mathcal{O}(nm(n + m))$。
+
+## 参考代码（c++）
+
+* c++
+
+```c++
+class Solution {
+public:
+    bool hasValidPath(vector<vector<char>>& grid) {
+        if (grid[0][0] == ')') return false;
+
+        int n = grid.size(), m = grid[0].size();
+        vector<vector<vector<bool>>> f;
+        for (int i = 0; i < n; i++) {
+            f.push_back(vector<vector<bool>>());
+            for (int j = 0; j < m; j++) f.back().push_back(vector<bool>(n + m));
+        }
+        f[0][0][1] = true;
+        for (int i = 0; i < n; i++) for (int j = 0; j < m; j++) if (i || j) {
+            int t = (grid[i][j] == '(' ? 1 : -1);
+            for (int k = 0; k < n + m; k++) {
+                int kk = k - t;
+                if (kk < 0 || kk >= n + m) continue;
+                if (i) f[i][j][k] = f[i][j][k] || f[i - 1][j][kk];
+                if (j) f[i][j][k] = f[i][j][k] || f[i][j - 1][kk];
+            }
+        }
+        return f[n - 1][m - 1][0];
+    }
+};
+```
+

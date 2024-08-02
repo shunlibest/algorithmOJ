@@ -1,0 +1,41 @@
+因为如果有选很多的情况这题没法做……
+如果用正经做法套，套不出来合适的解法，和常见模型哪个都不相似，所以只能考虑猜结论。
+
+# Code
+
+* []
+
+```C++
+int n,m;
+int a[32];
+vector<int> b[32];
+class Solution {
+public:
+    vector<int> goodSubsetofBinaryMatrix(vector<vector<int>>& grid) {
+        memset(a,0,sizeof(a));
+        for(int i=0;i<32;i++) b[i].clear();
+        for(int i=0;i<grid.size();i++)
+        {
+            int k=0;
+            for(int j=0;j<grid[i].size();j++)
+                k|=(grid[i][j]<<j);
+            a[k]++;
+            b[k].push_back(i);
+        }
+        vector<int> ans;
+        if(a[0]) ans.push_back(b[0][0]);
+        else for(int i=1;i<32;i++)
+            for(int j=1;j<32;j++)
+                if(!(i&j)&&a[i]&&a[j])
+                {
+                    ans.push_back(b[i][0]);
+                    ans.push_back(b[j][0]);
+                    goto lb;
+                }
+        lb:;
+        sort(ans.begin(),ans.end());
+        return ans;
+    }
+};
+```
+

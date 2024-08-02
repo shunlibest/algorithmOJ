@@ -1,0 +1,27 @@
+![image.png](https://pic.leetcode.cn/1685236254-fnIfqk-image.png)
+
+### 解题思路
+
+每一轮都把最大最小值求出来(最小值遇到负数时能变成最大值)，遍历一次更新最大最小值
+
+### 代码
+
+* javascript
+
+```javascript
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+let maxStrength = function (nums) {
+  let max = nums[0];
+  let min = nums[0];
+  for (let i = 1; i < nums.length; i++) {
+    let temp = max;
+    max = Math.max(max * nums[i], min * nums[i], nums[i], max);
+    min = Math.min(temp * nums[i], min * nums[i], nums[i], min);
+  }
+  return max;
+};
+```
+

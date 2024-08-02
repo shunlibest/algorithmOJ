@@ -1,0 +1,72 @@
+方法一：动态规划
+--------
+
+dp[i]表示 0~i 长度的数组最大实力，因为有正有负，所以对于当前nums[i]来说，前面最大的值会影响结果，最小的值也会影响结果。毕竟负数乘当前nums[i]也可能变成最大值。
+综上，影响结果的一共有三个值：min(dp[i - 1]), max(dp[i - 1]), nums[i];
+即可得到当前长度dp[i]的最大最小值：
+
+* 
+
+```
+Math.max(Math.max(nums[i], max), Math.max(nums[i] * max, nums[i] * min));
+Math.min(Math.min(nums[i], min), Math.min(nums[i] * max, nums[i] * min));
+            
+```
+
+* 
+
+```
+class Solution {
+    public long maxStrength(int[] nums) {
+        long max = nums[0], min = nums[0];
+        for (int i = 1; i < nums.length; ++i) {
+            long tmpMax = Math.max(Math.max(nums[i], max), Math.max(nums[i] * max, nums[i] * min));
+            long tmpMin = Math.min(Math.min(nums[i], min), Math.min(nums[i] * max, nums[i] * min));
+            max = tmpMax;
+            min = tmpMin;
+        }
+        return max;
+    }
+}
+```
+
+方法二：回溯
+------
+
+回溯思考比较简单，但因为要乘，会被1影响结果。所以需要单独对1进行判断，数组中有1或者大于等于2个-1，那么1都可能是结果，所以判断我们回溯出的结果和1比较取最大。
+
+* 
+
+```
+class Solution {
+    long res = Long.MIN_VALUE;
+    
+    public long maxStrength(int[] nums) {
+        backtrack(nums, 0, 1);
+        int one = 0, neOne = 0;
+        for (int i = 0; i < nums.length; ++i) {
+            if (nums[i] == 1) {
+                ++one;
+            } else if (nums[i] == -1) {
+                ++neOne;
+            }
+        }
+        if (one > 0 || neOne > 1) {
+            return res > 1 ? res : 1;
+        }
+        return res;
+    }
+    
+    private void backtrack(int[] nums, int idx, long sum) {
+        if (idx == nums.length) {
+            if (sum != 1) {
+                res = Math.max(res, sum);
+            }
+            return;
+        }
+        backtrack(nums, idx + 1, sum * nums[idx]);
+        backtrack(nums, idx + 1, sum);
+    }
+}
+```
+

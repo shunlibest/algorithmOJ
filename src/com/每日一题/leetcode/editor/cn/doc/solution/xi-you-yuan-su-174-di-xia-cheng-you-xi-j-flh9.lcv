@@ -1,0 +1,77 @@
+> Problem: [174. 地下城游戏](https://leetcode.cn/problems/dungeon-game/description/)
+
+[TOC]
+
+# 记忆化搜索
+
+## 思路
+
+定义`dfs(i,j)`为以格子`(i, j)`为起点到右下角所需要的**最少生命值**，又因为只能往右走或者往下走，显然应该取它们的最小值，因此，我们可以使用转移方程来把问题转移到子问题上面：`dfs(i,j) = cost + min(dfs(i+1,j), dfs(i, j+1))`。
+
+我们只需要**重点关注当前格子的生命值如何计算就**可以了，然后就可以转移到子问题的求解。递归终止就是当到**超出矩阵边界时**就可以终止了。
+
+当前格子需要的生命值是多少呢？其实就是格子的值取反就行了。
+
+## 解题方法
+
+有一些细节需要注意，就是：
+1. 走进最后一个格子后（右下角），生命值要至少余1，所以要额外加个1
+2. 每个格子，都要保证生命值至少1（大于0）
+
+另外，可以发现，每个格子为起点的最少生命值是固定的，因此可以用记忆化搜索来缓存结果以避免重复计算。
+
+## 复杂度
+
+时间复杂度: $O(m \times n)$
+
+空间复杂度: $O(m \times n)$
+
+## Code
+
+* []
+
+```Java
+class Solution {
+    private int m;
+    private int n;
+    private int[][] memo;
+    public int calculateMinimumHP(int[][] dungeon) {
+        m = dungeon.length;
+        n = dungeon[0].length;
+        memo = new int[m][n];
+
+        return dfs(dungeon, 0, 0);
+    }
+
+    private int dfs(int[][] g, int x, int y) {
+        if (x >= m || y >= n) {
+            // 超出矩阵边界了，终止
+            return 0;
+        }
+
+        if (memo[x][y] != 0) {
+            // 缓存结果直接返回
+            return memo[x][y];
+        }
+
+        int cost = -g[x][y]; // 当前格子的剩余生命值
+        if (x < m - 1 && y < n - 1) {
+            // 找两个方向中的较小者来走
+            cost += Math.min(dfs(g, x + 1, y), dfs(g, x, y + 1));
+        } else if (x < m - 1 && y == n - 1) {
+            // 只有一个方向，只能下面走
+            cost += dfs(g, x + 1, y);
+        } else if (y < n - 1 && x == m - 1) {
+            // 只有一个方程，只能往右走
+            cost += dfs(g, x, y + 1);
+        } else {
+            // 走到最后一个格子了，保证还活着（至少余1），所以要加1
+            cost++;
+        }
+        // 到达的每个格子，都要活着（至少余1）
+        memo[x][y] = Math.max(1, cost);
+        return memo[x][y];
+    }
+}
+```
+

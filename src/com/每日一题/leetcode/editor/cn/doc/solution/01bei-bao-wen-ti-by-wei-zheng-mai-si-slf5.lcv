@@ -1,0 +1,25 @@
+* cpp
+
+```cpp
+class Solution {
+public:
+    int mod = 1e9 +7;
+    int numberOfWays(int n, int x) {
+         double S = x;
+         int start = pow(n,1/S);
+         vector<long> coins;
+         for(int i = 1 ; pow(i,x) <= n; i++) coins.push_back(pow(i,x));
+         cout<<endl;
+         long dp[n + 1];
+         memset(dp,0,sizeof(dp));
+         dp[0]  = 1;
+         for(int i = 0 ; i < coins.size() ; i++ ){
+             for( int j = n; j >= coins[i] ; j-- ){
+                 dp[j]  = (dp[j] +dp[j-coins[i]]) % mod;
+             }
+         }
+         return dp[n];
+    }
+};
+```
+

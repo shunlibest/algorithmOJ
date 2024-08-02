@@ -1,0 +1,44 @@
+### 解题思路
+
+一道动态规划题目
+
+### 代码
+
+* cpp
+
+```cpp
+//kadande算法
+// class Solution {
+// public:
+//     using pll=long long;
+//     int kConcatenationMaxSum(vector<int>& arr, int k) {
+//         vector<pll>dp(k*arr.size());;
+//         dp[0]=arr[0];
+//         for(int i=1;i<arr.size()*k;i++){
+//             dp[i]=max((pll)arr[i%arr.size()],dp[i-1]+arr[i%arr.size()]);
+//         }    
+//         return *max_element(dp.begin(),dp.end())<0?0:*max_element(dp.begin(),dp.end())%1000000007;            
+//     }
+// };
+//Kadane算法的变形.
+class Solution{
+public:
+    int kConcatenationMaxSum(vector<int>& arr,int k){
+        long maxi=arr[0]<0?0:arr[0];
+        long res=maxi;
+        long sum=arr[0];
+        for(int i=1;i<min(k,2)*arr.size();i++){
+            maxi=max(maxi+arr[i%arr.size()],(long)arr[i%arr.size()]);
+            res=max(res,maxi);
+            if(i<arr.size()){
+                sum+=arr[i];
+            }
+        }
+        while(sum>0&&--k>=2){
+            res=(res+sum)%1000000007;
+        }
+        return res%1000000007;
+    }
+};
+```
+

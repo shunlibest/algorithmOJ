@@ -1,5 +1,7 @@
 package com;
 
+import com.每日一题.leetcode.editor.cn.Code743_networkDelayTime;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -7,6 +9,12 @@ import java.util.List;
 public class Utils {
 
     public static int[][] convertStringTo2DArray(String arrayString) {
+
+        if (arrayString.equals("[]")) {
+            return new int[0][0];
+        }
+
+        arrayString = arrayString.replace(" ", "");
         // Remove the leading and trailing brackets
         arrayString = arrayString.substring(1, arrayString.length() - 1);
 
@@ -17,12 +25,18 @@ public class Utils {
         for (String rowString : rowStrings) {
             // Clean up each row string and split by commas to get individual numbers
             rowString = rowString.replaceAll("[\\[\\]]", "");
-            String[] numberStrings = rowString.split(",");
 
+            if (rowString.equals("")) {
+                int[] row = new int[0];
+                rowsList.add(row);
+                continue;
+            }
+
+            String[] numberStrings = rowString.split(",");
             // Parse the numbers into an array
             int[] row = new int[numberStrings.length];
             for (int i = 0; i < numberStrings.length; i++) {
-                row[i] = Integer.parseInt(numberStrings[i]);
+                row[i] = Integer.parseInt(numberStrings[i].trim());
             }
             // Add the row to the list of rows
             rowsList.add(row);
@@ -106,10 +120,48 @@ public class Utils {
         return resultList;
     }
 
+    public static List<List<String>> convertStringToStringList(String arrayString) {
+        // Remove the leading and trailing brackets
+        arrayString = arrayString.substring(1, arrayString.length() - 1);
+
+        // Split the string by '],[' to get individual row strings
+        String[] rowStrings = arrayString.split("\\],\\[");
+
+        List<List<String>> resultList = new ArrayList<>();
+        for (String rowString : rowStrings) {
+            // Clean up each row string and split by commas to get individual numbers
+            rowString = rowString.replaceAll("[\\[\\]]", "");
+            String[] numberStrings = rowString.split(",");
+
+            // Parse the numbers into a list
+            List<String> row = new ArrayList<>();
+            for (String numberStr : numberStrings) {
+                if (!numberStr.isEmpty()) { // Ensure the string is not empty
+                    row.add(numberStr);
+                }
+            }
+
+            // Add the row to the result list
+            resultList.add(row);
+        }
+
+        return resultList;
+    }
+
 
     public static void printTable(boolean[] array) {
         System.out.println(Arrays.toString(array));
     }
+
+    public static void printTable(double[] array) {
+        System.out.println(Arrays.toString(array));
+    }
+
+
+    public static void printTable(List array) {
+        System.out.println(array);
+    }
+
 
     public static void printTable(int[] array) {
         System.out.println(Arrays.toString(array));
@@ -145,7 +197,7 @@ public class Utils {
                 stringArray[i][j] = String.valueOf(intArray[i][j]);
             }
         }
-        String[] width = generateStringArray(intArray[0].length );
+        String[] width = generateStringArray(intArray[0].length);
 
         String[] height = generateStringArray(intArray.length);
 
@@ -228,6 +280,88 @@ public class Utils {
             stringArray[i] = String.valueOf(i + start);  // 将整数转换为字符串
         }
         return stringArray;
+    }
+
+    // 将边列表转换为邻接矩阵
+    public static int[][] convertToAdjacencyMatrix(List<List<Integer>> edges) {
+
+        int n = edges.size();
+
+        int[][] adjacencyMatrix = new int[n][n];
+        // 遍历每一条边并填充邻接矩阵
+        for (int i = 0; i < edges.size(); i++) {
+            for (int edge : edges.get(i)) {
+                adjacencyMatrix[i][edge] = 1;  // 如果有权重，可以替换1为权重值
+            }
+        }
+
+        return adjacencyMatrix;
+    }
+
+    private static int[][] convertToAdjacencyMatrixDistance(List<List<Edge>> edges) {
+
+        int n = 0;
+        for (List<Edge> edge : edges) {
+            for (Edge e : edge) {
+                n = Math.max(n, e.target + 1);
+            }
+        }
+
+
+        int[][] adjacencyMatrix = new int[n][n];
+        // 遍历每一条边并填充邻接矩阵
+        for (int i = 0; i < edges.size(); i++) {
+            for (Edge edge : edges.get(i)) {
+                adjacencyMatrix[i][edge.target] = edge.weight;  // 如果有权重，可以替换1为权重值
+            }
+        }
+
+        return adjacencyMatrix;
+    }
+
+    public static void printDrawMap(String string) {
+        List<List<Integer>> lists = Utils.convertStringToList(string);
+        Utils.printDrawMap(Utils.convertToAdjacencyMatrix(lists));
+    }
+
+    public static void printDrawMapDistance(int[][] times) {
+
+        List<List<Edge>> edges = new ArrayList<>(times.length);
+        for (int i = 0; i < times.length; i++) {
+            edges.add(i, new ArrayList<>());
+        }
+        for (int[] connection : times) {
+            edges.get(connection[0] - 1).add(new Edge(connection[1] - 1, connection[2]));
+        }
+
+        Utils.printDrawMap(Utils.convertToAdjacencyMatrixDistance(edges));
+    }
+
+    //[[2,1,1],[2,3,1],[3,4,1]]
+    public static void printDrawMap(int[][] map) {
+        StringBuilder sb = new StringBuilder();
+        for (int[] ints : map) {
+            for (int j = 0; j < map[0].length; j++) {
+                sb.append(ints[j]).append(",");
+            }
+            sb.append("\n");
+        }
+
+        System.out.println(sb);
+    }
+
+    public static void printDrawMap(List<List<Integer>> edges) {
+        printDrawMap(Utils.convertToAdjacencyMatrix(edges));
+    }
+
+    public static class Edge {
+        public int target;
+        public int weight;
+
+        public Edge(int target, int weight) {
+            this.target = target;
+            this.weight = weight;
+        }
     }
 
 //    public static int getDpFinial(int[][] dp){

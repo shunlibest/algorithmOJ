@@ -168,6 +168,7 @@ public class Utils {
     }
 
 
+
     public static void printTable(long[][] booleanArray) {
         int[][] intArray = new int[booleanArray.length][booleanArray[0].length];
         for (int i = 0; i < booleanArray.length; i++) {
@@ -178,6 +179,19 @@ public class Utils {
         printTable(intArray);
     }
 
+
+    public static void printTable(char[][] charArray) {
+        // 外层循环遍历行
+        for (int i = 0; i < charArray.length; i++) {
+            // 内层循环遍历列
+            for (int j = 0; j < charArray[i].length; j++) {
+                // 打印当前元素，避免换行
+                System.out.print(charArray[i][j] + " ");
+            }
+            // 打印完一行后换行
+            System.out.println();
+        }
+    }
 
     public static void printTable(boolean[][] booleanArray) {
         int[][] intArray = new int[booleanArray.length][booleanArray[0].length];

@@ -1,0 +1,349 @@
+#### 方法一：双指针
+
+**思路**
+
+按照题意所述，从最左和最右侧取走后，原字符串还剩下一个连续的区间，那么可以转化为求一个最长的子区间，使得区间两边的所有字符加起来满足题目要求。当满足题意要求时，显然区间长度越长，取得的字符就越少。所以当右端点 $r$ 固定时，最优的情况是找到一个最小的左端点 $l$ 使得取走的字符最少，并且随着左端点 $r$ 右移动，满足要求的 $l$ 也会往右移动。针对这种情况，可以采用双指针的做法，先扫一遍使得每个字符都进行计数然后存到 $\textit{cnt}$ 数组中，如果不满足题意要求直接返回 $-1$ 即可。左右指针一开始都从 $0$ 开始，优先移动右指针 $r$，每移动一次 $r$ 表示把这个字符添加到最后还剩下的集合中，所以应该在计数中减去。
+
++ 如果此时计数数组 $\textit{cnt}$ 中每一个元素都大于等于 $k$，则表示满足题目要求直接更新答案。
+
++ 如果 $\textit{cnt}$ 中存在一个元素小于 $k$，则移动左指针 $l$，表示要拿掉这个字符。所以应该计数添加到 $\textit{cnt}$ 中，持续移动左指针直到满足题目要求。
+
+**代码**
+
+* [sol1-C++]
+
+```C++
+class Solution {
+public:
+    int takeCharacters(string s, int k) {
+        vector<int> cnt(3, 0);
+        int len = s.size();
+        int ans = len;
+        for (int i = 0; i < len; i++) {
+            cnt[s[i] - 'a']++;
+        }
+        if (cnt[0] >= k && cnt[1] >= k && cnt[2] >= k) {
+            ans = min(ans, len);
+        } else {
+            return -1;
+        }
+
+        int l = 0;
+        for (int r = 0; r < len; r++) {
+            cnt[s[r] - 'a']--;
+            while (l < r && (cnt[0] < k || cnt[1] < k || cnt[2] < k)) {
+                cnt[s[l] - 'a']++;
+                l++;
+            }
+            if (cnt[0] >= k && cnt[1] >= k && cnt[2] >= k) {
+                ans = min(ans, len - (r - l + 1));
+            }
+        }
+
+        return ans;
+    }
+};
+```
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    public int takeCharacters(String s, int k) {
+        int[] cnt = new int[3];
+        int len = s.length();
+        int ans = len;
+        for (int i = 0; i < len; i++) {
+            cnt[s.charAt(i) - 'a']++;
+        }
+        if (cnt[0] >= k && cnt[1] >= k && cnt[2] >= k) {
+            ans = Math.min(ans, len);
+        } else {
+            return -1;
+        }
+
+        int l = 0;
+        for (int r = 0; r < len; r++) {
+            cnt[s.charAt(r) - 'a']--;
+            while (l < r && (cnt[0] < k || cnt[1] < k || cnt[2] < k)) {
+                cnt[s.charAt(l) - 'a']++;
+                l++;
+            }
+            if (cnt[0] >= k && cnt[1] >= k && cnt[2] >= k) {
+                ans = Math.min(ans, len - (r - l + 1));
+            }
+        }
+
+        return ans;
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    public int TakeCharacters(string s, int k) {
+        int[] cnt = new int[3];
+        int len = s.Length;
+        int ans = len;
+        foreach (char c in s) {
+            cnt[c - 'a']++;
+        }
+        if (cnt[0] >= k && cnt[1] >= k && cnt[2] >= k) {
+            ans = Math.Min(ans, len);
+        } else {
+            return -1;
+        }
+
+        int l = 0;
+        for (int r = 0; r < len; r++) {
+            cnt[s[r] - 'a']--;
+            while (l < r && (cnt[0] < k || cnt[1] < k || cnt[2] < k)) {
+                cnt[s[l] - 'a']++;
+                l++;
+            }
+            if (cnt[0] >= k && cnt[1] >= k && cnt[2] >= k) {
+                ans = Math.Min(ans, len - (r - l + 1));
+            }
+        }
+
+        return ans;
+    }
+}
+```
+
+* [sol1-Go]
+
+```Go
+func takeCharacters(s string, k int) int {
+    cnt := make([]int, 3)
+	ans := len(s)
+
+	for i := 0; i < len(s); i++ {
+		cnt[s[i] - 'a']++
+	}
+
+	if cnt[0] >= k && cnt[1] >= k && cnt[2] >= k {
+		ans = min(ans, len(s))
+	} else {
+		return -1
+	}
+
+	l := 0
+	for r := 0; r < len(s); r++ {
+		cnt[s[r] - 'a']--
+		for l < r && (cnt[0] < k || cnt[1] < k || cnt[2] < k) {
+			cnt[s[l] - 'a']++
+			l++
+		}
+		if cnt[0] >= k && cnt[1] >= k && cnt[2] >= k {
+			ans = min(ans, len(s) - (r - l + 1))
+		}
+	}
+
+	return ans
+}
+```
+
+* [sol1-Python3]
+
+```Python
+class Solution:
+    def takeCharacters(self, s: str, k: int) -> int:
+        cnt = [0] * 3
+        ans = len(s)
+
+        for c in s:
+            cnt[ord(c) - ord('a')] += 1
+        if cnt[0] >= k and cnt[1] >= k and cnt[2] >= k:
+            ans = min(ans, len(s))
+        else:
+            return -1
+
+        l = 0
+        for r, ch in enumerate(s):
+            cnt[ord(ch) - ord('a')] -= 1
+            while l < r and (cnt[0] < k or cnt[1] < k or cnt[2] < k):
+                cnt[ord(s[l]) - ord('a')] += 1
+                l += 1
+            if cnt[0] >= k and cnt[1] >= k and cnt[2] >= k:
+                ans = min(ans, len(s) - (r - l + 1))
+
+        return ans
+```
+
+* [sol1-C]
+
+```C
+int takeCharacters(char* s, int k) {
+    int cnt[3] = {0};
+    int len = strlen(s);
+    int ans = len;
+
+    for (int i = 0; i < len; i++) {
+        cnt[s[i] - 'a']++;
+    }
+    if (cnt[0] >= k && cnt[1] >= k && cnt[2] >= k) {
+        ans = len;
+    } else {
+        return -1;
+    }
+
+    for (int l = 0, r = 0; r < len; r++) {
+        cnt[s[r] - 'a']--;
+        while (l < r && (cnt[0] < k || cnt[1] < k || cnt[2] < k)) {
+            cnt[s[l] - 'a']++;
+            l++;
+        }
+        if (cnt[0] >= k && cnt[1] >= k && cnt[2] >= k) {
+            ans = fmin(ans, len - (r - l + 1));
+        }
+    }
+
+    return ans;
+}
+```
+
+* [sol1-JavaScript]
+
+```JavaScript
+var takeCharacters = function(s, k) {
+    const cnt = [0, 0, 0];
+    const len = s.length;
+    let ans = len;
+
+    for (let i = 0; i < len; i++) {
+        cnt[s.charCodeAt(i) - 97]++;
+    }
+
+    if (cnt[0] >= k && cnt[1] >= k && cnt[2] >= k) {
+        ans = Math.min(ans, len);
+    } else {
+        return -1;
+    }
+
+    let l = 0;
+    for (let r = 0; r < len; r++) {
+        cnt[s.charCodeAt(r) - 97]--;
+        while (l < r && (cnt[0] < k || cnt[1] < k || cnt[2] < k)) {
+            cnt[s.charCodeAt(l) - 97]++;
+            l++;
+        }
+        if (cnt[0] >= k && cnt[1] >= k && cnt[2] >= k) {
+            ans = Math.min(ans, len - (r - l + 1));
+        }
+    }
+
+    return ans;
+};
+```
+
+* [sol1-JavaScript]
+
+```JavaScript
+function takeCharacters(s: string, k: number): number {
+    const cnt = [0, 0, 0];
+    const len = s.length;
+    let ans = len;
+
+    for (let i = 0; i < len; i++) {
+        cnt[s.charCodeAt(i) - 97]++;
+    }
+    if (cnt[0] >= k && cnt[1] >= k && cnt[2] >= k) {
+        ans = Math.min(ans, len);
+    } else {
+        return -1;
+    }
+
+    let l = 0;
+    for (let r = 0; r < len; r++) {
+        cnt[s.charCodeAt(r) - 97]--;
+        while (l < r && (cnt[0] < k || cnt[1] < k || cnt[2] < k)) {
+            cnt[s.charCodeAt(l) - 97]++;
+            l++;
+        }
+        if (cnt[0] >= k && cnt[1] >= k && cnt[2] >= k) {
+            ans = Math.min(ans, len - (r - l + 1));
+        }
+    }
+
+    return ans;
+};
+```
+
+* [sol1-Rust]
+
+```Rust
+impl Solution {
+    pub fn take_characters(s: String, k: i32) -> i32 {
+        let mut cnt = vec![0; 3];
+        let len = s.len();
+        let mut ans = len as i32;
+
+        for c in s.chars() {
+            cnt[c as usize - 'a' as usize] += 1;
+        }
+
+        if cnt[0] >= k && cnt[1] >= k && cnt[2] >= k {
+            ans = ans.min(len as i32);
+        } else {
+            return -1;
+        }
+
+        let mut l = 0;
+        let s_chars: Vec<char> = s.chars().collect();
+        for r in 0..len {
+            cnt[s_chars[r] as usize - 'a' as usize] -= 1;
+            while l < r && (cnt[0] < k || cnt[1] < k || cnt[2] < k) {
+                cnt[s_chars[l] as usize - 'a' as usize] += 1;
+                l += 1;
+            }
+            if cnt[0] >= k && cnt[1] >= k && cnt[2] >= k {
+                ans = ans.min(len as i32 - (r - l + 1) as i32);
+            }
+        }
+        ans
+    }
+}
+```
+
+* [sol1-Cangjie]
+
+```Cangjie
+class Solution {
+    func takeCharacters(s: String, k: Int64): Int64 {
+        let cnt = Array<Int>(3, item: 0)
+        let len = s.size
+        var ans = len
+        for (i in 0..len) {
+            cnt[Int64(s[i] - b'a')]++
+        }
+        if (cnt[0] >= k && cnt[1] >= k && cnt[2] >= k) {
+            ans = min(ans, len)
+        } else {
+            return -1
+        }
+
+        var l = 0
+        for (r in 0..len) {
+            cnt[Int64(s[r] - b'a')]--
+            while (l < r && (cnt[0] < k || cnt[1] < k || cnt[2] < k)) {
+                cnt[Int64(s[l] - b'a')]++
+                l++
+            }
+            if (cnt[0] >= k && cnt[1] >= k && cnt[2] >= k) {
+                ans = min(ans, len - (r - l + 1))
+            }
+        }
+        return ans
+    }
+}
+```
+
+**复杂度分析**
+
+- 时间复杂度：$O(n)$，其中 $n$ 为字符串的长度。
+
+- 空间复杂度：$O(1)$。
+

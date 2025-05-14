@@ -1,0 +1,62 @@
+### 解题思路
+
+从高位一一找出对应的罗马数字
+
+### 代码
+
+* javascript
+
+```javascript
+/**
+ * @param {number} num
+ * @return {string}
+ */
+var intToRoman = function(num) {
+    let romanNum = '';
+    let temp = num;
+    while(temp >= 1) {
+        if(temp / 1000 >= 1) {
+            romanNum += 'M';
+            temp -= 1000;
+        } else if(temp / 1000 < 1 && temp / 900 >= 1) {
+            romanNum += 'CM';
+            temp -= 900;
+        } else if(temp / 900 < 1 && temp / 500 >= 1) {
+            romanNum += 'D';
+            temp -= 500;
+        } else if(temp / 500 < 1 && temp / 400 >= 1) {
+            romanNum += 'CD';
+            temp -= 400;
+        } else if(temp / 400 < 1 && temp / 100 >= 1) {
+            romanNum += 'C';
+            temp -= 100;
+        } else if(temp / 100 < 1 && temp / 90 >= 1) {
+            romanNum += 'XC';
+            temp -= 90;
+        } else if(temp / 90 < 1 && temp / 50 >= 1) {
+            romanNum += 'L';
+            temp -= 50;
+        } else if(temp / 50 < 1 && temp / 40 >= 1) {
+            romanNum += 'XL';
+            temp -= 40;
+        } else if(temp / 40 < 1 && temp / 10 >= 1) {
+            romanNum += 'X';
+            temp -= 10;
+        } else if(temp / 10 < 1 && temp / 9 >= 1) {
+            romanNum += 'IX';
+            temp -= 9;
+        } else if(temp / 9 < 1 && temp / 5 >= 1) {
+            romanNum += 'V';
+            temp -= 5;
+        } else if(temp / 5 < 1 && temp / 4 >= 1) {
+            romanNum += 'IV';
+            temp -= 4;
+        } else {
+            romanNum += 'I';
+            temp -= 1;
+        }
+    }
+    return romanNum;
+};
+```
+

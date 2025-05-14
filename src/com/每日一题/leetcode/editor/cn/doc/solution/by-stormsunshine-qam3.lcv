@@ -1,0 +1,145 @@
+# 解法
+
+## 思路和算法
+
+如果存在一条路径经过 $k$ 条边，其中第 $i$ 条边的成功概率是 $p_i$，则该路径的成功概率是 $p = \prod_{i = 1}^{k} p_i$，其中 $0 \le p_i \le 1$，$0 \le p \le 1$。
+
+定义函数 $f(p) = -\log p$，即 $f(p)$ 为 $p$ 的对数值的相反数。由于 $\log p$ 关于 $p$ 单调递增，因此当 $p$ 最大时，$f(p)$ 最小。
+
+将 $p = \prod_{i = 1}^{k} p_i$ 代入 $f(p)$ 的表达式，可得 $f(p) = -\log \prod_{i = 1}^{k} p_i = \sum_{i = 1}^{k} (-\log p_i)$。
+
+当 $f(p)$ 最小时，$\sum_{i = 1}^{k} (-\log p_i)$ 最小，因此原始问题可以转化成计算最短路径，每条路径的权重是 $-\log p_i$。由于 $0 \le p_i \le 1$，因此 $\log p_i \le 0$，$-\log p_i \ge 0$（这里规定 $\log 0 = -\infty$），即每条路径的权重都非负，可以使用 Dijkstra 算法计算最短路径。
+
+转化后的问题中的最短路径等价于原始问题中的最大成功概率路径，可以使用 Dijkstra 算法的思想计算从 $\textit{start}$ 到 $\textit{end}$ 的最大成功概率。
+
+为了方便处理，需要首先将边数组转换成邻接列表的形式，转换后可以在 $O(1)$ 时间获得一个结点的全部相邻结点。
+
+创建长度为 $n$ 的数组 $\textit{probabilities}$ 记录从结点 $\textit{start}$ 到每个结点的最大成功概率，初始时 $\textit{probabilities}[\textit{start}] = 1$，$\textit{probabilities}$ 中的其余元素都是 $0$。
+
+为了降低时间复杂度，使用 Dijkstra 算法的过程中维护大根堆，初始时大根堆中只有结点 $\textit{start}$。每次从大根堆中取出成功概率最大的结点 $\textit{node}$，记该结点的概率是 $\textit{probability}$，对于该结点的每个相邻结点 $\textit{nextNode}$，记 $\textit{node}$ 到 $\textit{nextNode}$ 的边的成功概率是 $\textit{nextProbability}$，执行如下操作。
+
+1. 计算 $\textit{totalProbability} = \textit{probability} \times \textit{nextProbability}$，则从 $\textit{start}$ 到 $\textit{nextNode}$ 的当前路径的成功概率是 $\textit{totalProbability}$。
+
+2. 如果 $\textit{probabilities}[\textit{nextNode}] < \textit{totalProbability}$，则将 $\textit{probabilities}[\textit{nextNode}]$ 的值更新为 $\textit{totalProbability}$，将结点 $\textit{nextNode}$ 加入大根堆。
+
+遍历结束时，$\textit{probabilities}[\textit{end}]$ 即为从 $\textit{start}$ 到 $\textit{end}$ 的最大成功概率。
+
+## 代码
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    class Pair {
+        private int node;
+        private double probability;
+
+        public Pair(int node, double probability) {
+            this.node = node;
+            this.probability = probability;
+        }
+
+        public int getNode() {
+            return node;
+        }
+
+        public double getProbability() {
+            return probability;
+        }
+    }
+
+    public double maxProbability(int n, int[][] edges, double[] successProb, int start, int end) {
+        List<Pair>[] adjacentArr = new List[n + 1];
+        for (int i = 0; i <= n; i++) {
+            adjacentArr[i] = new ArrayList<Pair>();
+        }
+        int m = edges.length;
+        for (int i = 0; i < m; i++) {
+            int[] edge = edges[i];
+            int node0 = edge[0], node1 = edge[1];
+            double probability = successProb[i];
+            adjacentArr[node0].add(new Pair(node1, probability));
+            adjacentArr[node1].add(new Pair(node0, probability));
+        }
+        double[] probabilities = new double[n];
+        probabilities[start] = 1;
+        PriorityQueue<Pair> pq = new PriorityQueue<Pair>((a, b) -> {
+            if (a.getProbability() == b.getProbability()) {
+                return 0;
+            }
+            return a.getProbability() < b.getProbability() ? 1 : -1;
+        });
+        pq.offer(new Pair(start, 1));
+        while (!pq.isEmpty()) {
+            Pair pair = pq.poll();
+            int node = pair.getNode();
+            double probability = pair.getProbability();
+            if (probabilities[node] > probability) {
+                continue;
+            }
+            List<Pair> adjacent = adjacentArr[node];
+            for (Pair next : adjacent) {
+                int nextNode = next.getNode();
+                double nextProbability = next.getProbability();
+                double totalProbability = probability * nextProbability;
+                if (probabilities[nextNode] < totalProbability) {
+                    probabilities[nextNode] = totalProbability;
+                    pq.offer(new Pair(nextNode, totalProbability));
+                }
+            }
+        }
+        return probabilities[end];
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    public double MaxProbability(int n, int[][] edges, double[] successProb, int start, int end) {
+        IList<Tuple<int, double>>[] adjacentArr = new IList<Tuple<int, double>>[n + 1];
+        for (int i = 0; i <= n; i++) {
+            adjacentArr[i] = new List<Tuple<int, double>>();
+        }
+        int m = edges.Length;
+        for (int i = 0; i < m; i++) {
+            int[] edge = edges[i];
+            int node0 = edge[0], node1 = edge[1];
+            double probability = successProb[i];
+            adjacentArr[node0].Add(new Tuple<int, double>(node1, probability));
+            adjacentArr[node1].Add(new Tuple<int, double>(node0, probability));
+        }
+        double[] probabilities = new double[n];
+        probabilities[start] = 1;
+        PriorityQueue<Tuple<int, double>, double> pq = new PriorityQueue<Tuple<int, double>, double>();
+        pq.Enqueue(new Tuple<int, double>(start, 1), -1);
+        while (pq.Count > 0) {
+            Tuple<int, double> tuple = pq.Dequeue();
+            int node = tuple.Item1;
+            double probability = tuple.Item2;
+            if (probabilities[node] > probability) {
+                continue;
+            }
+            IList<Tuple<int, double>> adjacent = adjacentArr[node];
+            foreach (Tuple<int, double> next in adjacent) {
+                int nextNode = next.Item1;
+                double nextProbability = next.Item2;
+                double totalProbability = probability * nextProbability;
+                if (probabilities[nextNode] < totalProbability) {
+                    probabilities[nextNode] = totalProbability;
+                    pq.Enqueue(new Tuple<int, double>(nextNode, totalProbability), -totalProbability);
+                }
+            }
+        }
+        return probabilities[end];
+    }
+}
+```
+
+## 复杂度分析
+
+- 时间复杂度：$O((n + m) \log n)$，其中 $n$ 是图中的结点数，$m$ 是图中的边数。将边数组转换成邻接结点列表需要 $O(n + m)$ 的时间，基于大根堆实现的 Dijkstra 算法时间复杂度是 $O((n + m) \log n)$，因此时间复杂度是 $O((n + m) \log n)$。
+
+- 空间复杂度：$O(n + m)$，其中 $n$ 是图中的结点数，$m$ 是图中的边数。邻接结点列表需要 $O(n + m)$ 的空间，记录从结点 $\textit{start}$ 到每个结点的最短路径需要 $O(n)$ 的空间，优先队列需要 $O(n)$ 的空间，因此空间复杂度是 $O(n + m)$。
+

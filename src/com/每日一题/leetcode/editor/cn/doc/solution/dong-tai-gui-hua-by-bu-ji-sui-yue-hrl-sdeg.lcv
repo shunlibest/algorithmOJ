@@ -1,0 +1,49 @@
+> Problem: [3196. 最大化子数组的总成本](https://leetcode.cn/problems/maximize-total-cost-of-alternating-subarrays/description/)
+
+[TOC]
+
+# 解题方法
+
+> 利用动态规划的思想，计算最大值，遍历当前数组，若当前的元素大于等于0，利用贪心的思想直接加入结果，反之如果当前的元素为负数时，有两种情况，一种为前第二个元素为正数，和为负数的情况，具体的实现代码如下。
+
+# 复杂度
+
+时间复杂度:
+
+> $O(n)$
+
+空间复杂度:
+
+> $O(n)$
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public long maximumTotalCost(int[] nums) {
+        int n = nums.length;
+        long res = 0;
+        if (n == 1)
+            return nums[0];
+
+        long dp[] = new long[n];
+        Arrays.fill(dp, 0);
+        dp[0] = nums[0];
+        for (int i = 1; i < n; i++) {
+            if (nums[i] >= 0)
+                dp[i] = dp[i - 1] + nums[i];
+            else {
+                if (i == 1)
+                    dp[i] = dp[i - 1] - nums[i];
+                else {
+                    dp[i] = Math.max(dp[i - 2] + nums[i - 1] - nums[i], dp[i - 1] + nums[i]);
+                }
+            }
+        }
+        return dp[n - 1];
+    }
+}
+```
+

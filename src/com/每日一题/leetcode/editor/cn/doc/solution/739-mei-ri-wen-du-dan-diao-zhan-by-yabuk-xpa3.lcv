@@ -1,0 +1,21 @@
+* []
+
+```python
+class Solution:
+    def dailyTemperatures(self, T: List[int]) -> List[int]:
+        rt = [0] * len(T)
+        stack = []
+        for i in range(len(T)):
+            while stack!=[] and T[stack[-1]]<T[i]:
+                pre = stack.pop()
+                rt[pre] = i-pre
+            stack.append(i)
+        return rt
+```
+
+* []
+
+```c++
+//tbc
+```
+

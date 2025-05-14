@@ -1,0 +1,61 @@
+> Problem: [2608. 图中的最短环](https://leetcode.cn/problems/shortest-cycle-in-a-graph/description/)
+
+[TOC]
+
+# 思路
+
+> 枚举每一个起点，计算环的最小尺寸。
+> 最开始想用一个visit维护 但是失败了。想了一下，第一时间遇到了一个重复出现的点，不代表就是最小环的长度了
+
+# 解题方法
+
+> BFS 枚举遍历 队列为(curr_node,pre_node) pre_node为引入curr_node的父亲节点。
+
+1. 从每一个节点出发，统计从i到其余各个点之间的距离，记录到dis_to
+2. 对curr_node的每一个邻接点，如果是第一次出现，就修改长度，并且入队。
+3. 如果不是第一次出现，如果next_node == pre_node,那就跳过，因为pre-cur相连，肯定是可以互相读取的；
+4. 如果next_node 的dis_to[next_node] != -1（初始值）说明前面有节点引入过，则说明必定有环
+5. 由于这个环出现的原因关键还是在curr_node引入了next_node这个元素，所以换的大小就是二者的路径和再加上他俩之间的一条边。
+6. 更新全局最小环尺寸
+
+# 复杂度
+
+# Code
+
+* []
+
+```Python
+class Solution:
+    def findShortestCycle(self, n: int, edges: List[List[int]]) -> int:
+        # 建图
+        graph = [[] for i in range(n)]
+        for u,v in edges:
+            graph[u].append(v)
+            graph[v].append(u)
+        ans = inf
+        for i in range(n):
+        # 可能存在很多个小图 所以枚举每一个点当做起点
+            dis_to = [-1] * n
+            step = 0
+            queue = deque()
+            queue.append([i,-1])
+            dis_to[i] = 0
+            while queue:
+                size = len(queue)
+                while size:
+                    curr_node,pre_node = queue.popleft()
+                    size -= 1
+                    for next_node in graph[curr_node]:
+                        if dis_to[next_node] == -1:
+                            dis_to[next_node] = dis_to[curr_node] + 1
+                            queue.append([next_node,curr_node])
+                        # 对于是邻接点 如果是通过node1引入的node2，那么就会有(node2,node1)的元素入队
+                        # 并且 也由于是邻接点 后面遍历node2的邻接点的时候 肯定又会读取到node1 
+                        # 显然dis[node1]肯定！=-1;但是如果还存在其他元素dis_to>0
+                        # 则说明node2的这个邻接点在之前就引进来过了 所以肯定存在环
+                        # 罪魁祸首就是node1,node2这两个元素 所以算他们各自的长度再加一就是最终结果
+                        elif next_node != pre_node:
+                            ans = min(ans,dis_to[curr_node]+dis_to[next_node] + 1)
+        return ans if ans != inf else -1
+```
+

@@ -1,0 +1,33 @@
+### 解题思路
+
+反向DP。
+1. 首先把每个问题如果要做的话，那么它下一个可以做的题的位置记下来；
+2. 反向DP，如果做此题，那么它的最优结果是此题得分，加上下一跳可以做的题的最大的分数（如果不存在的话，就是0)；如果不做此题，那么就是下一题可以得到最大的分数
+
+### 代码
+
+* cpp
+
+```cpp
+typedef long long ll;
+class Solution {
+public:
+    long long mostPoints(vector<vector<int>>& questions) {
+        ll res = 0,n = questions.size();
+        for(int i = 0; i < n;++i)questions[i][1] = i + questions[i][1] + 1;
+        vector<ll> f(n);
+        f[n-1] = questions[n-1][0];
+        res = f[n-1];
+        for(int i = n-2;i >= 0;--i){
+            if(questions[i][1] <= n-1){
+                f[i] = f[questions[i][1]] + questions[i][0];
+            }else
+                f[i] = questions[i][0];
+            f[i] = max(f[i+1],f[i]);
+            res = max(f[i],res);
+        }
+        return res;
+    }
+};
+```
+

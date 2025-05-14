@@ -1,0 +1,111 @@
+### 代码
+
+* java
+
+```java
+class LRUCache 
+{
+    private class Node
+    {
+        int key,val;
+        Node pre;
+        Node next;
+        private Node()
+        {
+
+        }
+        private Node(int _key,int _val)
+        {
+            key=_key;
+            val=_val;
+        }
+    }
+    private class DLinkedList
+    {
+        Node head = new Node(0,0);
+        Node tail = new Node(0,0);
+        
+        private DLinkedList()
+        {
+            head.next=tail;
+            tail.pre=head;
+        }
+
+        private void addFirst(Node node)
+        {
+            node.next=head.next;
+            node.pre=head;
+            head.next.pre=node;
+            head.next=node;
+        }
+
+        private Node remove(Node node)
+        {
+            node.pre.next=node.next;
+            node.next.pre=node.pre;
+            return node;
+        }
+
+        private Node removeLast()
+        {
+            Node res = tail.pre;
+            remove(res);
+            return res;
+        }
+    }
+
+    
+    public int capacity;
+    public HashMap<Integer,Node> map;
+    public DLinkedList dCache;
+    public LRUCache(int capacity) 
+    {
+        this.capacity=capacity;
+        map = new HashMap<>();
+        dCache = new DLinkedList();
+    }
+    
+    public int get(int key) 
+    {
+        if(!map.containsKey(key))
+        {
+            return -1;
+        }
+        Node getNode=map.get(key);
+        int val=getNode.val;
+        dCache.remove(getNode);
+        dCache.addFirst(getNode);
+        return val;
+    }
+    
+    public void put(int key, int value) 
+    {
+        if(map.containsKey(key))
+        {
+            Node temp = map.get(key);
+            temp.val=value;
+            dCache.remove(temp);
+            dCache.addFirst(temp);
+        }
+        else
+        {
+            Node node = new Node(key,value);
+            if(map.size()==capacity)
+            {
+                Node last=dCache.removeLast();
+                map.remove(last.key);
+            }
+            dCache.addFirst(node);
+            map.put(key,node);
+        }
+    }
+}
+
+/**
+ * Your LRUCache object will be instantiated and called as such:
+ * LRUCache obj = new LRUCache(capacity);
+ * int param_1 = obj.get(key);
+ * obj.put(key,value);
+ */
+```
+

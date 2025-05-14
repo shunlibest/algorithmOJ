@@ -1,0 +1,86 @@
+> Problem: [547. 省份数量](https://leetcode.cn/problems/number-of-provinces/description/)
+
+[TOC]
+
+# 思路
+
+> BFS或者DFS均可
+
+# 解题方法
+
+> DFS利用path: List[int]，寻找结果；BFS利用队列q和集合visited
+
+# 复杂度
+
+时间复杂度:
+
+> $O(N^2)$
+
+空间复杂度:
+
+> $O(N)$
+
+# Code1: DFS
+
+* []
+
+```Python
+class Solution:
+    def findCircleNum(self, isConnected: List[List[int]]) -> int:
+        def dfs(begin: int, path: List[int]) -> None:
+        #从begin出发能与之相连的点记为path
+            nonlocal n, ans
+            iflag = 0
+            for j in range(n):
+                if isConnected[begin][j] == 1 and j not in path:
+                    path.append(j)
+                    dfs(j, path)
+                    iflag = 1
+            if iflag == 0:
+                ans = set(path)
+            return
+            
+        n = len(isConnected)
+        #path = []
+        cnt = 0
+        visited = set()
+        for i in range(n):
+            if i not in visited:
+                ans = set()
+                dfs(i, [])
+                visited |= ans
+                cnt += 1
+        return cnt
+```
+
+# Code2: BFS
+
+* []
+
+```Python
+class Solution:
+    def findCircleNum(self, isConnected: List[List[int]]) -> int:
+        n = len(isConnected)
+        q = collections.deque()
+        visited = set()
+        group = 0
+        for i in range(n):
+            if i not in visited:   
+                q.append(i)
+                visited.add(i)        
+                while q:
+                    len_q = len(q)
+                    for k in range(len_q):
+                        x = q.pop()
+                        for j in range(n):
+                            if j in visited:
+                                continue
+                            else:
+                                if isConnected[x][j] == 1:
+                                    q.appendleft(j)
+                                    visited.add(j)
+                group += 1
+        
+        return group
+```
+

@@ -1,0 +1,106 @@
+> Problem: [93. 复原 IP 地址](https://leetcode.cn/problems/restore-ip-addresses/description/)
+
+[TOC]
+
+# 思路 看代码中详细注释
+
+> 跟上一题类似 不过这个题对切割出来的要求比较多
+> 题中要求 **恰好 四次 切割 能切割完这个字符串&&每个子串还得满足许多条件**
+> 其实，我们一层只有三种可能 切一个，切俩 切三（<255）并且不能0开头的
+> 这就奠定了我们模拟树的宽度  也同时对应了for循环中break的逻辑
+
+然后就是递归终止条件 我们有四次切割机会 如果用完了 就要去看 是不是恰好切完了，如果是就保存结果 不是就寄了。
+
+保存结果上，carl用的方法我没看 很简单 用一个字符串维护结果，切完后，遍历path数组，把子串们拼在s上，并且再拼一个.进去，不过最终应该删去一个. 最后一个子串不用加.
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```Java
+class Solution {
+
+    List<String> path=new ArrayList<>();  //保存每次切割结果的小字符串
+    List<String> result=new ArrayList<>();//保存最终结果
+    public List<String> restoreIpAddresses(String s) {
+        int startindex=0;
+        int cut=0;
+        backtracking(s,startindex,cut);
+        return result;
+    }
+    //s为字符串  startindex为字符串的起点 cut为已经下刀的数量
+    void backtracking(String s,int startindex,int cut){
+        //终止条件 结束本树枝的递归 对照叶子结点编写
+        if (cut==4){//2,3,4,5
+            if (startindex==s.length()){
+/**保存结果上，carl用的方法我没看
+ 很简单 用一个字符串s1维护结果，切完后，遍历path数组，把子串们拼在s1上，并且再拼一个.进去，不过最终应该删去一个. 最后一个子串不用加.
+再把s1放入result里 就得到了一个切好的ip**/
+                String s1="";
+                for (String s2 :path) {
+                    s1+=s2;
+                    s1+=".";
+                }
+                //s1==1.2.3.4.
+                s1=s1.substring(0,s1.length()-1);
+                //s1=1.2.3.4
+                result.add(s1);
+                return;
+            }
+            else{
+                return;
+            }
+        }
+//startindex对应切割左边界（字符串起点）  i对应切割右边界(切割线)  一个for对应遍历一层
+
+        // 从左往右的节点 分别对应切第一个字符出来 1，切两个10，切三个102，切四个1020  这个题要求，切出来的字符串必须小于255 并且还不能以0开头
+        //如果某一个节点比255大了，正常应该continue尝试右边的结点，但是右边的结点比他多一位，一定更比255大
+        // 所以 该层 后面的节点就不用遍历了 那对应了break
+        for (int i = startindex+1; i <=s.length() ; i++) {
+            //一次for对应一个节点 比如102030 切10 i=2
+            String substring = s.substring(startindex, i);
+            int value = Integer.valueOf(substring);
+            //检验切割结果
+            if (value>255){
+                break;
+            }
+            //处理切出02 020这种违规字符 如果出现02这种，后续切020 0203都不行，所以后面节点也没意义了
+            if (substring.charAt(0)=='0'&&substring.length()>1){
+                break;
+            }
+
+            //处理
+            path.add(substring);
+            cut++;
+            //递归
+            backtracking(s,i,cut);
+            //回溯
+            path.remove(path.size()-1);
+            cut--;
+
+        }
+
+
+
+
+
+
+    }
+
+}
+```
+

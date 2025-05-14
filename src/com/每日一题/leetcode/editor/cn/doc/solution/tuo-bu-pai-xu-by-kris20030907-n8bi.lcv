@@ -1,0 +1,91 @@
+> Problem: [1462. 课程表 IV](https://leetcode.cn/problems/course-schedule-iv/description/)
+
+[TOC]
+
+# 思路
+
+> 讲述看到这一题的思路
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+- 时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+- 空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```C++
+
+class Solution {
+public:
+//这题的边方向是 ai->bi,注意存边方向
+//第一印象：求出拓扑序列（一定是满足拓扑，不然怎么判断），然后判断queries中的课程中uj是否在拓扑排序中 vj的前面
+
+//可惜更新状态没有正确更新 间接的先修关系
+//看大佬题解，用额外一个二维数组 f 存课程的先修关系，同时更新间接先修关系
+
+    static const int N = 5000;   //100*100可能有1000条边，400不够,wc1000也不够
+    int h[N],e[N],ne[N],idx;
+    int d[N];   //入度
+    int q[N];   //队列
+    bool f[110][110];
+
+    //加边
+    void add(int a, int b){
+        e[idx] = b, ne[idx] = h[a], h[a] = idx++;
+    }
+
+    vector<bool> checkIfPrerequisite(int numCourses, vector<vector<int>>& prerequisites, vector<vector<int>>& queries) {
+
+        //忘记初始化 邻接表头h，超时
+        memset(h, -1 ,sizeof h);
+
+        for(auto v : prerequisites){
+            int a = v[0], b =v[1];
+            add(a, b);     //a是b的先修课程
+            d[b]++;
+        }
+
+        int hh = 0, tt = -1;
+        for(int i = 0; i < numCourses;i++){
+            if(!d[i]) q[++tt] = i;    //入度为0的节点入队
+        }
+
+        while(hh <= tt){
+            auto t = q[hh++];   //取队头
+
+            //删边
+            for(int i = h[t]; i != -1 ;i = ne[i]){
+                int j = e[i];
+
+                f[t][j] = true ;  //更新直连边t->j的先修状态
+                
+                //更新间接连接的状态 即:指向当前头节点 t 的节点new，到与t相连的边端点j之间也是 true的，即 new->j = new->t;
+                for(int h = 0; h < numCourses;h++) f[h][j] |= f[h][t]; //或运算  
+
+                d[j]--;
+                if(!d[j]) q[++tt] = j;
+            }
+        }
+
+        vector<bool> ans;
+
+        //通过f把queries更新到ans数组
+        for(auto v : queries){
+            ans.push_back(f[v[0]][v[1]]);
+        }
+        return ans;
+    }
+};
+```
+

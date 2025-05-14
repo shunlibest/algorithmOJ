@@ -1,0 +1,129 @@
+> Problem: [100133. 购买水果需要的最少金币数](https://leetcode.cn/problems/minimum-number-of-coins-for-fruits/description/)
+
+# 思路
+
+`coins[i]:` 表示获得范围 $[0, i]$ 内所有水果而且最后一个水果 $i$是花钱买时的最少金币数。
+`min:` 表示 $j$ 在范围 $[i/2, i]$ 内时的最少金币数 $coins[j]$。
+
+最后返回 $min$ 为答案。
+
+# 复杂度
+
+时间复杂度: $O(n^2)$，其中 $n$ 为数组 $prices$ 的长度。
+
+空间复杂度: $O(n)$
+
+## Java 3ms Code
+
+* Java
+
+```Java
+class Solution {
+    public int minimumCoins(int[] prices) {
+
+        int n = prices.length;
+        int[] coins = new int[n];
+        int min = 0;
+        for(int i = 0 ; i < n ; ++i){
+            coins[i] = min + prices[i];
+            min = Integer.MAX_VALUE;
+            for(int j = i / 2 ; j <= i; ++j)
+               min = Math.min(min, coins[j]);
+        }
+        return min;
+    }
+}
+
+```
+
+我们还可以进一步优化，计算 $min$ 时，记录 $minIndex$。当 $minIndex$ 大于 $n/2$ 时，因为剩下的水果都可以免费，所以不用继续计算，可以直接返回答案。
+
+## Java 2ms Code
+
+* Java
+
+```Java
+class Solution {
+    public int minimumCoins(int[] prices) {
+
+        int n = prices.length;
+        int[] coins = new int[n];
+        int min = 0, minIndex = 0;
+        for(int i = 0 ; i < n; ++i){
+            coins[i] = min + prices[i];
+            min = Integer.MAX_VALUE;
+            for(int j = i / 2 ; j <= i; ++j){
+               if(coins[j] <= min){
+                   min = coins[j];
+                   minIndex = j;
+               }
+            }
+            if(minIndex > n / 2) break;
+        }
+        return min;
+    }
+}
+
+```
+
+如果用倒序的方法遍历数组 $prices$ 和计算最小费用, 遍历后面 $n /2$ 个苹果时，可以减少第二层循环的遍历，这样 $Java$ 的最快运行时间可以降到 $1 ms$。
+
+## Java 1ms Code
+
+* Java
+
+```Java
+class Solution {
+   
+    public int minimumCoins(int[] prices) {
+        int n = prices.length;
+        int[] coins = new int[n];
+        int mid = n - 1 >> 1;
+        for (int i = n - 1; i >= mid ; i--) 
+              coins[i] = prices[i];
+    
+        for (int i = mid - 1; i >= 0; i--) {
+            int min = coins[i + 1];
+            for (int j = i + 1; j <= i * 2 + 2; j++) 
+                min = Math.min(min, coins[j]);
+            
+            coins[i] = min + prices[i];
+        }
+        return coins[0];
+    }
+}
+
+```
+
+另外一种优化的方式是用双端队列来维护有效数据。在队列的前端，如果上次购买的时间到现在已经超过了免费的时间，那么我们把这些购买从队列中弹出。在队列的后端，如果队列里的费用比最新的费用还高或相等，那么把这些费用从队列里弹出。
+
+## Java 1ms Code
+
+* Java
+
+```Java
+class Solution {
+
+    public int minimumCoins(int[] prices) {
+        int n = prices.length;
+        int[] coins = new int[n + 1], que = new int[n + 1];
+        int read = 0,  write = 0;
+        coins[0] = prices[0]; 
+        
+        for (int i = 1; i <= n; i++) {
+            
+            while (read < write && que[read] < (i - 1) / 2) read++;
+            
+            int min = coins[read] + (i < n ?prices[i]:0);
+            
+            while (read < write && coins[write] >= min) write--;
+            que[++write] = i;
+            coins[write] = min;
+        }
+
+        return coins[write];
+    }
+}
+
+```
+

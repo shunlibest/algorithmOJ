@@ -1,0 +1,65 @@
+> Problem: [面试题 08.06. 汉诺塔问题](https://leetcode.cn/problems/hanota-lcci/description/)
+
+[TOC]
+
+# 思路
+
+> 讲述看到这一题的思路
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+- 时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+- 空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```C
+
+#define MAX_NUM 15
+typedef struct myStack {
+    int *data;
+    int size;
+} myStack;
+void hannuota(int n, myStack* A,myStack* B,myStack* C){
+    if(1==n)
+    {
+        C->data[C->size++] = A->data[--A->size];
+        return;
+    }
+    else{
+        hannuota(n-1,A,C,B);//前n-1个圈的A借助C放到B
+        hannuota(1,A,B,C);//第n个圈的A直接放到C
+        hannuota(n-1,B,A,C);//前n-1个圈的B借助A放到C
+    }
+}
+
+void hanota(int* A, int ASize, int* B, int BSize, int** C, int* CSize){
+    if(ASize<=0)
+        return;
+    myStack X,Y,Z;
+    X.data = A;
+    X.size = ASize;
+    Y.data = (int *)malloc(MAX_NUM*sizeof(int));
+   // Y.data = B;
+    Y.size = 0;
+    Z.data = (int *)malloc(MAX_NUM*sizeof(int));
+    Z.size = 0;
+    hannuota(ASize,&X,&Y,&Z);
+    *C = Z.data;
+    *CSize = Z.size;
+    free(Y.data);
+}
+
+```
+

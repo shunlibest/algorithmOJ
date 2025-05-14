@@ -1,0 +1,36 @@
+### 解题思路
+
+面向结果编程
+执行用时：12 ms, 在所有 C++ 提交中击败了57.17%的用户
+内存消耗：12.1 MB, 在所有 C++ 提交中击败了68.60%的用户
+
+### 代码
+
+* cpp
+
+```cpp
+class Solution {
+public:
+    int findSpecialInteger(vector<int>& arr) {
+       int n=arr.size();
+       int c=(n/2)/2;
+        int k=0;int f=0;
+        int n1=arr[n-1];
+        if(n==1){
+            return n;
+        }
+       for(int y=0;y<n-1;y++){
+          
+           if(arr[y]==arr[y+1]){
+               k++;
+               if(k>=c){
+                  f =arr[y];
+                   return f;
+               }
+           }else k=0;
+       }
+       return f;
+    }
+};
+```
+

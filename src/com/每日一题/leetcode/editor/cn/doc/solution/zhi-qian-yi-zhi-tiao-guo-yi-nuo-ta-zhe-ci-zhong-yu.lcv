@@ -1,0 +1,32 @@
+1.定义问题的递归函数，明确函数的功能,我们定义这个函数的功能为：把 A 上面的 n 个圆盘经由 B 移到 C
+2.关系公式：move(n from A to C) = move(n-1 from A to B) + move(A to C) + move(n-1 from B to C`)
+分析可得，我们分三步走。
+(1)先把A上的n-1个圆盘，通过和C的操作移动到B上。
+(2)把A剩下的最大的一个盘移动到C。
+(3)再把B上的n-1个盘，通过和A的操作移动到C上。
+不管怎么移动问题和子问题的关系都可以是这三步，下面就可以开始递归。
+
+* 
+
+```
+class Solution {
+    public void hanota(List<Integer> A, List<Integer> B, List<Integer> C) {
+        //得到盘子总数
+        int n =A.size();
+        func(n,A,B,C);
+    }
+    public void func(int n,List<Integer> A, List<Integer> B, List<Integer> C){
+        //当盘子都移动空了之后停止递归
+        if(n<=0){
+            return;
+        }
+        //将A上面的 n-1 个圆盘经由 C 移到 B
+        func(n-1,A,C,B);
+        //此时将 A 底下的那块最大的圆盘移到 C
+        C.add(A.remove(A.size()-1));
+        // 再将 B 上的 n-1 个圆盘经由A移到 C上
+        func(n-1,B,A,C);
+    }
+}
+```
+

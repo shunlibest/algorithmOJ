@@ -1,0 +1,174 @@
+> Problem: [146. LRU 缓存](https://leetcode.cn/problems/lru-cache/description/)
+
+# 思路
+
+要实现一个满足LRU缓存约束的数据结构，并且get和put操作的时间复杂度都是O(1)，我们可以结合使用哈希表和双向链表。哈希表支持快速查找，双向链表支持记录元素的使用顺序。
+
+# 解题方法
+
+实现一个满足LRU（最近最少使用）缓存机制的数据结构，需要在O(1)时间复杂度内完成插入、删除和获取操作。这里的关键是要同时维持数据的快速访问和记录数据的使用顺序。具体实现思路如下：
+
+### 数据结构选择
+
+为了满足这些要求，我们结合使用了哈希表和双向链表：
+- **哈希表**用于快速查找节点，保证`get`和`put`操作的时间复杂度为O(1)。
+- **双向链表**用于维持缓存数据的使用顺序，最近被访问的节点被移到链表头部，而最久未被访问的节点（即LRU数据）位于链表尾部。
+
+### 核心组件
+
+1. **双向链表节点（DLinkedNode）**：每个节点表示缓存中的一个条目，包含`key`、`value`以及指向前一个节点和后一个节点的指针。
+2. **双向链表**：链表的头部表示最近访问的数据，尾部表示最久未访问的数据。当数据被访问时（通过`get`或`put`），该数据对应的节点被移动到链表的头部。当缓存达到其容量限制并需要删除一个元素时，链表尾部的元素（即最久未使用的数据）会被移除。
+3. **哈希表**：键为缓存数据的键，值为对应的双向链表节点。哈希表支持以O(1)的时间复杂度快速访问缓存中的任何一个数据项。
+
+### 操作流程
+
+- **初始化（LRUCache）**：指定缓存的容量，初始化一个空的哈希表和一个空的双向链表（通过创建两个哨兵节点作为链表的头部和尾部）。
+- **获取数据（get）**：如果键存在于哈希表中，返回相应的值，并将对应的节点移动到双向链表的头部。如果键不存在，返回-1。
+- **添加/更新数据（put）**：
+  - 如果键已存在，更新对应节点的值，并将节点移动到双向链表头部。
+  - 如果键不存在，创建一个新的节点，将其加入到哈希表和双向链表的头部。
+  - 如果添加新节点后缓存容量超出限制，删除双向链表尾部的节点，并在哈希表中移除对应的键。
+
+### 设计要点
+
+- 在双向链表中添加和删除节点，以及移动节点到头部的操作都需要维护节点的前后指针，以保持链表的完整性。
+- 操作尾部节点（即最久未使用的数据项）时，直接利用尾部前一个节点，因为尾部节点是一个哨兵节点，不存储实际的缓存数据。
+- 通过维持一个固定大小的哈希表和双向链表，确保所有操作的时间复杂度保持在O(1)。
+
+通过这样的设计，LRU缓存机制能够确保最近使用的数据被快速访问，同时自动淘汰最久未使用的数据，以适应不同的缓存策略需求。
+
+**为什么要设置哨兵节点？**
+
+在双向链表中使用哨兵节点（也称为哑节点或边界节点）可以＊＊＊简化链表操作中的边界条件处理，从而使代码更加简洁、易于维护。具体来说，使用哨兵节点的好处包括：
+
+1. **简化插入和删除操作**：无论链表是否为空，插入和删除操作都可以以统一的方式处理。这是因为哨兵节点保证了链表始终有一个非空的头部和尾部节点，从而避免了在执行插入或删除操作时需要检查链表是否为空的额外步骤。
+
+2. **减少错误和特殊情况的处理**：没有哨兵节点时，需要额外考虑链表头部和尾部的特殊情况，例如在空链表中添加第一个节点或从只含一个节点的链表中删除节点。哨兵节点的存在使得头部和尾部操作与链表中间的操作无异，减少了编程时需要考虑的特殊情况。
+
+3. **提高效率**：使用哨兵节点后，某些操作（如在链表头部添加或删除节点）不再需要检查链表是否为空，或者更新头指针，这些操作的效率得到了提高。
+
+在实现LRU缓存时，通常会使用两个哨兵节点：一个位于链表头部，代表最近最频繁使用的数据；另一个位于链表尾部，代表最久未使用的数据。这样，每当缓存中的数据被访问时，就可以将对应的节点移动到链表头部（近端）；当需要淘汰数据时，直接从链表尾部（远端）移除节点即可。由于链表始终有这两个哨兵节点，上述操作都可以以统一且简洁的方式进行，而无需额外的判断或处理。
+
+# 复杂度
+
+对于提供的LRU缓存实现代码，可以分析其时间复杂度和空间复杂度如下：
+
+### 时间复杂度
+
+- **get操作**：O(1)。哈希表使得我们能够以常数时间找到键对应的节点，而将节点移动到双向链表头部的操作也是O(1)时间复杂度，因为我们直接通过节点的指针进行操作，无需遍历链表。
+- **put操作**：O(1)。与get操作类似，不管是更新节点的值还是添加新节点到哈希表和双向链表，包括在需要时删除最久未使用节点的操作，都可以在常数时间内完成。这是因为添加新节点总是在双向链表的头部进行，而删除最久未使用的节点也是直接通过尾部哨兵节点的前一个节点进行，无需遍历整个链表。
+
+### 空间复杂度
+
+- **整体空间复杂度**：O(capacity)。空间复杂度主要由哈希表和双向链表中存储的节点数量决定，这两者的大小都与LRU缓存的容量（capacity）直接相关。哈希表中每个键值对应一个节点，而双向链表中存储了相应的节点以保持访问顺序，因此空间复杂度是与缓存的容量线性相关的。
+
+# Code
+
+* []
+
+```Java
+class LRUCache {
+
+    // 双向链表节点类定义
+    class DLinkedNode {
+        int key;
+        int value;
+        DLinkedNode prev; // 前一个节点
+        DLinkedNode next; // 后一个节点
+    }
+
+    // 在链表头部添加节点（表示最近使用）
+    private void addNode(DLinkedNode node) {
+        node.prev = head;
+        node.next = head.next;
+
+        head.next.prev = node;
+        head.next = node;
+    }
+
+    // 从链表中删除节点
+    private void removeNode(DLinkedNode node){
+        DLinkedNode prev = node.prev;
+        DLinkedNode next = node.next;
+
+        prev.next = next;
+        next.prev = prev;
+    }
+
+    // 将节点移动到链表头部
+    private void moveToHead(DLinkedNode node){
+        removeNode(node); // 先删除
+        addNode(node); // 再添加到头部
+    }
+
+    // 弹出链表尾部节点（表示最久未使用）
+    private DLinkedNode popTail() {
+        DLinkedNode res = tail.prev;
+        removeNode(res);
+        return res;
+    }
+
+    private HashMap<Integer, DLinkedNode> cache = new HashMap<>(); // 哈希表存储键值对
+    private int size; // 当前大小
+    private int capacity; // 缓存容量
+    private DLinkedNode head, tail; // 双向链表的头部和尾部
+
+    // 构造函数
+    public LRUCache(int capacity) {
+        this.size = 0;
+        this.capacity = capacity;
+
+        head = new DLinkedNode(); // 创建头部哨兵节点
+        tail = new DLinkedNode(); // 创建尾部哨兵节点
+        head.next = tail;
+        tail.prev = head;
+    }
+
+    // 获取节点
+    public int get(int key) {
+        DLinkedNode node = cache.get(key);
+        if (node == null) return -1; // 未找到，返回-1
+
+        // 移动到链表头部，表示最近使用
+        moveToHead(node);
+
+        return node.value;
+    }
+
+    // 放入节点
+    public void put(int key, int value) {
+        DLinkedNode node = cache.get(key);
+
+        if(node == null) {
+            // 如果节点不存在，创建新节点并添加到哈希表和双向链表头部
+            DLinkedNode newNode = new DLinkedNode();
+            newNode.key = key;
+            newNode.value = value;
+
+            cache.put(key, newNode);
+            addNode(newNode);
+
+            ++size;
+
+            // 如果超出容量，删除尾部节点（最久未使用的节点）
+            if(size > capacity) {
+                DLinkedNode tail = popTail(); // 弹出尾部节点
+                cache.remove(tail.key); // 从哈希表中移除
+                --size;
+            }
+        } else {
+            // 如果节点存在，更新节点值，并移动到头部
+            node.value = value;
+            moveToHead(node);
+        }
+    }
+}
+
+/**
+ * 你可以这样实例化并使用LRUCache类:
+ * LRUCache obj = new LRUCache(capacity);
+ * int param_1 = obj.get(key);
+ * obj.put(key,value);
+ */
+```
+

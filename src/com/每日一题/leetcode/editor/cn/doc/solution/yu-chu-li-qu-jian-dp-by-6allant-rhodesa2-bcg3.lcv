@@ -1,0 +1,92 @@
+# 解法1:预处理+区间dp
+
+因为我们只考虑s1和s2不同字符的下标,因此一开始就考虑进行预处理
+一开始想的是预处理+贪心
+结果发现贪心不对,然后看了一眼题解区,有个大佬跟我的思路一样
+他用的是区间dp,然后我想了想,区间dp的确没毛病,然后就用区间dp做的
+
+时间击败46%,空间击败5%
+有点拉了....
+
+# Code
+
+* []
+
+```C++
+class Solution {
+public:
+    int minOperations(string s1, string s2, int x) {
+        int n=s1.size();
+        vector<int> nums;
+        for(int i=0;i<n;i++)
+        {
+            if(s1[i]!=s2[i]) nums.push_back(i);
+        }
+        if(nums.size()%2==1) return -1;
+        if(nums.size()==0) return 0;
+        //0 2 3 6 7 10
+        //小贪心:宁可让i和j执行代价为x的反转,也不会让i和i+1/j和j-1执行代价为x的反转
+        //
+        //dp[i][j]:[i..j]范围内的最少操作代价
+        //(1): i+1<j时: i和j执行代价为x的反转:dp[i][j]=x+dp[i+1][j-1]
+        //(2): i和i+1执行代价为nums[i+1]-nums[i]的反转dp[i][j]=dp[i+2][j]+nums[i+1]-nums[i]
+        //(3): j-1和j执行代价为nums[j]-nums[j-1]的反转dp[i][j]=dp[i][j-2]+nums[j]-nums[j-1]
+        //i+1==j时 dp[i][j]=min(x,nums[j]-nums[i])
+        //i==j时:dp[i][i]不考虑
+        //因为x>=1,所以放心即可
+        int m=nums.size();
+        vector<vector<int>> dp(m,vector<int>(m,0));
+        for(int i=m-2;i>=0;i--)
+        {
+            dp[i][i+1]=min(x,nums[i+1]-nums[i]);
+            for(int j=i+2;j<m;j++)
+            {
+                dp[i][j]=min(dp[i+1][j-1]+x,min(dp[i+2][j]+nums[i+1]-nums[i],dp[i][j-2]+nums[j]-nums[j-1]));
+            }
+        } 
+        return dp[0][m-1];
+    }
+};
+```
+
+写完第一种代码之后,看到那惨不忍睹的5%,打开了题解区
+看了看灵茶山艾府大佬的O(N)时间复杂度和空间复杂度的题解
+恍然大悟,然后写出了下面的版本
+
+* []
+
+```C++
+class Solution {
+public:
+    int minOperations(string s1, string s2, int x) {
+        int n=s1.size();
+        vector<int> nums;
+        for(int i=0;i<n;i++)
+        {
+            if(s1[i]!=s2[i]) nums.push_back(i);
+        }
+        if(nums.size()%2==1) return -1;
+        if(nums.size()==0) return 0;
+        //0 2 3 6 7 10
+        int m=nums.size();
+        vector<int> dp(m+1,0);
+        dp[0]=0;
+        dp[1]=x;
+        //对于每个nums[i]都有两种选择:
+        //(1):花费x/2: dp[i]=dp[i-1]+x/2
+        //(2):反转nums[i]和nums[i-1],dp[i]=dp[i-2]+nums[i]-nums[i-1]
+        //两者取min
+        //代码实现时,为了方便处理x/2,可以先在计算过程中吧所有数都*2,最后返回答案时再除以2
+        //因此dp[i]=min(dp[i-1]+x,dp[i-2]+(nums[i]-nums[i-1])*2)
+        for(int i=2;i<=m;i++)
+        {
+            dp[i]=min(dp[i-1]+x,dp[i-2]+(nums[i-1]-nums[i-2])*2);
+        }
+        return dp[m]/2;
+    }
+};
+```
+
+时间击败100%
+空间击败41%
+

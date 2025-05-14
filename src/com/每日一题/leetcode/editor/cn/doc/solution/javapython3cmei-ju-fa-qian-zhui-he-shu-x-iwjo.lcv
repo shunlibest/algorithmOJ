@@ -1,0 +1,233 @@
+> [661. 图片平滑器](https://leetcode.cn/problems/image-smoother/)
+
+[TOC]
+
+# 题目
+
+**图像平滑器** 是大小为 `3 x 3` 的过滤器，用于对图像的每个单元格平滑处理，平滑处理后单元格的值为该单元格的平均灰度。
+
+每个单元格的 **平均灰度** 定义为：该单元格自身及其周围的 8 个单元格的平均值，结果需向下取整。（即，需要计算蓝色平滑器中 9 个单元格的平均值）。
+
+如果一个单元格周围存在单元格缺失的情况，则计算平均灰度时不考虑缺失的单元格（即，需要计算红色平滑器中 4 个单元格的平均值）。
+
+给你一个表示图像灰度的 `m x n` 整数矩阵 `img` ，返回对图像的每个单元格平滑处理后的图像 。
+
+**提示:**
+
+- `m == img.length`
+- `n == img[i].length`
+- `1 <= m, n <= 200`
+- `0 <= img[i][j] <= 255`
+
+# 题目分析
+
+## 思路分析
+
+这道题要求我们对单元格，统计以它为中心的九宫格的元素均值（越界的九宫格无需考虑）。
+
+## 暴力枚举
+
+我们可以直接枚举每个单元格，然后枚举以它为中心的九宫格，累加合法的单元格元素和和个数，从而得到均值。
+
+![1731901523-RTelah-1731901522930165.png](https://pic.leetcode.cn/1731901523-RTelah-1731901522930165.png)
+
+## 二维前缀和（优化）
+
+> 对于这道题的数据量，优化效果并不明显；可作为扩展阅读。
+
+上面的做法后，每个单元格至多会访问九次其他的单元格，我们可以认为访问的坐标个数为 `9mn` 。
+
+我们访问单元格的目的在于得到元素和，而计算数组某个范围的的元素和我们可以利用前缀和求解。【详见：[前缀和：求任意区间的元素和【图解】](https://leetcode.cn/problems/range-sum-query-immutable/solutions/2693473/javapython3cqian-zhui-he-qiu-ren-yi-qu-j-zwpz/)】
+
+而我们常见的是一维前缀和，这道题我们要用到的是二维前缀和，借助下面两张图来理解二维前缀和是如何得到并计算区域和的。
+
+![1731901507-IubNJR-1731901507379991.png](https://pic.leetcode.cn/1731901507-IubNJR-1731901507379991.png)
+![1731901511-LhTFpE-image-20241118103058154.png](https://pic.leetcode.cn/1731901511-LhTFpE-image-20241118103058154.png)
+
+而到这道题上，我们如何套用二维前缀和呢？
+
+![1731901481-ghgsKv-1731901481221712.png](https://pic.leetcode.cn/1731901481-ghgsKv-1731901481221712.png)
+![1731901485-EGWfLy-173190148520628.png](https://pic.leetcode.cn/1731901485-EGWfLy-173190148520628.png)
+![1731901489-lvTkhH-1731901489087107.png](https://pic.leetcode.cn/1731901489-lvTkhH-1731901489087107.png)
+
+前缀和相关的公式至此我们就梳理清楚了，**每个单元格 `(i,j)` 为中心的九宫格元素和的计算公式**为：`sum[i][j] = preSum[i+3][j+3] – preSum[i][j+3] – preSum[i+3][j] + preSum[i][j] `
+
+那么我们还要计算**每个单元格为中心的九宫格个数**：
+
+![1731901465-jpCgIn-1731901464263236.png](https://pic.leetcode.cn/1731901465-jpCgIn-1731901464263236.png)
+
+这样每个单元格只会在生成前缀和数组的时候访问一次，计算前缀和的时候在访问一次，共访问 `2mn` 次；【是一种以空间换时间的做法】
+
+------
+
+***画图不易，难免有纰漏之处，还请各位海涵，并欢迎各位大佬讨论指正！***
+
+# 代码
+
+## 暴力枚举
+
+1. 枚举每个中心点`(i, j)`作为中心点；
+2. 枚举每个中心点`(i, j)`的九宫格，统计合法单元格的和与个数，计算均值；
+
+* []
+
+```Java
+class Solution {
+    public int[][] imageSmoother(int[][] img) {
+        int m = img.length, n = img[0].length;
+        int [][] res = new int[m][n];
+        for (int i = 0; i < m; i++) {
+            for(int j = 0; j < n; j++) {
+                // 枚举每个中心点(i, j)作为中心点
+                int sum = 0, count = 0;
+                for (int x = i - 1; x <= i + 1; ++x) {
+                    for (int y = j - 1; y <= j + 1; ++y) {
+                        // 枚举每个中心点(i, j)的九宫格，统计合法单元格的和与个数
+                        if (x >= 0 && x < m && y >= 0 && y < n) {
+                            sum += img[x][y];
+                            ++count;
+                        }
+                    }
+                }
+                res[i][j] = sum / count;    // 求均值
+            }
+        }
+        return res;
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def imageSmoother(self, img: List[List[int]]) -> List[List[int]]:
+        m, n = len(img), len(img[0])
+        res = [[0] * n for _ in range(m)]
+        for i in range(m):
+            for j in range(n):
+                # 枚举每个中心点(i, j)作为中心点
+                sum_ = count = 0
+                for x in range(i - 1, i + 2):
+                    for y in range(j - 1, j + 2):
+                        # 枚举每个中心点(i, j)的九宫格，统计合法单元格的和与个数
+                        if  x >= 0 and x < m and y >= 0 and y < n:
+                            sum_ += img[x][y]
+                            count += 1
+                res[i][j] = sum_ // count    # 求均值
+        return res
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    vector<vector<int>> imageSmoother(vector<vector<int>>& img) {
+        int m = img.size(), n = img[0].size();
+        vector<vector<int>> res(m, vector<int>(n, 0));
+        for (int i = 0; i < m; i++) {
+            for(int j = 0; j < n; j++) {
+                // 枚举每个中心点(i, j)作为中心点
+                int sum = 0, count = 0;
+                for (int x = i - 1; x <= i + 1; ++x) {
+                    for (int y = j - 1; y <= j + 1; ++y) {
+                        // 枚举每个中心点(i, j)的九宫格，统计合法单元格的和与个数
+                        if (x >= 0 && x < m && y >= 0 && y < n) {
+                            sum += img[x][y];
+                            ++count;
+                        }
+                    }
+                }
+                res[i][j] = sum / count;    // 求均值
+            }
+        }
+        return res;
+    }
+};
+```
+
+## 二维数组前缀和
+
+1. 构建二维前缀和数组；【**关键在于**确定边界条件从而对二维前缀和数组的尺寸进行扩充】
+2. 根据前缀和数组计算出以`(i,j)`为中心的九宫格的元素和，同时计算出以`(i,j)`为中心的合法九宫格个数；
+
+* []
+
+```Java
+class Solution {
+    public int[][] imageSmoother(int[][] img) {
+        int m = img.length, n = img[0].length;
+        int [][] presum = new int[m+3][n+3];   // presum[i+2][j+2]表示位置(i,j)的前缀和
+        for (int i = 0; i < m + 1; i++) {
+            for (int j = 0; j < n + 1; j++) {
+                // 统计位置(i,j)的前缀和
+                presum[i+2][j+2] = presum[i+1][j+2] + presum[i+2][j+1] - presum[i+1][j+1];
+                // img中的单元格，还要累加img[i][j]，否则是最后一行或最后一列的单元格，img[i][j]=0，无需累加
+                if(i < m && j < n){
+                    presum[i+2][j+2] += img[i][j];
+                }
+            }
+        }
+        int [][] res = new int[m][n];
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                int count = (1 + Math.min(i, 1) + Math.min(m - 1 - i, 1)) * (1 + Math.min(j, 1) + Math.min(n - 1 - j, 1));  // 统计以(i,j)为中心的合法九宫格个数
+                res[i][j] = (presum[i+3][j+3] - presum[i][j+3] - presum[i+3][j] + presum[i][j]) / count;    // 通过前缀和计算出以(i,j)为中心的九宫格的元素和
+            }
+        }
+        return res;
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def imageSmoother(self, img: List[List[int]]) -> List[List[int]]:
+        m, n = len(img), len(img[0])
+        presum = [[0] * (n+3) for _ in range(m+3)]   # presum[i+2][j+2]表示位置(i, j)的前缀和
+        for i in range(m + 1):
+            for j in range(n + 1):
+                # 统计位置(i,j)的前缀和
+                presum[i+2][j+2] = presum[i+1][j+2] + presum[i+2][j+1] - presum[i+1][j+1]
+                if i < m and j < n:
+                    presum[i+2][j+2] += img[i][j]
+        res = [[0] * n for _ in range(m)]
+        for i in range(m):
+            for j in range(n):
+                count = (1 + min(i, 1) + min(m - 1 - i, 1)) * (1 + min(j, 1) + min(n - 1 - j, 1))  # 统计以(i,j)为中心的合法九宫格个数
+                res[i][j] = (presum[i+3][j+3] - presum[i][j+3] - presum[i+3][j] + presum[i][j]) // count    # 通过前缀和计算出以(i,j)为中心的九宫格的元素和    
+        return res
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    vector<vector<int>> imageSmoother(vector<vector<int>>& img) {
+        int m = img.size(), n = img[0].size();
+        vector<vector<int>> presum(m+3, vector<int>(n+3, 0));   // presum[i+2][j+2]表示位置(i, j)的前缀和
+        for (int i = 0; i < m + 1; i++) {
+            for (int j = 0; j < n + 1; j++) {
+                // 统计位置(i,j)的前缀和
+                presum[i+2][j+2] = presum[i+1][j+2] + presum[i+2][j+1] - presum[i+1][j+1];
+                if(i < m && j < n){
+                    presum[i+2][j+2] += img[i][j];
+                }
+            }
+        }
+        vector<vector<int>> res(m, vector<int>(n, 0));
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                int count = (1 + min(i, 1) + min(m - 1 - i, 1)) * (1 + min(j, 1) + min(n - 1 - j, 1));  // 统计以(i,j)为中心的合法九宫格个数
+                res[i][j] = (presum[i+3][j+3] - presum[i][j+3] - presum[i+3][j] + presum[i][j]) / count;    // 通过前缀和计算出以(i,j)为中心的九宫格的元素和
+            }
+        }        
+        return res;
+    }
+};
+```
+

@@ -1,0 +1,129 @@
+# 解法
+
+## 思路和算法
+
+将每个盒子看成一个顶点，将数组 $\textit{keys}$ 和 $\textit{containedBoxes}$ 中的元素看成指向对应盒子的有向边，则可以将所有的盒子与它们之间的钥匙和盒子的关系看成有向图。
+
+为了计算可以得到糖果的最大数目，需要计算可以得到并打开的所有盒子。可以使用广度优先搜索，从初始盒子开始遍历所有可以得到并打开的盒子。
+
+这道题的状态较为复杂，需要维护每个盒子的三个状态：是否开启、是否得到、是否访问，三个状态的含义如下。
+
+- 是否开启：初始时，数组 $\textit{status}$ 中的 $1$ 对应盒子开启，$0$ 对应盒子关闭。根据数组 $\textit{keys}$ 在访问的盒子中得到钥匙，钥匙对应的盒子变为开启（无论是否得到该盒子）。
+
+- 是否得到：初始时，数组 $\textit{initialBoxes}$ 中的盒子为得到的盒子。根据数组 $\textit{containedBoxes}$ 在访问的盒子中得到盒子。
+
+- 是否访问：如果一个盒子同时是开启和得到的状态，则该盒子被访问。
+
+广度优先搜索的具体做法如下。
+
+1. 对于数组 $\textit{initialBoxes}$ 中的每个编号，将盒子设为得到状态。如果盒子是开启状态，则将盒子设为已访问状态，并将编号入队列。
+
+2. 对于队列中的每个编号，将编号出队列，执行如下操作。
+   1. 将编号对应的盒子中的糖果数目加到糖果总数。
+
+   2. 对于当前盒子中的每个钥匙编号，将盒子设为开启状态。如果盒子是得到状态且未访问，则将盒子设为已访问状态，并将编号入队列。
+
+   3. 对于当前盒子中的每个盒子编号，将盒子设为得到状态。如果盒子是开启状态且未访问，则将盒子设为已访问状态，并将编号入队列。
+
+当队列为空时，遍历结束，糖果总数即为可以得到糖果的最大数目。
+
+## 代码
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    public int maxCandies(int[] status, int[] candies, int[][] keys, int[][] containedBoxes, int[] initialBoxes) {
+        int candiesCount = 0;
+        int n = status.length;
+        boolean[] open = new boolean[n];
+        for (int i = 0; i < n; i++) {
+            open[i] = status[i] == 1;
+        }
+        boolean[] obtained = new boolean[n];
+        boolean[] visited = new boolean[n];
+        Queue<Integer> queue = new ArrayDeque<Integer>();
+        for (int box : initialBoxes) {
+            obtained[box] = true;
+            if (open[box]) {
+                visited[box] = true;
+                queue.offer(box);
+            }
+        }
+        while (!queue.isEmpty()) {
+            int box = queue.poll();
+            candiesCount += candies[box];
+            int[] nextKeys = keys[box];
+            for (int next : nextKeys) {
+                open[next] = true;
+                if (obtained[next] && !visited[next]) {
+                    visited[next] = true;
+                    queue.offer(next);
+                }
+            }
+            int[] nextBoxes = containedBoxes[box];
+            for (int next : nextBoxes) {
+                obtained[next] = true;
+                if (open[next] && !visited[next]) {
+                    visited[next] = true;
+                    queue.offer(next);
+                }
+            }
+        }
+        return candiesCount;
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    public int MaxCandies(int[] status, int[] candies, int[][] keys, int[][] containedBoxes, int[] initialBoxes) {
+        int candiesCount = 0;
+        int n = status.Length;
+        bool[] open = new bool[n];
+        for (int i = 0; i < n; i++) {
+            open[i] = status[i] == 1;
+        }
+        bool[] obtained = new bool[n];
+        bool[] visited = new bool[n];
+        Queue<int> queue = new Queue<int>();
+        foreach (int box in initialBoxes) {
+            obtained[box] = true;
+            if (open[box]) {
+                visited[box] = true;
+                queue.Enqueue(box);
+            }
+        }
+        while (queue.Count > 0) {
+            int box = queue.Dequeue();
+            candiesCount += candies[box];
+            int[] nextKeys = keys[box];
+            foreach (int next in nextKeys) {
+                open[next] = true;
+                if (obtained[next] && !visited[next]) {
+                    visited[next] = true;
+                    queue.Enqueue(next);
+                }
+            }
+            int[] nextBoxes = containedBoxes[box];
+            foreach (int next in nextBoxes) {
+                obtained[next] = true;
+                if (open[next] && !visited[next]) {
+                    visited[next] = true;
+                    queue.Enqueue(next);
+                }
+            }
+        }
+        return candiesCount;
+    }
+}
+```
+
+## 复杂度分析
+
+- 时间复杂度：$O(n + m)$，其中 $n$ 是盒子数目，$m$ 是数组 $\textit{keys}$ 和 $\textit{containedBoxes}$ 中的元素数目总和。广度优先搜索的时间复杂度由顶点数和边数决定，这道题中的顶点数是 $n$，边数是 $m$。
+
+- 空间复杂度：$O(n)$，其中 $n$ 是盒子数目。空间复杂度主要取决于记录每个盒子状态的数组和队列，需要 $O(n)$ 的空间。
+

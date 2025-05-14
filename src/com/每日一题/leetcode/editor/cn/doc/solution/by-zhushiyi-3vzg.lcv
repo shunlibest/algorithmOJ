@@ -1,0 +1,25 @@
+简简单单标准DFS，就喜欢这种邻接表直接给出的题 :>
+
+* []
+
+```Java
+boolean[] marked;
+public boolean canVisitAllRooms(List<List<Integer>> rooms) {
+    int n = rooms.size();
+    marked = new boolean[n];
+    dfs(0, rooms);
+
+    for (boolean m : marked) 
+        if (!m) return false;
+
+    return true;
+}
+
+private void dfs(int v, List<List<Integer>> rooms) {
+    marked[v] = true;
+    for (int i  : rooms.get(v)) 
+        if (!marked[i])
+            dfs(i, rooms);
+}
+```
+

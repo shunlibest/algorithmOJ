@@ -1,0 +1,27 @@
+> Problem: [1971. 寻找图中是否存在路径](https://leetcode.cn/problems/find-if-path-exists-in-graph/description/)
+
+# Code
+
+* []
+
+```Python
+class Solution:
+    def validPath(
+        self, n: int, edges: List[List[int]], source: int, destination: int) -> bool:
+        def dfs(i):
+            if i == destination:
+                return True
+            cnt.add(i)
+            for j in g[i]:
+                if j not in cnt and dfs(j):
+                    return True
+            return False
+
+        g = defaultdict(list)
+        cnt = set()
+        for x, y in edges:
+            g[x].append(y)
+            g[y].append(x)
+        return dfs(source)
+```
+

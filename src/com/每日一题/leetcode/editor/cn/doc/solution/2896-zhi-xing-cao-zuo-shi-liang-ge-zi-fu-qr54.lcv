@@ -1,0 +1,171 @@
+https://leetcode.cn/problems/apply-operations-to-make-two-strings-equal/description/
+
+* 
+
+```
+给你两个下标从 0 开始的二进制字符串 s1 和 s2 ，两个字符串的长度都是 n ，再给你一个正整数 x 。
+你可以对字符串 s1 执行以下操作 任意次 ：
+选择两个下标 i 和 j ，将 s1[i] 和 s1[j] 都反转，操作的代价为 x 。
+选择满足 i < n - 1 的下标 i ，反转 s1[i] 和 s1[i + 1] ，操作的代价为 1 。
+请你返回使字符串 s1 和 s2 相等的 最小 操作代价之和，如果无法让二者相等，返回 -1 。
+注意 ，反转字符的意思是将 0 变成 1 ，或者 1 变成 0 。
+
+
+
+示例 1：
+输入：s1 = "1100011000", s2 = "0101001010", x = 2
+输出：4
+解释：我们可以执行以下操作：
+- 选择 i = 3 执行第二个操作。结果字符串是 s1 = "1101111000" 。
+- 选择 i = 4 执行第二个操作。结果字符串是 s1 = "1101001000" 。
+- 选择 i = 0 和 j = 8 ，执行第一个操作。结果字符串是 s1 = "0101001010" = s2 。
+总代价是 1 + 1 + 2 = 4 。这是最小代价和。
+
+示例 2：
+输入：s1 = "10110", s2 = "00011", x = 4
+输出：-1
+解释：无法使两个字符串相等。
+ 
+
+提示：
+n == s1.length == s2.length
+1 <= n, x <= 500
+s1 和 s2 只包含字符 '0' 和 '1' 。
+```
+
+常规dp 记忆化搜索
+dp[i][j][k] 表示处理到i为止的时候前面有j个花费为x的匹配 前面有k个移动区间匹配时候的最小操作数
+参考 [@灵茶山艾府](/u/endlesscheng)
+https://leetcode.cn/problems/apply-operations-to-make-two-strings-equal/solutions/2472122/ji-yi-hua-sou-suo-by-endlesscheng-64vq
+
+* 
+
+```
+class Solution {
+public:
+    int costx = 0;
+    string a, b;
+    vector<vector<vector<int>>> dp;
+    //int dp[510][510][2];
+    int dfs(int idx, int revX, int prevRev) {
+        if (idx < 0 && (revX > 0 || 1 == prevRev)) {
+            return 0x3f3f3f3f/2;
+        }
+        else if (idx < 0 && 0 == revX && 0 == prevRev) {
+            return 0;
+        }
+
+        if (dp[idx][revX][prevRev] != 0x3f3f3f3f) {
+            return dp[idx][revX][prevRev];
+        }
+
+        int& res = dp[idx][revX][prevRev];
+        res = 0x3f3f3f3f;
+        if (a[idx] == b[idx] && prevRev == 0) {
+            res = dfs(idx - 1, revX, 0);
+            return res;
+        }
+        //两者不相等 或者相等但是有上一步的翻转？
+        if (a[idx] != b[idx] && prevRev == 1) {
+            res = dfs(idx - 1, revX, 0);
+            return res;
+        }
+
+        //否则三种选择 第一种操作  第二种操作 之前已经有花费x的翻转 这次免费
+        int ret1 = dfs(idx - 1, revX + 1, 0) + costx;
+        int ret2 = dfs(idx - 1, revX, 1) + 1;
+        int ret3 = 0x3f3f3f3f;
+        if (revX > 0)
+            ret3 = dfs(idx - 1, revX - 1, 0);
+
+        res = min(ret1, min(ret2, ret3));
+        return res;
+    }
+
+    int minOperations(string s1, string s2, int x) {
+        int diff = 0;
+        for (int i = 0; i < s1.size(); i++) {
+            if (s1[i] != s2[i]) diff++;
+        }
+        if (diff % 2 != 0) return -1;
+
+        int n = s1.size();
+
+
+        //memset(dp, -1, sizeof dp);
+        dp.resize(n + 10, vector<vector<int>>(n + 10, vector<int>(2, 0x3f3f3f3f)));
+
+        costx = x;
+        a = s1, b = s2;
+        int ret = dfs(n - 1, 0, 0);
+
+        return ret;
+    }
+};
+```
+
+优化dp
+参考此地址  https://www.acwing.com/file_system/file/content/whole/index/content/10200077/
+
+* 
+
+```
+先找到所有值不同位置的下标，如果总下标数为奇数，则直接返回 −1
+考虑下标对之间的匹配反转，对于下标 i和 j，可以直接通过 x的代价直接反转，
+也可以通过 j−i的代价移动反转。
+注意到，通过移动反转时，i和 j之间不存在其他下标对（否则可以拆成两组下标对使得代价变小）。
+所以对于一个偶数个数的下标来说，
+可以和上一个位置的下标通过移动反转，也可以和前面一个没有匹配的下标直接反转。
+对于一个奇数个数的下标来说，可以和上一个位置的下标通过移动反转
+（保留前面某一个没有反转的下标），也可以作为一个新的没有反转的下标）。
+```
+
+对于上面提到的两位的解法，一个加x/2 一个直接使用了g f两个变量，思维比较跳跃。
+可能初学者学期起来会增加理解难度。我这里自己学习吸收后，采用自己的dp[x][y]的变量，希望对大家有一点帮助.
+不过如果这个题目在比赛中卡到O(n)的时间复杂度，我肯定做不出来
+
+首先要注意到每次操作都是成对解决不同的两个位置
+要么是花费x  要么是两个点ij之间距离 i-j 的花费
+所以根据不同位置的奇偶性做不同判断
+//dp[x][1]表示处理到x的位置还留有一个话费为x的配对
+//dp[x][0] 表示全部配对处理完毕 或者留待下一个进行移动区间匹配处理(根据奇偶性判断)
+复杂度 O(n)
+
+* 
+
+```
+class Solution {
+public:
+    int minOperations(string s1, string s2, int x) {
+        vector<int> p;  p.push_back(-1);
+
+        for (int i = 0; i < s1.size(); i++) {
+            if (s1[i] != s2[i]) { p.push_back(i); }
+        }
+        if (p.size() %2 == 0) return -1;
+
+        int dp[510][2]; memset(dp, 0x3f, sizeof dp);
+
+        dp[0][0] = 0;
+        //dp[x][1]表示处理到x的位置还留有一个话费为x的配对
+        //dp[x][0] 表示全部配对处理完毕 或者留待下一个进行移动区间匹配处理(根据奇偶性判断)
+        for (int i = 1; i < p.size(); i++) {
+            if (i % 2 == 0) {
+                dp[i][0] = min(dp[i - 1][0] + p[i] - p[i - 1], dp[i - 1][1]);
+                dp[i][1] = dp[i - 1][1];
+            }
+            else {
+                dp[i][1] = min(dp[i - 1][0] + x, dp[i-1][1]+p[i]-p[i-1]);
+                dp[i][0] = dp[i - 1][0];
+            }
+        }
+
+
+        cout << dp[p.size() - 1][0] << endl;
+
+        return  dp[p.size() - 1][0];
+    }
+};
+```
+
+[我的视频题解空间](https://space.bilibili.com/18508846)

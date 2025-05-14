@@ -1,0 +1,57 @@
+> Problem: [841. 钥匙和房间](https://leetcode.cn/problems/keys-and-rooms/description/)
+
+[TOC]
+
+# 思路
+
+> 你选用何种方法解题？
+
+# 解题过程
+
+> 这些方法具体怎么运用？
+
+# 复杂度
+
+- 时间复杂度: $O(*)$
+- 空间复杂度: $O(*)$
+
+# Code
+
+* []
+
+```C++
+class Solution {
+public:
+    bool canVisitAllRooms(vector<vector<int>>& rooms) {
+        if (rooms[0].size() == 0) return false;
+        
+        int n=rooms.size();
+        unordered_map<int,int> mp;  //roomnum 是否已有钥匙
+        mp[0]++;
+        deque<int> d;
+
+        for(auto i:rooms[0]){
+            mp[i]++;
+            d.push_back(i);
+        }
+        while(!d.empty()){
+            int num=d.front();      //钥匙对应房间压入队列
+            d.pop_front();
+
+            for(auto i:rooms[num]){
+            if(mp[i]!=0) continue;
+            mp[i]++;
+            d.push_back(i);
+        }
+    }
+    for(int i=0;i<n;i++){       //如果有0就false
+        if(mp[i]==0){
+            return false;
+        }
+    }
+
+    return true;
+    }
+};
+```
+

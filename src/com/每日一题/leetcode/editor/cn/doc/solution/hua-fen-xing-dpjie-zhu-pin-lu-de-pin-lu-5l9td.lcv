@@ -1,0 +1,45 @@
+# 思路
+
+本题和主站132题比较相似，都是典型的划分型DP。状态定义为dp[j]为下标j及之前的部分能划分成合法子串的最少数量。计算dp[j]时，遍历j之前的所有下标i，只要[i,j]这个区间是合法子串，就可以用dp[i-1]+1来更新dp[j]，即dp[j]=min(dp[i-1]+1,dp[j])。对于所有[0,j]为合法子串的下标j，dp[j]=1。
+
+主站132题可以用枚举中心点的方法，以O(n^2)时间预处理出每个可能[i,j]是否为回文子串。但本题要怎么预处理呢？简单的想法是用两重循环枚举i和j，并在内循环实时更新每个字母的出现频率（这时起点固定，频率只会增加不会减少）。这样判断[i,j]是否合法时，就需要遍历每个字母的频率。如果这样做，预处理的复杂度就达到O(n^2 * Σ)，有一定的通过机会，但对代码实现的要求比较高。
+
+那有没有更好的做法？可以在固定子串的起点i统计每个字母的出现频率时，再使用另外一个哈希表，统计频率的频率，这样在判断[i,j]是否合法时，不必遍历每个字母的频率，而是直接检查代表“频率的频率”的哈希表是否只有1个key！显然这个哈希表只有1个key时才能满足题意。“频率的频率”具体做法可以参考主站2671题。
+
+# 实现
+
+* []
+
+```Python
+class Solution:
+    def minimumSubstringsInPartition(self, s: str) -> int:
+        
+        n = len(s)
+        ok = [[0 for j in range(n)] for i in range(n)]
+        
+        for i in range(n):
+            cnt = [0]*26 # 固定起点i，子串中每个字母的频率，可用数组代替哈希表
+            freqs = {} # cnt里每个非0元素的频率，即“频率的频率”
+            for j in range(i,n):
+                cur = ord(s[j])-97
+                freq = cnt[cur]
+                cnt[cur]+=1
+                if freq: # 只考虑非0的频率
+                    freqs[freq]-=1
+                    if not freqs[freq]: 
+                        del freqs[freq]
+                freqs[freq+1]=freqs.get(freq+1,0)+1 #新频率的频率加1，注意这可能会增加新的key，小心代码出错
+                if len(freqs)==1: # “频率的频率”只有一种时，才满足题意
+                    ok[i][j]=1
+        
+        dp = [n]*n
+        for j in range(n):
+            for i in range(j+1):
+                if ok[i][j]:
+                    dp[j]=min(dp[j],dp[i-1]+1) if i else 1
+        return dp[-1]
+```
+
+# 复杂度分析
+
+时空复杂度: 可视为O(n^2)，n为s的长度。dp需要O(n^2)的时间，而存储预处理结果也需要O(n^2)的空间。n非常小时，cnt用数组代替哈希表会增加复杂度。

@@ -1,0 +1,236 @@
+# 前言
+
+本篇先带你学会这道题所需要的单调栈基础知识，而后看这道题就很简单了。
+
+在单调栈基础题中，经常需要类似这种的解题思路：在 $O(n)$ 的时间复杂度内求出数组中各个元素右侧第一个更大的元素及其下标，然后一并得到其他信息。
+
+在进阶题中，主要考察借助单调栈的模拟。
+
+本篇主要围绕基础部分讲解，读者掌握后基本能应对非高级岗位面试中的单调栈部分（如果出现的话）。
+
+# 原理
+
+<![monotonic stack.001.jpeg](https://pic.leetcode.cn/1717947617-fwqtZx-monotonic%20stack.001.jpeg),![monotonic stack.002.jpeg](https://pic.leetcode.cn/1717947631-vWJpQN-monotonic%20stack.002.jpeg),![monotonic stack.003.jpeg](https://pic.leetcode.cn/1717947640-eReZcV-monotonic%20stack.003.jpeg),![monotonic stack.004.jpeg](https://pic.leetcode.cn/1717947645-XxeCDB-monotonic%20stack.004.jpeg),![monotonic stack.005.jpeg](https://pic.leetcode.cn/1717947650-xwamqN-monotonic%20stack.005.jpeg),![monotonic stack.006.jpeg](https://pic.leetcode.cn/1717947656-pgaPVc-monotonic%20stack.006.jpeg),![monotonic stack.007.jpeg](https://pic.leetcode.cn/1717947660-uOaxxl-monotonic%20stack.007.jpeg),![monotonic stack.008.jpeg](https://pic.leetcode.cn/1717947665-RCXfvU-monotonic%20stack.008.jpeg),![monotonic stack.009.jpeg](https://pic.leetcode.cn/1717947669-ZAjGzZ-monotonic%20stack.009.jpeg),![monotonic stack.010.jpeg](https://pic.leetcode.cn/1717947673-iGSDdO-monotonic%20stack.010.jpeg)>
+
+<br> 所得结果如下。 </br>
+
+![1.png](https://pic.leetcode.cn/1717947771-DhzPAn-1.png)
+
+这样 arr[0] 右侧第一个更大的元素为 arr[4]。根据 0 4 arr[0] arr[4] 能组成很多信息。
+对于 arr[1], arr[2] ... 以此类推。
+arr[4], arr[5] 右侧不存在更大的元素。
+
+# 代码
+
+* []
+
+```C++
+class Solution {
+public:
+    vector<int> monotonicStack(vector<int>& nums) {
+        int n = nums.size();
+        vector<int> ans(n);
+        stack<int> st;
+      
+      	for (int i = 0; i < n; ++i) {
+            while (!st.empty() && nums[i] > nums[st.top()]) {
+                int prevI = st.top();
+                ans[prevI] = i;
+                st.pop();
+	            // 还可以针对 prevI, i, nums[prevI], nums[i] 做些其他的处理 
+            }
+            st.push(i);
+        }
+        
+      return ans;
+    }
+};
+```
+
+* []
+
+```Python
+class Solution:
+    def monotonicStack(self, nums: List[int]) -> List[int]:
+        n = len(nums)
+        ans = [0] * n
+        st = []
+
+        for i, v in enumerate(nums):
+            while st and v > nums[st[-1]]:
+                prevI = st.pop()
+                ans[prevI] = i
+                # 还可以针对 prevI, i, nums[prevI], nums[i] 做些其他的处理 
+            st.append(i)
+        
+        return ans
+```
+
+* []
+
+```Java
+class Solution {
+    public int[] monotonicStack(int[] nums) {
+      	int n = nums.length;
+        int[] ans = new int[n];
+        // java 中的 Stack 会涉及到线程锁，降低性能。而 ArrayList 移除最后一个元素不方便。
+	    // 此处采用 ArrayDeque，读者亦可采用 LinkedList。
+        Deque<Integer> stack = new ArrayDeque<>();
+        
+        for (int i = 0; i < n; i++) {
+            while (!stack.isEmpty() && nums[i] > nums[stack.peek()]) {
+                int prevI = stack.pop();
+                ans[prevI] = i;
+                // 还可以针对 prevI, i, nums[prevI], nums[i] 做些其他的处理 
+            }
+            stack.push(i);
+        }
+        
+        return ans;
+    }
+}
+```
+
+* []
+
+```Kotlin
+public class Solution{
+    fun monotonicStack(nums: IntArray): IntArray {
+      	// 如果调用 java 的 Stack 会涉及到线程锁，降低性能，改用 list。
+        val list = mutableListOf<Int>()
+        val ans = IntArray(nums.size)
+
+        for(i in nums.indices){
+            while(list.any() && nums[i] > nums[list.last()]){
+                val prevI = list.removeLast()
+                ans[prevI] = i
+                // 还可以针对 prevI, i, nums[prevI], nums[i] 做些其他的处理 
+            }
+            list += i
+        }
+
+        return ans
+    }
+}
+```
+
+# 总结与扩展
+
+扩展并归纳一下，在 while 的执行条件中，将数组元素与栈顶元素比较时：
+
+- 右侧第一个 **更大（可相等）** 元素对应 `>=`
+- 右侧第一个 **更大（不可相等）** 元素对应 `>`
+- 右侧第一个 **更小元素（可相等）** 元素对应 `<=`
+- 右侧第一个 **更小元素（不可相等）** 元素对应 `<`
+
+还可以镜像处理，逆向遍历数组并维护单调栈，得到各元素**左侧**相应的信息。
+
+# “每日温度”这道题的解法
+
+* []
+
+```C++
+class Solution {
+public:
+    vector<int> dailyTemperatures(vector<int>& nums) {
+        int n = nums.size();
+        vector<int> ans(n);
+        stack<int> st;
+      
+      	for (int i = 0; i < n; ++i) {
+            while (!st.empty() && nums[i] > nums[st.top()]) {
+                int prevI = st.top();
+                // 改为存储差值
+                ans[prevI] = i - prevI;
+                st.pop();
+            }
+            st.push(i);
+        }
+        
+      return ans;
+    }
+};
+```
+
+* []
+
+```Python
+class Solution:
+    def dailyTemperatures(self, nums: List[int]) -> List[int]:
+        n = len(nums)
+        ans = [0] * n
+        st = []
+
+        for i, v in enumerate(nums):
+            while st and v > nums[st[-1]]:
+                prevI = st.pop()
+                # 改为存储差值
+                ans[prevI] = i - prevI 
+            st.append(i)
+        
+        return ans
+```
+
+* []
+
+```Java
+class Solution {
+    public int[] dailyTemperatures(int[] nums) {
+      	int n = nums.length;
+        int[] ans = new int[n];
+        Deque<Integer> stack = new ArrayDeque<>();
+        
+        for (int i = 0; i < n; i++) {
+            while (!stack.isEmpty() && nums[i] > nums[stack.peek()]) {
+                int prevI = stack.pop();
+                // 改为存储差值
+                ans[prevI] = i - prevI;
+            }
+            stack.push(i);
+        }
+        
+        return ans;
+    }
+}
+```
+
+* []
+
+```Kotlin
+public class Solution{
+    fun dailyTemperatures(nums: IntArray): IntArray {
+        val list = mutableListOf<Int>()
+        val ans = IntArray(nums.size)
+
+        for(i in nums.indices){
+            while(list.any() && nums[i] > nums[list.last()]){
+                val prevI = list.removeLast()
+                // 改为存储差值
+                ans[prevI] = i - prevI
+            }
+            list += i
+        }
+
+        return ans
+    }
+}
+```
+
+# 更多基础练习
+
+1. [下一个更大元素 I](https://leetcode.cn/problems/next-greater-element-i/)
+2. [下一个更大元素 II](https://leetcode.cn/problems/next-greater-element-ii/)
+3. [柱状图中最大的矩形](https://leetcode.cn/problems/largest-rectangle-in-histogram/)
+4. [接雨水](https://leetcode.cn/problems/trapping-rain-water/)及[个人题解](https://leetcode.cn/problems/trapping-rain-water/solution/shuang-zhi-zhen-xiang-xiang-yi-dong-xi-j-r3bs/)（这道题在面试中出现原题的几率较高，建议掌握最优的双指针解法即可）
+
+有进阶需求可参考灵茶山艾府给的[单调栈题单](https://leetcode.cn/circle/discuss/9oZFK9/)。
+
+# 推广
+
+以下皆为个人所著，兼顾了职场面试和本硕阶段的学术考试。
+- [不同层次的面试算法学习规划](https://leetcode.cn/circle/discuss/xV68NV/)
+- [附个人题解的双指针题单](https://leetcode.cn/circle/discuss/BI95fj/)
+- [图论入门](https://leetcode.cn/leetbook/detail/introduction-to-graph/)
+- [图论进阶](https://leetcode.cn/leetbook/detail/advanced-graph-theory/)
+
+点赞关注不迷路，祝各位早日上岸，飞黄腾达！

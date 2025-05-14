@@ -1,0 +1,92 @@
+### 解题思路
+
+1. 关键在于重复数据的判断：
+
+- 增加了辅助数组vis[]，用来标记第i位的数据是否被访问
+- 当第i位的数据和第i-1位的数据相等时，剪枝，没必要做回溯
+
+2. 回溯、DFS、递归
+
+### 代码
+
+* java
+
+```java
+class Solution {
+    static int count = 0;
+    public List<List<Integer>> permuteUnique(int[] nums) {
+        List<List<Integer>> listlist = new ArrayList<>();
+        Arrays.sort(nums);
+        boolean[] vis = new boolean[nums.length];
+        List<Integer> list = new ArrayList<>();
+        int len = nums.length;
+        backtrack(listlist, list, len, nums, vis);
+        return listlist;
+    }
+
+    private void backtrack(List<List<Integer>> listlist, List<Integer> list, int len, int[] nums, boolean[] vis) {
+        if (list.size() == len) {
+            List<Integer> listTmp = new ArrayList<>();
+            for (Integer data : list) {
+                listTmp.add(data);
+            }
+            if (!listlist.contains(listTmp)) {
+                listlist.add(listTmp);
+            }
+            return;
+        }
+
+        for (int i = 0; i < nums.length; i++) {
+            if (vis[i]) {
+                continue;
+            }
+            if (i > 0 && nums[i] == nums[i - 1] && !vis[i - 1]) {
+                continue;
+            }
+            list.add(nums[i]);
+            vis[i] = true;
+            backtrack(listlist, list, len, nums, vis);
+            vis[i] = false;
+            list.remove(list.size() - 1);
+        }
+    }
+
+
+    private boolean containsN(List<Integer> list, int[] nums, int data) {
+        count++;
+        int listCount = 0;
+        int numsCount = 0;
+        for (int digital : list) {
+            if (digital == data) {
+                listCount++;
+            }
+        }
+
+        for (int i = 0; i < nums.length; i++) {
+            if (data == nums[i]) {
+                numsCount++;
+            }
+        }
+        if (listCount < numsCount) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public static void main(String[] args) {
+        Solution solution = new Solution();
+        int[] nums = {1,2, 3};
+        List<List<Integer>> listlist = solution.permuteUnique(nums);
+        System.out.println(listlist);
+
+        int[] nums3 = {-1,2,-1,2,1,-1,2,1};
+        List<List<Integer>> listlist3 = solution.permuteUnique(nums3);
+        System.out.println(count);
+        System.out.println(listlist3);
+
+    }
+}
+
+```
+

@@ -1,0 +1,50 @@
+> Problem: [2332. 坐上公交的最晚时间](https://leetcode.cn/problems/the-latest-time-to-catch-a-bus/description/)
+
+[TOC]
+
+# 思路
+
+> 双指针
+
+# 解题过程
+
+要实现最晚上车有两种情况，第一种是车都有人做的情况下，插队到最后一个人的前面，第二种情况，车没坐满的情况下，卡点上车。由于不能重复别人的上车时间，所以需要用set来判断下。
+
+# 复杂度
+
+- 时间复杂度: $O(nlogn + nlogm)$
+- 空间复杂度: $O(1)$
+
+# Code
+
+* []
+
+```Go
+func latestTimeCatchTheBus(buses []int, passengers []int, capacity int) (ans int) {
+	sort.Ints(buses)
+	sort.Ints(passengers)
+	set := make(map[int]struct{})
+	for _, passenger := range passengers {
+		set[passenger] = struct{}{}
+	}
+	i := 0
+	m := len(passengers)
+	for _, bus := range buses {
+		k := capacity
+		for i < m && k > 0 && passengers[i] <= bus {
+			if _, ok := set[passengers[i]-1]; !ok {
+				ans = passengers[i] - 1
+			}
+			k--
+			i++
+		}
+		if k > 0 {
+			if _, ok := set[bus]; !ok {
+				ans = bus
+			}
+		}
+	}
+	return
+}
+```
+

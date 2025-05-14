@@ -1,0 +1,73 @@
+各位题友大家好！ 今天是 [**@负雪明烛**](/u/fuxuemingzhu/) 坚持日更的第 **89** 天。今天力扣上的每日一题是「[633. 平方数之和](https://leetcode-cn.com/problems/sum-of-square-numbers/)」。
+
+# 解题思路
+
+我讲一下，官方题解中的「**使用 sqt 函数**」这个方法中的一个细节：判断数字是否为平方数。
+
+「使用 sqt 函数」的原理是 遍历每个 $a$，求解 $c - a ^ 2$ 是否为平方数，是通过 $b = sqrt(c - a ^ 2)$，然后看 $b$ 是不是一个正整数来实现的。
+
+这个方法有个细节：判断 b 是不是一个正整数的时候用的方法是 `b == (int) b`，为什么能这么做呢？
+
+- 首先， $sqrt()$ 函数的返回值是个 `double` 类型的，所以我们把 `b` 也声明成了 `double` 类型。
+- `(int) b` 是把这个 `double` 类型转成了 `int` 型。在强制转换的过程中，会丢失 `double` 类型的小数部分。所以这一步强制转换相当于**向下取整**。
+- 那么 `b == (int) b` 是把一个 `double` 和一个 `int` 进行比较。这一步会把 `int` 先转成 `double`，然后两个 `double` 类型的数字进行比较。
+
+所以，如果 `b` 没有小数部分，取整再转 `double` 还会跟 `b` 相等；如果 `b` 有小数部分，取整再转 `double` 就已经跟 `b` 不等了。这个方法判断了 `double` 类型的 `b` 存储的是不是一个正整数，从而判断了 $c - a ^ 2$ 是不是一个平方数。
+
+另外，也可以令 $b = c - a * a$ ，然后判断 $int(math.sqrt(b)) ^ 2== b$ 来判断 b 是不是一个平方数。
+
+代码如下：
+
+* []
+
+```Python
+class Solution(object):
+    def judgeSquareSum(self, c):
+        """
+        :type c: int
+        :rtype: bool
+        """
+        if c == 0: return True
+        for a in range(1, int(math.sqrt(c) + 1)):
+            b = c - a * a
+            if int(math.sqrt(b)) ** 2 == b:
+                return True
+        return False
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    bool judgeSquareSum(int c) {
+        if (c == 0) return true;
+        for (int a = 1; a < (int) sqrt(c) + 1; ++a){
+            double b = sqrt(c - a * a);
+            if (b == (int) b){
+                return true;
+            }
+        }
+        return false;
+    }
+};
+```
+
+时间复杂度：$O(sqrt(c))$
+空间复杂度：$O(1)$
+
+# 刷题心得
+
+今天的题目非常不错。官方题解给出的两种解法都值得我们学习。不少题解对双指针方法的正确性讲解比较好，我就不讲了。
+
+参考资料：
+[力扣官方题解](https://leetcode-cn.com/problems/sum-of-square-numbers/solution/ping-fang-shu-zhi-he-by-leetcode-solutio-8ydl/)
+[633. Sum of Square Numbers](https://blog.csdn.net/fuxuemingzhu/article/details/77531867)
+
+-----
+
+OK，以上就是 [@负雪明烛](https://leetcode-cn.com/u/fuxuemingzhu/) 写的今天题解的全部内容了，如果你觉得有帮助的话，**求赞、求关注、求收藏**。如果有疑问的话，请在下面评论，我会及时解答。
+
+**关注我**，你将不会错过我的精彩动画题解、面试题分享、组队刷题活动，进入主页 [@负雪明烛](https://leetcode-cn.com/u/fuxuemingzhu/) 右侧有刷题组织，从此刷题不再孤单。
+
+祝大家 AC 多多，Offer 多多！我们明天再见！

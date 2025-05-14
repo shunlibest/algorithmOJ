@@ -1,0 +1,450 @@
+[TOC]
+
+# 思路
+
+## 迪杰斯特拉算法
+
+一个点到其他所有点的最短路径，首先想到迪杰斯特拉算法。这道题比较特殊，路径长度都为1，所以不需要排序，第一次到达时的路径就是最短路径。
+
+由于需要红蓝交替走，所以方案有两种，一种先走红，另一种先走蓝。
+
+一次松弛处理中，走红还是走蓝，就是看使用的邻接表是红路径邻接表还是蓝路径邻接表。由于有两套邻接表，所以用于记录已找到最短路径的节点的集合也要有两套，分别记录`走红/蓝边到达的最短路径集合`。
+
+这里头有个小技巧，对于先走红的方案，第`1`次移动走的是`红`，第`2`次是蓝，以此类推，显然，第`奇数`次走`红`，第`偶数`次走蓝。对于另一种方案则相反。所以，我们可以根据路径长度的奇偶性来判断一个方案的松弛处理用`走蓝边到达的最短路径集合 + 红邻接表`还是`走红边到达的最短路径集合 + 蓝邻接表`。
+
+## 位运算
+
+由于本题中，路径长度固定为1，所以邻接表中无需记录长度，仅需要记录可达节点即可。
+
+可以简单想到的方案：
+1. `int edges[][]`\
+   `edges[i]`为节点`i`可达的节点
+2. `boolean edges[][]`\
+   `edges[i][j - 1] == true`代表节点`i`可到达节点`j`（无需记录到达`0`的边）
+
+上述方案都存在问题，就是松弛处理过程中需要全量遍历邻接表的部分里层数组。
+
+本题解中采用的方案是用`int`值的二进制位来标记可达性：`int edges[][]`，`(edges[i][j] & 1 << x) == 1` 代表节点`i`能够到达节点`j * 32 + 1 + x`。因为入参`n`的最大值为`100`，无法用一个`int`表示，所以我将它拆成$\lceil n/32\rceil$个`int`来表示。
+
+同样的，方案中记录的`走红/蓝边到达的最短路径集合`也要使用相同的表示方法，这样能够通过位运算快速找出`本次移动到达且之前未到达过`的节点集合。
+
+但这个通过位运算找出来的“集合”其实是一个数，我们需要找出这个数里头每一个值为`1`的二进制位代表哪个节点。容易想到的方式是调用`Integer.numberOfTrailingZeros`，但这个方法的时间复杂度为$O(log32)$，即可视为对于每个`1`位，需要`5`次处理才能找到对应的节点。本题解中玩了一些花样，对于每个`1`位，仅需要`1`次处理就能找到对应的节点。
+
+以下附两份代码，耗时都是 1 ms。个人觉得`Code2`更优美一些。
+
+# Code1
+
+* Java
+
+```Java
+class Solution {
+
+    /** 如果 int x 二进制有且仅有一位为1，则 MAP[(x - 1) % MAP.length] 为 x 的1位后尾随的0的位数 */
+    private static final int[] MAP = {0, 1, 26, 2, 23, 27, 0, 3, 16, 24, 30, 28, 11, 0, 13, 4, 7, 17, 0, 25, 22, 31, 15,
+        29, 10, 12, 6, 0, 21, 14, 9, 5, 20, 8, 19, 18, 0};
+
+    /** 入参 n */
+    private int n;
+    /** 能够容纳 n-1 个二进制位的最少 int 数 */
+    private int part;
+    /** 遍历完成的方案数 */
+    private int finishCount;
+    /** 尚未到达的节点数 */
+    private int countDown;
+    /** 答案 */
+    private int[] ans;
+
+    public int[] shortestAlternatingPaths(int n, int[][] redEdges, int[][] blueEdges) {
+        if (n == 1) {
+            return new int[] {0};
+        }
+
+        this.n = n;
+        part = n + 30 >>> 5;
+        countDown = n - 1;
+        int[][][] edges = {redEdges = buildEdges(redEdges), blueEdges = buildEdges(blueEdges)};
+        buildAns();
+        // 两套方案并行，一套先走红，另一套先走蓝
+        // 退出条件：所有节点都到达过，或两套方案都已经遍历完成
+        Context ctx1 = new Context(), ctx2 = new Context();
+        for (int d = 1; (ctx1.task == null || nextTask(ctx1, edges[d & 1], d))
+            && (ctx2.task == null || nextTask(ctx2, edges[~d & 1], d)) && finishCount != 2; d++);
+        return ans;
+    }
+
+    /**
+     * 构造节点可达关系
+     *
+     * @param input
+     *            入参xxEdges
+     * @return (edges[i][j] & 1 << x) == 1 代表节点 i 能够到达节点 j * 32 + 1 + x，入参为空时返回null
+     */
+    private int[][] buildEdges(int[][] input) {
+        if (input.length == 0) {
+            return null;
+        }
+
+        int[][] edges = new int[n][];
+        for (int[] arr : input) {
+            int to = arr[1];
+            // 不需要记录可以到达节点 0 的边
+            if (to != 0) {
+                (edges[arr[0]] != null ? edges[arr[0]] : (edges[arr[0]] = new int[part]))[to - 1 >>> 5] |=
+                    1 << (to - 1 & 0x1f);
+            }
+        }
+        return edges;
+    }
+
+    /** 构造答案容器，并填充-1 */
+    private void buildAns() {
+        int len = n - 1;
+        ans = new int[n];
+        if (len <= 3) {
+            while (len >= 1) {
+                ans[len--] = -1;
+            }
+            return;
+        }
+
+        ans[1] = -1;
+        ans[2] = -1;
+        for (int i = 2, bound = len >>> 1;;) {
+            System.arraycopy(ans, 1, ans, 1 + i, i);
+            if ((i <<= 1) > bound) {
+                System.arraycopy(ans, 1, ans, 1 + i, len - i);
+                return;
+            }
+        }
+    }
+
+    /**
+     * 对应迪杰斯特拉算法中：将上一轮找到最短路径的节点作为中转，进行松弛操作，找到新的最短路径节点
+     * <p>
+     * 注：由于路径长度都为1，所以第一次到达时的路径就是最短路径
+     *
+     * @param context
+     *            方案上下文
+     * @param edges
+     *            节点可达关系
+     * @param distance
+     *            已移动距离
+     * @return 所有方案到达过的节点集合是否等于节点总集
+     */
+    private boolean nextTask(Context context, int[][] edges, int distance) {
+        if (edges != null) {
+            int[] fin = context.fin[distance & 1];
+            for (int i = context.task.size(); i > 0; i--) {
+                int[] edge = edges[context.task.removeFirst()];
+                if (edge == null) {
+                    continue;
+                }
+
+                for (int p = 0; p < part; p++) {
+                    int f = edge[p] & ~fin[p];
+                    if (f == 0) {
+                        continue;
+                    }
+
+                    fin[p] |= f;
+                    int base = (p << 5) + 1;
+                    do {
+                        int lowest = f & -f;
+                        f ^= lowest;
+                        lowest = base + MAP[(lowest - 1) % MAP.length];
+                        if (ans[lowest] == -1) {
+                            ans[lowest] = distance;
+                            if (--countDown == 0) {
+                                return false;
+                            }
+                        }
+                        context.task.addLast(lowest);
+                    } while (f != 0);
+                }
+            }
+            if (!context.task.isEmpty()) {
+                return true;
+            }
+        }
+        // task设置为null，标记方案遍历完成
+        context.task = null;
+        ++finishCount;
+        return true;
+    }
+
+    /** 方案上下文 */
+    private class Context {
+
+        /**
+         * 已到达过的节点，fin[?][j] & 1 << x) == 1 代表已到达过节点 j * 32 + 1 + x
+         * <p>
+         * fin[0]代表走过的路径长度为偶数时到达的节点，fin[1]代表走过的路径长度为奇数时到达的节点
+         */
+        private final int[][] fin = new int[2][part];
+        /** 上次移动到达（且上次移动之前未到达）的节点，即迪杰斯特拉算法中松弛操作的中转节点，用法为尾入头出（要比最高需求空间多一个元素，否则可能会扩容） */
+        private ArrayDeque<Integer> task = new ArrayDeque<>(n == 2 ? 2 : n - 1);
+
+        {
+            // 从节点 0 开始，初始时到达节点 0
+            task.addLast(0);
+        }
+    }
+}
+```
+
+# Code2
+
+* Java
+
+```Java
+class Solution {
+
+    /** 如果 int x 二进制有且仅有一位为1，则 MAP[(x - 1) % MAP.length] 为 x 的1位后尾随的0的位数 */
+    private static final int[] MAP = {0, 1, 26, 2, 23, 27, 0, 3, 16, 24, 30, 28, 11, 0, 13, 4, 7, 17, 0, 25, 22, 31, 15,
+        29, 10, 12, 6, 0, 21, 14, 9, 5, 20, 8, 19, 18, 0};
+
+    /** 入参 n */
+    private int n;
+    /** 能够容纳 n-1 个二进制位的最少 int 数 */
+    private int part;
+    /** 遍历完成的方案数 */
+    private int finishCount;
+    /** 尚未到达的节点数 */
+    private int countDown;
+    /** 答案 */
+    private int[] ans;
+
+    public int[] shortestAlternatingPaths(int n, int[][] redEdges, int[][] blueEdges) {
+        if (n == 1) {
+            return new int[] {0};
+        }
+
+        this.n = n;
+        part = n + 30 >>> 5;
+        countDown = n - 1;
+        redEdges = buildEdges(redEdges);
+        blueEdges = buildEdges(blueEdges);
+        buildAns();
+        // 两套方案并行，一套先走红，另一套先走蓝
+        // 退出条件：所有节点都到达过，或两套方案都已经遍历完成
+        Handler handler1 = new Handler(blueEdges, redEdges), handler2 = new Handler(redEdges, blueEdges);
+        for (int d = 1; handler1.nextTask(d) && handler2.nextTask(d) && finishCount != 2; d++);
+        return ans;
+    }
+
+    /**
+     * 构造节点可达关系
+     *
+     * @param input
+     *            入参xxEdges
+     * @return (edges[i][j] & 1 << x) == 1 代表节点 i 能够到达节点 j * 32 + 1 + x，入参为空时返回null
+     */
+    private int[][] buildEdges(int[][] input) {
+        if (input.length == 0) {
+            return null;
+        }
+
+        int[][] edges = new int[n][];
+        for (int[] arr : input) {
+            int to = arr[1];
+            // 不需要记录可以到达节点 0 的边
+            if (to != 0) {
+                (edges[arr[0]] != null ? edges[arr[0]] : (edges[arr[0]] = new int[part]))[to - 1 >>> 5] |=
+                    1 << (to - 1 & 0x1f);
+            }
+        }
+        return edges;
+    }
+
+    /** 构造答案容器，并填充-1 */
+    private void buildAns() {
+        int len = n - 1;
+        ans = new int[n];
+        if (len <= 3) {
+            while (len >= 1) {
+                ans[len--] = -1;
+            }
+            return;
+        }
+
+        ans[1] = -1;
+        ans[2] = -1;
+        for (int i = 2, bound = len >>> 1;;) {
+            System.arraycopy(ans, 1, ans, 1 + i, i);
+            if ((i <<= 1) > bound) {
+                System.arraycopy(ans, 1, ans, 1 + i, len - i);
+                return;
+            }
+        }
+    }
+
+    /** 邻接表信息包装器 */
+    private class EdgesWrapper {
+
+        /** 已到达过的节点，fin[j] & 1 << x) == 1 代表已到达过节点 j * 32 + 1 + x */
+        private final int[] fin = new int[part];
+        /** 邻接表 */
+        private final int[][] edges;
+
+        public EdgesWrapper(int[][] edges) {
+            this.edges = edges;
+        }
+    }
+
+    /** 方案处理器 */
+    private class Handler {
+
+        /**
+         * 邻接表信息包装器容器
+         * <p>
+         * 走过的路径长度为偶数时使用edgesWrappers[0]，走过的路径长度为奇数时使用edgesWrappers[1]
+         */
+        private final EdgesWrapper[] edgesWrappers;
+        /** 上次移动到达（且上次移动之前未到达）的节点，即迪杰斯特拉算法中松弛操作的中转节点，用法为尾入头出（要比最高需求空间多一个元素，否则可能会扩容） */
+        private ArrayDeque<Integer> task;
+
+        public Handler(int[][] edges0, int[][] edges1) {
+            if (edges1 == null || edges1[0] == null) {
+                // 第一步就无路可走
+                edgesWrappers = null;
+                ++finishCount;
+                return;
+            }
+
+            edgesWrappers = new EdgesWrapper[] {buildEdgesWrapper(edges0), buildEdgesWrapper(edges1)};
+            task = new ArrayDeque<>(n == 2 ? 2 : n - 1);
+            // 从节点 0 开始，初始时到达节点 0
+            task.addLast(0);
+        }
+
+        private EdgesWrapper buildEdgesWrapper(int[][] edges) {
+            return edges == null ? null : new EdgesWrapper(edges);
+        }
+
+        /**
+         * 对应迪杰斯特拉算法中：将上一轮找到最短路径的节点作为中转，进行松弛操作，找到新的最短路径节点
+         * <p>
+         * 注：由于路径长度都为1，所以第一次到达时的路径就是最短路径
+         * 
+         * @param distance
+         *            已移动距离
+         * @return 所有方案到达过的节点集合是否等于节点总集
+         */
+        public boolean nextTask(int distance) {
+            if (task == null) {
+                return true;
+            }
+
+            EdgesWrapper edgesWrapper = edgesWrappers[distance & 1];
+            if (edgesWrapper != null) {
+                for (int i = task.size(); i > 0; i--) {
+                    int[] edge = edgesWrapper.edges[task.removeFirst()];
+                    if (edge == null) {
+                        continue;
+                    }
+
+                    for (int p = 0; p < part; p++) {
+                        int f = edge[p] & ~edgesWrapper.fin[p];
+                        if (f == 0) {
+                            continue;
+                        }
+
+                        edgesWrapper.fin[p] |= f;
+                        int base = (p << 5) + 1;
+                        do {
+                            int lowest = f & -f;
+                            f ^= lowest;
+                            lowest = base + MAP[(lowest - 1) % MAP.length];
+                            if (ans[lowest] == -1) {
+                                ans[lowest] = distance;
+                                if (--countDown == 0) {
+                                    return false;
+                                }
+                            }
+                            task.addLast(lowest);
+                        } while (f != 0);
+                    }
+                }
+                if (!task.isEmpty()) {
+                    return true;
+                }
+            }
+            // task设置为null，标记方案遍历完成
+            task = null;
+            ++finishCount;
+            return true;
+        }
+    }
+}
+```
+
+# MAP的生成代码
+
+> 就是多线程暴力模拟而已
+
+* Java
+
+```Java
+public static void main(String[] args) {
+    int l = 33;
+    ConcurrentLinkedQueue<Integer> ans = new ConcurrentLinkedQueue<>();
+    {
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        ExecutorService es = new ThreadPoolExecutor(availableProcessors, availableProcessors, 1, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(availableProcessors),
+            new ThreadFactoryBuilder().setNameFormat("test-%d").build());
+        do {
+            int len = l;
+            CountDownLatch countDownLatch = new CountDownLatch(availableProcessors);
+            AtomicInteger counter = new AtomicInteger(32);
+            for (int i = 0; i < availableProcessors; i++) {
+                es.execute(() -> {
+                    try {
+                        int mod;
+                        while ((mod = counter.getAndIncrement()) < 10000 && ans.isEmpty()) {
+                            System.out.println("[" + Thread.currentThread().getName() + "] " + mod);
+                            boolean[] b = new boolean[len];
+                            b[0] = true;
+                            b[1] = true;
+                            b[3] = true;
+                            b[7] = true;
+                            b[15] = true;
+                            b[31] = true;
+                            for (int j = 0x7fffffff;;) {
+                                int hash = j % mod % b.length;
+                                if (b[hash]) {
+                                    break;
+                                }
+
+                                if ((j >>>= 1) == 31) {
+                                    ans.add(mod);
+                                    return;
+                                }
+
+                                b[hash] = true;
+                            }
+                        }
+                    } finally {
+                        countDownLatch.countDown();
+                    }
+                });
+            }
+            try {
+                countDownLatch.await();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        } while (ans.isEmpty() && ++l <= 64);
+        es.shutdown();
+    }
+    for (int mod : ans) {
+        System.out.println("len: " + l + ", mod: " + mod);
+        int[] arr = new int[l];
+        for (int j = 0; j < 32; j++) {
+            arr[((1 << j) - 1) % mod % l] = j;
+        }
+        System.out.println(Arrays.toString(arr));
+    }
+}
+```
+

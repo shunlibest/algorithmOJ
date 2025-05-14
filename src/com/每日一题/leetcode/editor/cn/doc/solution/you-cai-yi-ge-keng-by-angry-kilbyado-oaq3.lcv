@@ -1,0 +1,110 @@
+> Problem: [3112. 访问消失节点的最少时间](https://leetcode.cn/problems/minimum-time-to-visit-disappearing-nodes/description/)
+
+[TOC]
+
+# 思路
+
+> 基本上跟官方题解是一样的，就是从0开始，沿路找到能够到达的节点，记录在节点消失之前所能达到的最短时间
+
+# 解题过程
+
+> 过程有点曲折了。
+> 首先使用二维数据记录临界矩阵就out of memory了。就换成了Dictionary，后来换成了List。
+> 最大的坑，是我过不了50000个节点的用例，要超时。
+> 当一个节点取得一个最新的最小到达时进入队列，进行下一步分析，有什么问题？每次都超时。
+> 分析来分析去，还是一个节点可能从多个节点到达，时间递减，导致这个节点多次进入队列，然后每次都进行了处理。
+> 那解决方法就是进入队列时，除了节点以外同时记录一下此次进入队列时的到达时间。当从队列中取出该节点时，如果不是最小时间那一次，就不处理。
+> 这么说，如果记录下队列里面存在的节点，可以不重复入队列，也是可以的了。
+
+# 复杂度
+
+- 时间复杂度: $O(*)$
+- 空间复杂度: $O(*)$
+
+# Code
+
+* []
+
+```C#
+public class Solution {
+    public int[] MinimumTime(int n, int[][] edges, int[] disappear) {
+    int[] result = new int[n];
+        result[0] = 0;
+        for (int i = 1; i < n; i++)
+        {
+            result[i] = -1;
+        }            
+        
+
+        List<Dictionary<int, int>> stepList = new List<Dictionary<int, int>>();
+        for (int i = 0; i < n; i++)
+        {
+            stepList.Add(new Dictionary<int, int>());
+        }
+
+        foreach (int[] edge in edges)
+        {
+            int i = edge[0];
+            int j = edge[1];
+            int w = edge[2];
+
+            if (i == j)
+            {
+                continue;
+            }
+
+            if (stepList[i].ContainsKey(j))
+            {
+                if (stepList[i][j] > w)
+                {
+                    stepList[i][j] = w;
+                    stepList[j][i] = w;
+                }
+            }
+            else
+            {
+                stepList[i].Add(j,w);
+                stepList[j].Add(i,w);
+            }
+        }
+
+        Queue<int[]> nextSteps = new Queue<int[]>();
+        nextSteps.Enqueue(new int[] { 0, 0 });
+
+        while (nextSteps.Count > 0)
+        {
+            int[] next = nextSteps.Dequeue();
+            int step = next[0];
+            if (next[1] != result[step])
+            {
+                continue;
+            }
+            foreach (KeyValuePair<int, int> kv in stepList[step])
+            {
+                int current = result[step];
+
+                int i = kv.Key;
+                int w = kv.Value;
+
+                if (step == i)
+                {
+                    continue;
+                }
+
+                int arrival = current + w;
+                if (arrival < disappear[i])
+                {
+                    if ((-1 == result[i]) || (arrival < result[i]))
+                    {
+                        result[i] = arrival;
+                        nextSteps.Enqueue(new int[]{i, result[i]});
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+}
+```
+

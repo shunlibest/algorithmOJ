@@ -1,0 +1,44 @@
+# 思路
+
+1. 首先我们需要以每一个节点为根的子树大小，用来判断是否是好节点，所以可以用一个$size$数组来存储大小，通过后序遍历实现。
+2. 我们需要在每一层判断以他的孩子为根的所有子树大小是否相同，这时就可以用到$size$数组了。
+3. 然后我们可以用类似树形dp的思路，对于每一个子树中的好节点个数，我们向上返回，最后得到的结果就是总的好节点个数
+
+> 1.一般的树形dp需要我们明确两个操作：当前节点需要汇总什么信息向上返回，当前节点如何加工信息。
+> 2.在遍历的过程中，树图并不需要vis数组，因为没有环，只需要知道他的父亲节点是谁，遍历孩子节点的时候不遍历父节点即可，具体见代码。
+
+时间复杂度：$O(n)$
+空间复杂度: $O(n)$
+
+# Code
+
+* []
+
+```Python
+class Solution:
+    def countGoodNodes(self, edges: List[List[int]]) -> int:
+        n = len(edges) + 1
+        """建图"""
+        g = [[] for _ in range(n)]
+        for a,b in edges:
+            g[a].append(b)
+            g[b].append(a)
+        # 存储每个子树的大小
+        size = [0] * n
+        def dfs(cur: int,fa: int) -> int:
+            size[cur] = 1
+            pre = -1#用于辅助判断好节点
+            res = 0#孩子中好节点的个数
+            ok = True#代表是否是好节点
+            #枚举孩子
+            for nxt in g[cur]:
+                if nxt == fa: continue
+                res += dfs(nxt,cur)
+                if pre != -1 and pre != size[nxt]:
+                    ok = False
+                size[cur] += size[nxt]
+                pre = size[nxt]
+            return res + ok
+        return dfs(0,-1)
+```
+

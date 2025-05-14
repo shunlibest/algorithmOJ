@@ -1,0 +1,51 @@
+### 解题思路
+
+枚举边，假如存在边<u,v>,将改变删掉，再求u,v的最短路径，如果存在u，v的最短路长度为x，则包含u,v的最小圆的长度为x + 1
+
+### 代码
+
+* cpp
+
+```cpp
+class Solution {
+public:
+    vector<int> tree[1002];
+    int vis[1002];
+    int has[1002];
+    int findShortestCycle(int n, vector<vector<int>>& edges) {
+        for (auto edge :edges) {
+            int u = edge[0];
+            int v = edge[1];
+            tree[u].push_back(v);
+            tree[v].push_back(u);
+        }
+        int ans = n + 1;
+        for (auto edge : edges) {
+            int x = edge[0];
+            int y = edge[1];
+            queue<pair<int, int>> q;
+            vector<int>vis(n);
+            q.push({x, 1});
+            while(q.size()) {
+                auto [u, deep] = q.front();
+                q.pop();
+                if(vis[u]) {
+                    continue;
+                }
+                if(u == y) {
+                    ans = min(ans, deep);
+                    break;
+                }
+                vis[u] = 1;
+                for (auto v : tree[u]) {
+                    if(u == x && v == y) continue;
+                    q.push({v, deep + 1});
+                }
+            }
+        }
+        return ans == n + 1 ? -1 : ans;
+        
+    }
+};
+```
+

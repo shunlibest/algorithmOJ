@@ -1,0 +1,63 @@
+> Problem: [3112. 访问消失节点的最少时间](https://leetcode.cn/problems/minimum-time-to-visit-disappearing-nodes/description/)
+
+[TOC]
+
+# 思路
+
+> 首先看到题目的问题，求0点到其它点的最短路，符合dij的应用场景（如果是求每个点到其它点的最短路需要用Floyd算法），而且数据范围也符合dij的nlogn的时间复杂度范围。
+> 本题相比dij的模板需要多考虑一步节点是否会消失，这里我们不可以先用dij求出最短路再判断其与disappear的关系，因为节点u到节点v的最短路可能会经过节点o，虽然最后节点v没有消失，但如果节点o提前消失的话，这条路也是不可以走的，见本题的示例1。所以这里需要在dij更新最短路的时候进行实时判断，去掉当前已经消失的节点的可能性。
+
+# 解题过程
+
+## 堆优化dij模板的过程：
+
+1. 构造dis数组，表示节点0到其它节点的距离，初始化为inf，只有dis[0] = 0
+2. 将0节点入堆
+3. 选取距离节点0最近的点u（第一次循环时距离0最近的点是0本身），这一步使用堆的pop来得到，将该点加入集合vis
+4. 更新vis之外的点到节点0的距离，由于只有节点u从vis之外加入了vis，所以只需要更新与u相邻的节点v的距离：dis[u] + w[u][v] = dis[v]。如果更新后变得更小了，就将v入堆
+5. 重复34直到堆为空
+
+> 注意在dij的堆里，同一个点u可能出现多次，最后dij的结果一定是首次出堆时对应的距离，首次出堆时u距离0点的距离一定小于其它在堆内的u到0点的距离，因此可以使用d > dis[u]来剪枝
+
+# 复杂度
+
+- 时间复杂度: $O(n + mlogm)$,m = len(edges)
+- 空间复杂度: $O(n + m)$
+
+# Code
+
+* []
+
+```Python
+class Solution:
+    def minimumTime(self, n: int, edges: List[List[int]], disappear: List[int]) -> List[int]:
+        # 根据edges构建邻接表g，并且记录路径长度l
+        g = collections.defaultdict(list)
+        for u, v, l in edges:
+            g[u].append((v, l))
+            g[v].append((u, l))
+        
+        # dij的前期准备，ans表示0到其它点的距离，0点先进入堆q，并构造集合vis
+        q = [(0, 0)]
+        vis = set([0])
+        answer = [inf] * n
+        answer[0] = 0
+
+        # dij最短路模板 
+        while q:
+            # 每次取出距离0点最近的点u, 将u加入集合vis
+            d, u = heapq.heappop(q)
+            # 剪枝：如果某次d大于之前的0到u的距离，那么点u一定已经被遍历过了
+            if d > answer[u]:   continue
+            vis.add(u)
+            # 更新剩余节点到0的距离, 因为新加入了u, 所以发生变化的距离只有经过u的距离
+            for v, duv in g[u]:
+                # 如果存在某个点距离0的距离通过u变小了，就将它加入堆中
+                # 注意经过点u的前提是u存在:answer[u] < disappear[u]
+                if (v not in vis) and answer[u] + duv < answer[v] and answer[u] < disappear[u]:
+                    answer[v] = answer[u] + duv
+                    heapq.heappush(q, (answer[v], v))
+        # 将inf改为-1输出answer
+        return [answer[i] if answer[i] < disappear[i] else -1 for i in range(n)]
+```
+

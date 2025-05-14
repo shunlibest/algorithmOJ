@@ -1,0 +1,188 @@
+## 出处
+
+`来自国外站码友的题解（有人要问了：“你懂了，为什么不自己写一个题解，还把别人的题解copy给我们看？”，我：“别人牛逼，我菜鸡（哭~~~~）”，还有人要问：“我们国内站已经有很好的题解了，你还来写干嘛？”，我：“帮大家节省寻找易懂题解的时间，毕竟时间是人生最珍贵的资源”）`
+
+`我看了一遍就能理解了，你们也一定可以`
+
+[国外站地址](https://leetcode.com/problems/restore-ip-addresses/solutions/30972/who-can-beat-this-code/)
+
+## 分析
+
+* `我一直相信大道至简，只要能解题，并且时间复杂度和空间复杂度能到达水平线以上，那我就愿意去学习、去使用这个题解`
+
+* `学习一些通用的解题方法是很好的，但作为平民，有时候需要一条单向捷径，接下来我们就来看看这条捷径长啥样~~~`
+
+## 代码
+
+* `我下面给大家做了统一注释，但我本人使用Go语言较多，其他语言的一些字符串手段可能需要优化，还望多多指正`
+
+* []
+
+```C++
+class Solution {
+public:
+    vector<string> restoreIpAddresses(string s) {
+        // IP地址结果集
+        vector<string> ret;
+        // 单个IP地址
+        string ans;
+        
+        // 我用了四重循环，你骂我吧
+        for (int a=1; a<=3; a++)
+        for (int b=1; b<=3; b++)
+        for (int c=1; c<=3; c++)
+        for (int d=1; d<=3; d++)
+            // A、B、C、D 四段所占字符总数 一定是需要等于len(s)的
+            if (a+b+c+d == s.length()) {
+                // 转换成数字，我们接下来需要用来判断
+                int A = stoi(s.substr(0, a));
+                int B = stoi(s.substr(a, b));
+                int C = stoi(s.substr(a+b, c));
+                int D = stoi(s.substr(a+b+c, d));
+                
+                // 都 <= 255就可以了
+                if (A<=255 && B<=255 && C<=255 && D<=255) {
+
+                    ans = to_string(A) + "." + to_string(B) + "." + to_string(C) + "." + to_string(D);
+
+                    // 这里应该知道吧，一个IP地址长度 = 原s长度 + 3(3个点字符) 
+                    if (ans.length() == s.length()+3)
+                        // 这里为什么要判断呢：
+                        // 比如s=101023, 拆分成1，0，1，023
+                        // 023会被我们 字符串 转数字抹去0，已经缺少 s中的字符了，所以我们这里需要额外判断
+                        ret.push_back(ans);
+                }
+            }    
+        
+        return ret;
+    }
+};
+```
+
+* []
+
+```Python
+class Solution:
+    def restoreIpAddresses(self, s: str) -> List[str]:
+        # IP地址结果集
+        ret = []
+        # 单个IP地址
+        ans = ""
+
+        # 我用了四重循环，你骂我吧
+        for a in range(1, 4):
+            for b in range(1, 4):
+                for c in range(1, 4):
+                    for d in range(1, 4):
+                        # A、B、C、D 四段所占字符总数 一定是需要等于len(s)的
+                        if a + b + c + d == len(s):
+                            # 转换成数字，我们接下来需要用来判断
+                            A = int(s[:a])
+                            B = int(s[a : a + b])
+                            C = int(s[a + b : a + b + c])
+                            D = int(s[a + b + c : a + b + c + d])
+
+                            # 都 <= 255就可以了
+                            if A <= 255 and B <= 255 and C <= 255 and D <= 255:
+                                ans = f"{A}.{B}.{C}.{D}"
+
+                                # 这里应该知道吧，一个IP地址长度 = 原s长度 + 3(3个点字符)
+                                if len(ans) == len(s) + 3:
+                                    # 这里为什么要判断呢：
+                                    # 比如s=101023, 拆分成1，0，1，023
+                                    # 023会被我们 字符串 转数字抹去0，已经缺少 s中的字符了，所以我们这里需要额外判断
+                                    ret.append(ans)
+
+        return ret
+```
+
+* []
+
+```Java
+class Solution {
+    public List<String> restoreIpAddresses(String s) {
+        // IP地址结果集
+        List<String> res = new ArrayList<String>();
+        int len = s.length();
+        // 单个IP地址
+        StringBuffer ip = new StringBuffer();
+        // 我用了四重循环，你骂我吧
+         for (int a=1; a<=3; a++){
+             for (int b=1; b<=3; b++){
+                 for (int c=1; c<=3; c++){
+                     for (int d=1; d<=3; d++) {
+                        // A、B、C、D 四段所占字符总数 一定是需要等于len(s)的
+                        if (a+b+c+d == s.length()) {
+                            int A = Integer.parseInt(s.substring(0, a));
+                            int B = Integer.parseInt(s.substring(a, a+b));
+                            int C = Integer.parseInt(s.substring(a+b, a+b+c));
+                            int D = Integer.parseInt(s.substring(a+b+c));
+
+                            // 都 <= 255就可以了
+                            if (A<=255 && B<=255 && C<=255 && D<=255){
+                                ip.append(A).append(".").append(B).append(".").append(C).append(".").append(D);
+                                // 这里应该知道吧，一个IP地址长度 = 原s长度 + 3(3个点字符)
+                                if( ip.length() == len + 3){
+                                    // 这里为什么要判断呢：
+                                    // 比如s=101023, 拆分成1，0，1，023
+                                    // 023会被我们 字符串 转数字抹去0，已经缺少 s中的字符了，所以我们这里需要额外判断
+                                    res.add(ip.toString());
+                                }
+                                ip = new StringBuffer();
+                            }
+                        }   
+                     }
+                 }
+             }
+         }
+        return res;
+    }
+}
+```
+
+* []
+
+```Go
+func restoreIpAddresses(s string) []string {
+    // IP地址结果集
+	var ret []string
+    // 单个IP地址
+	var ans string
+
+    // 我用了四重循环，你骂我吧
+	for a := 1; a <= 3; a++ {
+		for b := 1; b <= 3; b++ {
+			for c := 1; c <= 3; c++ {
+				for d := 1; d <= 3; d++ {
+                    // A、B、C、D 四段所占字符总数 一定是需要等于len(s)的
+					if a+b+c+d == len(s) {
+                        // 转换成数字，我们接下来需要用来判断
+						A, _ := strconv.Atoi(s[:a])
+						B, _ := strconv.Atoi(s[a : a+b])
+						C, _ := strconv.Atoi(s[a+b : a+b+c])
+						D, _ := strconv.Atoi(s[a+b+c : a+b+c+d])
+
+                        // 都 <= 255就可以了
+        				if A <= 255 && B <= 255 && C <= 255 && D <= 255 {
+                            ans = fmt.Sprintf("%d.%d.%d.%d", A, B, C, D)
+							
+                            // 这里应该知道吧，一个IP地址长度 = 原s长度 + 3(3个点字符) 
+                            if len(ans) == len(s)+3 { 
+                                // 这里为什么要判断呢：
+                                // 比如s=101023, 拆分成1，0，1，023
+                                // 023会被我们 字符串 转数字抹去0，已经缺少 s中的字符了，所以我们这里需要额外判断
+								ret = append(ret, ans)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	return ret
+}
+```
+
+* `如果看了一个题解没有学会，那么只能是一个问题：这个题解写的还不够好！`
+

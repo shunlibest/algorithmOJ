@@ -1,0 +1,65 @@
+> Problem: [1462. 课程表 IV](https://leetcode.cn/problems/course-schedule-iv/description/)
+
+[TOC]
+
+# 思路
+
+> 其实就是拓扑排序的思路，对于每一个先序的a->b，a不仅是b的先决条件，a的先决条件同时也是b的先决条件，那么就是在对于b的先决条件的设置中要考虑a的就完事儿了，具体的代码在code中进行体现。
+
+# 复杂度
+
+- 时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n^2)$
+
+- 空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n^2)$
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public List<Boolean> checkIfPrerequisite(int numCourses, int[][] prerequisites, int[][] queries) {
+        // if preQ[a][b] = true 那么a是b的先决条件
+        boolean[][] preQ = new boolean[numCourses][numCourses];
+        // 建立图
+        List<List<Integer>> graph = new ArrayList<>();
+        for(int i = 0;i<numCourses;i++) graph.add(new ArrayList<>());
+        int[] inorder = new int[numCourses];
+        for(int[] preq:prerequisites) {
+            int a = preq[0];
+            int b = preq[1];
+            inorder[b]++;
+            graph.get(a).add(b);
+        }
+        // 做一个拓扑排序的预处理
+        Queue<Integer> queue = new LinkedList<>();
+        for(int i = 0;i<numCourses;i++) {
+            if(inorder[i]==0) queue.add(i);
+        }
+        while(!queue.isEmpty()) {
+            int poll = queue.poll();
+            for(int next:graph.get(poll)) {
+                inorder[next]--;
+                preQ[poll][next] = true;
+                // 遍历前置节点poll的先决条件，施加到后置节点next上
+                for(int i = 0;i<numCourses;i++) {
+                    // 更新先决条件查询数组
+                    if(preQ[i][poll]) preQ[i][next] = true;
+                }
+                if(inorder[next]==0) queue.add(next);
+            }
+        }
+        List<Boolean> ans = new ArrayList<>();
+        for(var q:queries) {
+            ans.add(preQ[q[0]][q[1]]);
+        }
+
+        return ans;
+    }
+}
+```
+

@@ -1,0 +1,48 @@
+> Problem: [797. 所有可能的路径](https://leetcode.cn/problems/all-paths-from-source-to-target/description/)
+
+[TOC]
+
+# 思路
+
+无环不用判断是否访问过
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```C++
+class Solution {
+public:
+    vector<vector<int>> res;
+    void dfs(vector<vector<int>> &graph,int i,vector<int> temp)
+    {
+        temp.push_back(i);
+        if(i+1==graph.size()) 
+        {
+            res.push_back(temp);
+            return;
+        }
+        for(auto g:graph[i]) dfs(graph,g,temp);
+    }
+    vector<vector<int>> allPathsSourceTarget(vector<vector<int>>& graph) {
+        vector<int> temp;
+        dfs(graph,0,temp);
+        return res;
+    }
+};
+```
+

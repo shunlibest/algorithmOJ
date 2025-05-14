@@ -1,0 +1,259 @@
+## 分类讨论
+
+- 如果最后一班公交还有空位：
+  - 如果最后一班公交发车时，没有乘客到达公交站，我们可以**在发车时到达公交站**。~~极限操作~~
+  - 如果发车时恰好有乘客到达公交站，由于题目要求不能跟别的乘客同时到达，我们可以顺着这位乘客**往前找没人到达的时刻**，在这个时刻「插队」。
+- 如果最后一班公交没有空位：
+  - 找最后一个上车的乘客 A，然后**往前找没人到达的时刻**，在这个时刻「插队」，把 A 挤下去。（可怜的 A）
+
+为什么可以插队？万一前面的乘客没有上车，我们不就也没法上车了吗？
+
+这是不会的，因为先来先上车，**如果一个乘客上了车，那么他前面的乘客也肯定上了车**。
+
+## 思路
+
+至此，本题的算法分为两个过程：
+
+1. 不考虑自己，模拟乘客上车的过程。
+2. 根据上面的分类讨论，寻找合适的插队时机。
+
+## 模拟乘客上车
+
+1. 为方便模拟，把 $\textit{buses}$ 和 $\textit{passengers}$ 都从小到大排序。
+2. 双指针遍历 $\textit{buses}$ 和 $\textit{passengers}$。
+3. 对于 $\textit{buses}[i]$，初始化 $c = \textit{capacity}$。
+4. 不断循环，如果 $c> 0$ 且 $\textit{passengers}[j]\le \textit{buses}[i]$，那么第 $j$ 位乘客可以上车，把 $c$ 减一，$j$ 加一。如果没法上车，只能等下一班车。
+5. 双指针遍历结束后，$j-1$ 就是最后一个上车的乘客。这里减一是因为第 $j$ 位乘客上车后我们把 $j$ 加一了。
+
+> 注：双指针遍历结束时，有可能所有乘客都上车了，最后几班公交没有任何乘客。这不会影响我们的结论，仍然选最后一班公交到达的时刻上车。
+
+## 寻找插队时机
+
+1. 为方便写代码，先把 $j$ 减一。
+2. 如果双指针遍历结束时的 $c>0$，那么最后一班公交一定是有空位的，初始化答案 $\textit{ans}= \textit{buses}[n-1]$，否则初始化 $\textit{ans}=\textit{passengers}[j]$。
+3. 如果 $\textit{ans} = \textit{passengers}[j]$，就往前找插队的时机，把 $\textit{ans}$ 和 $j$ 都减一，直到 $\textit{ans}\ne\textit{passengers}[j]$，我们在 $\textit{ans}$ 这一时刻插队。
+
+[本题视频讲解](https://www.bilibili.com/video/BV1Le4y1R7xu)
+
+* [sol-Python3]
+
+```py
+class Solution:
+    def latestTimeCatchTheBus(self, buses: List[int], passengers: List[int], capacity: int) -> int:
+        buses.sort()
+        passengers.sort()
+
+        # 模拟乘客上车
+        j = 0
+        for t in buses:
+            c = capacity
+            while c and j < len(passengers) and passengers[j] <= t:
+                j += 1
+                c -= 1
+
+        # 寻找插队时机
+        j -= 1
+        ans = buses[-1] if c else passengers[j]
+        while j >= 0 and ans == passengers[j]:  # 往前找没人到达的时刻
+            ans -= 1
+            j -= 1
+        return ans
+```
+
+* [sol-Java]
+
+```java
+class Solution {
+    public int latestTimeCatchTheBus(int[] buses, int[] passengers, int capacity) {
+        Arrays.sort(buses);
+        Arrays.sort(passengers);
+
+        // 模拟乘客上车
+        int j = 0;
+        int c = 0;
+        for (int t : buses) {
+            for (c = capacity; c > 0 && j < passengers.length && passengers[j] <= t; c--) {
+                j++;
+            }
+        }
+
+        // 寻找插队时机
+        j--;
+        int ans = c > 0 ? buses[buses.length - 1] : passengers[j];
+        while (j >= 0 && ans == passengers[j]) {
+            ans--; // 往前找没人到达的时刻
+            j--;
+        }
+        return ans;
+    }
+}
+```
+
+* [sol-C++]
+
+```cpp
+class Solution {
+public:
+    int latestTimeCatchTheBus(vector<int>& buses, vector<int>& passengers, int capacity) {
+        ranges::sort(buses);
+        ranges::sort(passengers);
+
+        // 模拟乘客上车
+        int j = 0, c;
+        for (int t : buses) {
+            for (c = capacity; c && j < passengers.size() && passengers[j] <= t; c--) {
+                j++;
+            }
+        }
+
+        // 寻找插队时机
+        j--;
+        int ans = c ? buses.back() : passengers[j];
+        while (j >= 0 && ans == passengers[j]) {
+            ans--; // 往前找没人到达的时刻
+            j--;
+        }
+        return ans;
+    }
+};
+```
+
+* [sol-C]
+
+```c
+int cmp(const void* a, const void* b) {
+    return *(int*)a - *(int*)b;
+}
+
+int latestTimeCatchTheBus(int* buses, int busesSize, int* passengers, int passengersSize, int capacity) {
+    qsort(buses, busesSize, sizeof(int), cmp);
+    qsort(passengers, passengersSize, sizeof(int), cmp);
+
+    // 模拟乘客上车
+    int j = 0, c;
+    for (int i = 0; i < busesSize; i++) {
+        for (c = capacity; c && j < passengersSize && passengers[j] <= buses[i]; c--) {
+            j++;
+        }
+    }
+
+    // 寻找插队时机
+    j--;
+    int ans = c ? buses[busesSize - 1] : passengers[j];
+    while (j >= 0 && ans == passengers[j]) {
+        ans--; // 往前找没人到达的时刻
+        j--;
+    }
+    return ans;
+}
+```
+
+* [sol-Go]
+
+```go
+func latestTimeCatchTheBus(buses, passengers []int, capacity int) (ans int) {
+    slices.Sort(buses)
+    slices.Sort(passengers)
+
+    // 模拟乘客上车
+    j, c := 0, 0
+    for _, t := range buses {
+        for c = capacity; c > 0 && j < len(passengers) && passengers[j] <= t; c-- {
+            j++
+        }
+    }
+    
+    // 插队
+    if c > 0 {
+        ans = buses[len(buses)-1] // 最后一班公交还有空位，在发车时到达
+    } else {
+        ans = passengers[j-1] // 上一个上车的乘客
+    }
+    for j--; j >= 0 && ans == passengers[j]; j-- { // 往前找没人到达的时刻
+        ans--
+    }
+    return
+}
+```
+
+* [sol-JavaScript]
+
+```js
+var latestTimeCatchTheBus = function(buses, passengers, capacity) {
+    buses.sort((a, b) => a - b);
+    passengers.sort((a, b) => a - b);
+
+    // 模拟乘客上车
+    let j = 0, c;
+    for (const t of buses) {
+        for (c = capacity; c > 0 && j < passengers.length && passengers[j] <= t; c--) {
+            j++;
+        }
+    }
+
+    // 寻找插队时机
+    j--;
+    let ans = c > 0 ? buses[buses.length - 1] : passengers[j];
+    while (j >= 0 && ans === passengers[j]) {
+        ans--; // 往前找没人到达的时刻
+        j--;
+    }
+    return ans;
+};
+```
+
+* [sol-Rust]
+
+```rust
+impl Solution {
+    pub fn latest_time_catch_the_bus(mut buses: Vec<i32>, mut passengers: Vec<i32>, capacity: i32) -> i32 {
+        buses.sort_unstable();
+        passengers.sort_unstable();
+
+        // 模拟乘客上车
+        let mut j = 0;
+        let mut c = 0;
+        for &t in &buses {
+            c = capacity;
+            while c > 0 && j < passengers.len() && passengers[j] <= t {
+                j += 1;
+                c -= 1;
+            }
+        }
+
+        // 寻找插队时机
+        j -= 1;
+        let mut ans = if c > 0 { *buses.last().unwrap() } else { passengers[j] };
+        while j < passengers.len() && ans == passengers[j] {
+            ans -= 1; // 往前找没人到达的时刻
+            j -= 1;
+        }
+        ans
+    }
+}
+```
+
+#### 复杂度分析
+
+- 时间复杂度：$\mathcal{O}(n\log n+m\log m)$，其中 $n$ 是 $\textit{buses}$ 的长度，$m$ 是 $\textit{passengers}$ 的长度。瓶颈在排序上。请注意，虽然代码写了二重循环，但 $j$ 最多增加 $\mathcal{O}(m)$ 次，再算上遍历 $\textit{buses}$ 的时间，所以二重循环的总循环次数是 $\mathcal{O}(n+m)$。
+- 空间复杂度：$\mathcal{O}(1)$。忽略排序的栈开销。
+
+## 分类题单
+
+[如何科学刷题？](https://leetcode.cn/circle/discuss/RvFUtj/)
+
+1. [滑动窗口与双指针（定长/不定长/单序列/双序列/三指针）](https://leetcode.cn/circle/discuss/0viNMK/)
+2. [二分算法（二分答案/最小化最大值/最大化最小值/第K小）](https://leetcode.cn/circle/discuss/SqopEo/)
+3. [单调栈（基础/矩形面积/贡献法/最小字典序）](https://leetcode.cn/circle/discuss/9oZFK9/)
+4. [网格图（DFS/BFS/综合应用）](https://leetcode.cn/circle/discuss/YiXPXW/)
+5. [位运算（基础/性质/拆位/试填/恒等式/思维）](https://leetcode.cn/circle/discuss/dHn9Vk/)
+6. [图论算法（DFS/BFS/拓扑排序/最短路/最小生成树/二分图/基环树/欧拉路径）](https://leetcode.cn/circle/discuss/01LUak/)
+7. [动态规划（入门/背包/状态机/划分/区间/状压/数位/数据结构优化/树形/博弈/概率期望）](https://leetcode.cn/circle/discuss/tXLS3i/)
+8. [常用数据结构（前缀和/差分/栈/队列/堆/字典树/并查集/树状数组/线段树）](https://leetcode.cn/circle/discuss/mOr1u6/)
+9. [数学算法（数论/组合/概率期望/博弈/计算几何/随机算法）](https://leetcode.cn/circle/discuss/IYT3ss/)
+10. [贪心与思维（基本贪心策略/反悔/区间/字典序/数学/思维/脑筋急转弯/构造）](https://leetcode.cn/circle/discuss/g6KTKL/)
+11. [链表、二叉树与一般树（前后指针/快慢指针/DFS/BFS/直径/LCA）](https://leetcode.cn/circle/discuss/K0n2gO/)
+
+[我的题解精选（已分类）](https://github.com/EndlessCheng/codeforces-go/blob/master/leetcode/SOLUTIONS.md)
+
+欢迎关注 [B站@灵茶山艾府](https://space.bilibili.com/206214)

@@ -1,0 +1,79 @@
+> Problem: [1462. 课程表 IV](https://leetcode.cn/problems/course-schedule-iv/description/)
+
+[TOC]
+
+# 思路
+
+> 把所有课程的前提关系放进图中，直接条件直接放，间接条件判断一下放；再对需要判断的数组从图中得到结果。
+
+# 解题方法
+
+- **定义图**：实际上是一个二维数组（不是vector）
+
+> bool graph[numCourses][numCourses];
+
+- **初始化**：memset 函数是内存赋值函数，用来给某一块内存空间进行赋值；int类型的一般都是赋值0或-1
+
+> memset(graph, 0, sizeof(bool)* numCourses* numCourses);
+
+- **构建图（赋值）**：给有邻接关系（包括直接、间接）的图点赋值
+- **直接邻接**：直接遍历prerequisites，注意前提条件放在graph的第一维：
+
+> graph[p[0]][p[1]] = true;//p[0]]是[p[1]的前提
+
+- **间接邻接**：i是k的前提，k是j的前提，因此i是j的前提
+
+> if (graph[i][k] && graph[k][j]){
+> graph[i][j] = true;
+> }
+
+- **图中取值**：二维数组根据下标取值
+
+> res[i] = graph[queries[i][0]][queries[i][1]];
+
+# 复杂度
+
+- 时间复杂度: 三层for循环 $O(n^3)$
+
+- 空间复杂度: 图的二维数组，结果vector $O(n)$
+
+# Code
+
+代码来自大神[ffreturn 1462. c++几乎双百的预计算解法](https://leetcode.cn/problems/course-schedule-iv/solutions/765302/1462-cji-hu-shuang-bai-de-yu-ji-suan-jie-a1kk/?envType=daily-question&envId=2023-09-12)
+
+* []
+
+```C++
+class Solution {
+public:
+    vector<bool> checkIfPrerequisite(int numCourses, vector<vector<int>>& prerequisites, vector<vector<int>>& queries) {
+        bool graph[numCourses][numCourses];
+        memset(graph, 0, sizeof(bool)*numCourses*numCourses);
+
+        // 构建图
+        for (vector<int>& p : prerequisites){//直接邻接
+            graph[p[0]][p[1]] = true//p[0]]是[p[1]的前提
+        }
+        for (int k = 0; k < numCourses; ++k){//间接邻接
+            for (int i = 0; i < numCourses; ++i){
+                for (int j = 0; j < numCourses; ++j){
+                    if (graph[i][k] && graph[k][j]){
+                        //i是k的前提，k是j的前提，因此i是j的前提
+                        graph[i][j] = true; 
+                    }
+                }
+            }
+        }
+
+        // 遍历quries直接从graph得到结果
+        int n = queries.size();
+        vector<bool> res(n);
+        for (int i = 0; i < n; ++i){
+            res[i] = graph[queries[i][0]][queries[i][1]];
+        }
+        return res;
+    }
+};
+
+```
+

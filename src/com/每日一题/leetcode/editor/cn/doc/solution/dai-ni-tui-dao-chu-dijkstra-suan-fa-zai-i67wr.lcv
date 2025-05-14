@@ -1,0 +1,487 @@
+# 图的基本概念及术语
+
+![Screenshot 2024-06-16 at 9.00.42 AM.png](https://pic.leetcode.cn/1718499665-pRMLwy-Screenshot%202024-06-16%20at%209.00.42%20AM.png)
+
+读者可能不熟悉图论基础知识的一些符号，特此解释一部分。突然接收这么多知识确实有些挑战，跟着学术一点的图论教程逐步学到这里会好很多，具体可参考[《图论入门》](https://leetcode.cn/leetbook/detail/introduction-to-graph/)。
+
+- $G$：图
+- $V$: 点集, 在上图中，$V = \{a,b,c,d,e,f\}$
+- $E$：边集
+- $w$: 权重函数，上图中边上的数字，比如 $w(c,a) = 1$。读者如果不熟悉图理解为边的长度即可。
+- $\forall$: 任意
+- $(u, v)$:  从点 $u$ 到点 $v$ 的边，一般表示能从 $u$ 走向 $v$。
+- $\in$: 属于
+
+所以 $\forall (u, v) \in E, w(u,v) \geq 0$ 表示边集中任意边的权重 $\geq 0$。
+
+其他的相关符号还有：
+
+- $|V|$ 或者 $|G.V|$表示集合 $V$ 的 size
+- $\delta(u,v)$ 表示图中 $u, v$ 两点的距离（最短路径的权重和）。
+- $V_\delta \cup \{e\}$ 表示向点集 $V_\delta$ 中加入点 $e$。
+- $G.Adj$ 表示邻接表, 上图中 $G.Adj[c] = \{a,d\}$。存储从各点出发的可直达点以及权重，但在学术中权重用权重函数 𝑤 来表达。
+
+# 最短路径
+
+**最短路径 (shortest paths)** 的相关实际场景比较广泛，比如地图、网络等。
+
+**单源最短路径 (SSSP / single-source shortest paths)** 是求解给定某一源点到其所有可达点的最短路径，即使得这些无权路径的边数或者带权路径的权重和最小。
+
+Dijkstra 算法解决的是非负权图的 SSSP，未使用堆查找优化时，也被称为 Dijkstra 暴力算法。
+
+Dijkstra 发音 /ˈdaɪkstrə/，译作“迪杰斯特拉“。
+
+# 松弛 (Relax)
+
+"松弛"这个术语出现得较多，含义同数学意义上的松弛相同，减少声明成立的约束条件。图的两点之间存在多条路径，找到最短的一条需要比较，每比较一次就减少一次约束。
+
+> 但我认为此处从数学中沿用这个命名并不好。
+
+![introduction1.png](https://pic.leetcode.cn/1715996701-UmGZfM-introduction1.png)
+上图表示在 SSSP 中，忽略原图中的其他点和边，探索过程中某一时刻点 A 对其邻接点的松弛。
+
+红框中的下标：
+
+- 第一个：在当前探索范围内，源点到该点的的距离。
+- 第二个：相应路径上的父节点。和各顶点一样，都是实际以数字存储。A 即 0, B 即 1，以此类推，-1 表示没有父节点。
+
+观察 A B 两点状态，3 + 1 < 5，说明 A 点所处路径向 B 延伸后比此前源点到 B 的路径更短，松弛有效。
+
+同理可得对 C 松弛有效，对 D 松弛无效。
+
+如果之后某刻 A 点再次被有效松弛了，那么应该继续松弛 B C D 点。
+
+# 原理
+
+![dijkstra1.png](https://pic.leetcode.cn/1715996816-xOnJSZ-dijkstra1.png)
+
+如上图所示，给定图 $G = (V, E, w)，\forall (u,v) \in E, \ w(u,v)\geq 0$。$a$ 为源点，求其到各可达点的最短路径。
+
+设红框区域中的点集为 $V_\delta$，表示 $V$ 中前 $|V_\delta|$ 个从 $a$ 出发最近的点。
+
+记某时刻 $V_{\delta} = \{a, c, d, f\}$。这与 Prim 算法很相似。
+
+从 $V_\delta$ 外的可直达点 $b, e$ 中选择离 $a$ 最近的 $e$ 点，记录相应路径 $\langle a, d, e\rangle$ 和其长度。
+
+从 $V_\delta$ 外的不可直达点 $h, g$ 中任选一点记为 $v^\leadsto$，路径 $a \leadsto v^\leadsto$ 上一定至少经过 $b$ 或 $e$。记该点为 $v^\rightarrow \in \{b, e\}$，路径为 $a \leadsto v^\rightarrow \leadsto v^\leadsto$。
+
+既然 $\forall (u,v) \in E,\ w(u, v) \geq 0$，则 $\delta(a, v^\rightarrow) \leq \delta(a, v^\leadsto)$
+
+根据 $e$ 点的选择条件可知 $\delta(a, e) \leq \delta(a, v^\rightarrow)$，结合上式可得 $\delta(a, e) \leq \delta(a, v^\leadsto)$
+
+所以 $e$ 为 $\{b,e,h,g\}$ 即 $V- V_\delta$ 中离 $a$ 最近的点，此前记录的 $\langle a,d,e \rangle$ 为最短路径。
+
+![dijkstra2.png](https://pic.leetcode.cn/1715996841-MRaszQ-dijkstra2.png)
+
+如上所示，令 $V_\delta = V_\delta \cup \{e\}$。再执行上一步，逐渐扩张即可找到 $a$ 到所有可达点的最短路径。
+
+> 初始 $V_\delta = \{a\}$
+
+Dijkstra 算法和 Prim 算法相比，取得周围最近点的思路有所变化，详见下面的算法实现。
+
+# PPT 求解展示
+
+松弛部分被我抽离为下方这个函数，表示松弛点 $u$ 的所有邻接点。
+- $D$ 为数组 Distances，表示在当前探索范围内，源点到各点的距离。
+- $P$ 为数组 Parents，表示相应路径上的父节点。
+- $D$ 和 $P$ 的数组下标表示顶点。
+
+![dijkstra3.png](https://pic.leetcode.cn/1715996874-KnFOAy-dijkstra3.png)
+
+> 读者在初次接触伪代码时会不习惯。但据笔者的调查反馈，习惯后体验还是不错的。
+> 在下方的代码中，$[-1] \times |G.V|$ 表示长度为 $|G.V|$，元素都为 $-1$ 的数组。具体的术语和符号均在[《图论入门》](https://leetcode.cn/leetbook/detail/introduction-to-graph/)的附录中有介绍。
+
+<![sssp.001.jpeg](https://pic.leetcode.cn/1715996138-qTSvkP-sssp.001.jpeg),![sssp.002.jpeg](https://pic.leetcode.cn/1715996144-FrtdvL-sssp.002.jpeg),![sssp.003.jpeg](https://pic.leetcode.cn/1715996148-lPCjQA-sssp.003.jpeg),![sssp.004.jpeg](https://pic.leetcode.cn/1715996151-zAPyse-sssp.004.jpeg)>
+
+记源点**只**通过已知的 $V_\delta$ 到周围可直达点的最短距离和路径为 $f(V_\delta)$。
+
+可得如果某一次松弛前，我们已经确定了 $V_\delta$ 和 $f(V_\delta)$，那么我们可根据以上证明取 $V_\delta$ 外离源点最近的一点纳入 $V_\delta$，而且松弛该点的邻接点后就可以更新 $f(V_\delta)$。
+
+# 完整代码
+
+![code1.png](https://pic.leetcode.cn/1715996913-XLuqaF-code1.png)
+
+思考为什么松弛前不用判断点 $nearestV$ 的邻接点是否 settled?
+
+答：因为处于 settled 的点已经找到最短距离，松弛会一直无效。
+
+> 除 Settled 外还有一些常见的命名，如 Visited、Done、Used。从语义上来看，Settled 和 Done 更加合适一些。
+
+> 在很多只考虑距离的应试题中，$D[v]$ 的更新可以简写为 $D[v] = min(D[v],\  D[nearestV] + w(nearestV, v))$。
+
+# 复杂度
+
+时间：$O(V^2)$
+空间：$\Theta(V)$
+
+与 Prim 算法的复杂度分析大体相同，但本章考虑不可达导致提前截止的情况，所以时间复杂度不是 $\Theta(V^2)$。还可以用堆查找优化，但实现稍复杂，这在[《图论进阶》](https://leetcode.cn/leetbook/read/advanced-graph-theory/ivu4fs/)中有讲到。
+
+# 本题解法
+
+Dijkstra 算法中的权重累计方式是相加，秉承非递减原则，最短路径上的权重和最小。
+
+本题的权重累计方式是相乘，但权重(概率）$\in [0, 1]$，秉承非递增原则，求解概率最大的路径。
+
+所以可以镜像转换松弛过程，代码如下所示。
+
+> 注意代码中的 su\***rob 是误触到危险词语被和谐了！
+
+* []
+
+```C++
+class Solution {
+public:
+    struct Edge {
+        int v;
+        double prob;
+        Edge(int v, double prob) : v(v), prob(prob) {}
+    };
+
+    double maxProbability(int n, vector<vector<int>>& edges, vector<double>& su＊＊＊rob, int start_node, int end_node) {
+        // 构建邻接表
+        vector<vector<Edge>> adj(n);
+        for (int i = 0; i < edges.size(); ++i) {
+            int u = edges[i][0], v = edges[i][1];
+            adj[u].emplace_back(v, su＊＊＊rob[i]);
+            adj[v].emplace_back(u, su＊＊＊rob[i]);
+        }
+
+        vector<double> probs(n, 0.0);
+        probs[start_node] = 1.0;
+        vector<bool> settled(n, false);
+
+        while (true) {
+            // 寻找外围概率最大的点
+            int biggestV = -1;
+            for (int v = 0; v < n; ++v) {
+                if (settled[v] || probs[v] == 0.0) continue;
+                if (biggestV == -1 || probs[biggestV] < probs[v])
+                    biggestV = v;
+            }
+            if (biggestV == -1) return 0.0;
+            if (biggestV == end_node) return probs[biggestV];
+
+            settled[biggestV] = true;
+            // 松弛
+            for (const auto& edge : adj[biggestV]) {
+                probs[edge.v] = max(probs[edge.v], probs[biggestV] * edge.prob);
+            }
+        }
+    }
+};
+```
+
+* []
+
+```Python
+# Python 会超时, 下一小节有堆优化
+class Solution:
+    class Edge:
+        def __init__(self, v: int, prob: float):
+            self.v = v
+            self.prob = prob
+
+    def maxProbability(self, n: int, edges: List[List[int]], su＊＊＊rob: List[float], start_node: int, end_node: int) -> float:
+        # 构建邻接表
+        adj = defaultdict(list)
+        for i in range(len(edges)):
+            u, v = edges[i]
+            adj[u].append(self.Edge(v, su＊＊＊rob[i]))
+            adj[v].append(self.Edge(u, su＊＊＊rob[i]))
+
+        probs = [0.0] * n
+        probs[start_node] = 1.0
+        settled = [False] * n
+
+        while True:
+            # 寻找外围概率最大的点
+            biggestV = -1
+            for v in range(n):
+                if settled[v] or probs[v] == 0.0:
+                    continue
+                if biggestV == -1 or probs[biggestV] < probs[v]:
+                    biggestV = v
+            if biggestV == -1:
+                return 0.0
+            if biggestV == end_node:
+                return probs[biggestV]
+
+            settled[biggestV] = True
+            # 松弛
+            for edge in adj[biggestV]:
+                probs[edge.v] = max(probs[edge.v], probs[biggestV] * edge.prob)
+```
+
+* []
+
+```Java
+class Solution {
+    class Edge {
+        int v;
+        double prob;
+        Edge(int v, double prob) {
+            this.v = v;
+            this.prob = prob;
+        }
+    }
+
+    public double maxProbability(int n, int[][] edges, double[] su＊＊＊rob, int start_node, int end_node) {
+        // 构建邻接表
+        List<List<Edge>> adj = new ArrayList<>();
+        for (int i = 0; i < n; ++i) {
+            adj.add(new ArrayList<>());
+        }
+        for (int i = 0; i < edges.length; ++i) {
+            int u = edges[i][0], v = edges[i][1];
+            adj.get(u).add(new Edge(v, su＊＊＊rob[i]));
+            adj.get(v).add(new Edge(u, su＊＊＊rob[i]));
+        }
+
+        double[] probs = new double[n];
+        probs[start_node] = 1.0;
+        boolean[] settled = new boolean[n];
+
+        while (true) {
+            // 寻找外围概率最大的点
+            int biggestV = -1;
+            for (int v = 0; v < n; ++v) {
+                if (settled[v] || probs[v] == 0.0) continue;
+                if (biggestV == -1 || probs[biggestV] < probs[v])
+                    biggestV = v;
+            }
+            if (biggestV == -1) return 0.0;
+            if (biggestV == end_node) return probs[biggestV];
+
+            settled[biggestV] = true;
+            // 松弛
+            for (Edge edge : adj.get(biggestV)) {
+                probs[edge.v] = Math.max(probs[edge.v], probs[biggestV] * edge.prob);
+            }
+        }
+    }
+}
+```
+
+* []
+
+```Kotlin
+class Solution {
+    data class Edge(val v: Int, val prob: Double)
+
+    fun maxProbability(n: Int, edges: Array<IntArray>, su＊＊＊rob: DoubleArray, start_node: Int, end_node: Int): Double {
+        // 构建邻接表
+        val adj = List(n){ mutableListOf<Edge>() }
+        for(i in edges.indices){
+            val (u, v) = edges[i]
+            adj[u] += Edge(v, su＊＊＊rob[i])
+            adj[v] += Edge(u, su＊＊＊rob[i])
+        }
+
+        val probs = DoubleArray(n)
+        probs[start_node] = 1.0
+        val settled = BooleanArray(n)
+
+        while(true){
+            // 寻找外围概率最大的点
+            var biggestV = -1
+            for(v in 0..<n){
+                if(settled[v] || probs[v] == 0.0) continue
+                if(biggestV == -1 || probs[biggestV] < probs[v]) 
+                    biggestV = v
+            }
+            if(biggestV == -1) return 0.0
+            if(biggestV == end_node) return probs[biggestV]
+
+            settled[biggestV] = true
+            // 松弛
+            for((v, prob) in adj[biggestV]){
+                probs[v] = max(probs[v], probs[biggestV] * prob)
+            }
+        }
+    }
+}
+```
+
+# 堆优化
+
+我们可以将有效松弛后的外围点及信息存储在优先队列（堆）中，这样时间复杂度能达到 $O(V + E\cdot log\ E)$，适用于稀疏图。
+
+根据题中的提示部分，可知该图是稀疏图，所以主流解法是二叉堆查找优化的版本。但这不属于内地本科的教学范围，在面试中也经常不太苛刻。
+
+二叉堆查找优化正好属于[《图论进阶》](https://leetcode.cn/leetbook/detail/advanced-graph-theory/) 中免费的试读部分，读者有兴趣可以结合[《图论入门》](https://leetcode.cn/leetbook/detail/introduction-to-graph/)中 Prim 算法的两种堆查找优化看一下，均有 PPT 动画。
+
+此处仅给出代码。
+
+* []
+
+```C++
+class Solution {
+public:
+    double maxProbability(int n, vector<vector<int>>& edges, vector<double>& su＊＊＊rob, int start_node, int end_node) {
+        // 构建邻接表
+        vector<vector<pair<int, double>>> adj(n);
+        for (int i = 0; i < edges.size(); ++i) {
+            int u = edges[i][0], v = edges[i][1];
+            adj[u].emplace_back(v, su＊＊＊rob[i]);
+            adj[v].emplace_back(u, su＊＊＊rob[i]);
+        }
+
+        vector<double> probs(n, 0.0);
+        probs[start_node] = 1.0;
+        vector<bool> settled(n, false);
+        // 按权重降序排列
+        priority_queue<pair<double, int>> pq;
+        pq.emplace(1.0, start_node);
+
+        while (!pq.empty()) {
+            // 从优先队列中寻找外围概率最大的点, suProb 表示从源点 s 到 u 的 prob
+            auto [suProb, u] = pq.top(); pq.pop();
+            if (settled[u]) continue;
+            settled[u] = true;
+            if (u == end_node) return suProb;
+            // 松弛
+            for (const auto& [v, prob] : adj[u]) {
+                double newProb = suProb * prob;
+                if (probs[v] < newProb) {
+                    probs[v] = newProb;
+                    pq.emplace(newProb, v);
+                }
+            }
+        }
+
+        return 0.0;
+    }
+};
+```
+
+* []
+
+```Python
+class Solution:
+    def maxProbability(self, n: int, edges: List[List[int]], su＊＊＊rob: List[float], start_node: int, end_node: int) -> float:
+        # 构建邻接表
+        adj = defaultdict(list)
+        for i in range(len(edges)):
+            u, v = edges[i]
+            adj[u].append((v, su＊＊＊rob[i]))
+            adj[v].append((u, su＊＊＊rob[i]))
+
+        probs = [0.0] * n
+        probs[start_node] = 1.0
+        settled = [False] * n
+        # 按权重降序排列
+        pq = [(-1.0, start_node)]
+        heapq.heapify(pq)
+
+        while pq:
+            # 从优先队列中寻找外围概率最大的点, suProb 表示从源点 s 到 u 的 prob
+            suProb, u = heapq.heappop(pq)
+            suProb = -suProb
+            if settled[u]: continue
+            settled[u] = True
+            if u == end_node: return suProb
+            # 松弛
+            for v, prob in adj[u]:
+                newProb = suProb * prob
+                if probs[v] < newProb:
+                    probs[v] = newProb
+                    heapq.heappush(pq, (-newProb, v))
+
+        return 0.0
+```
+
+* []
+
+```Java
+class Solution {
+    public double maxProbability(int n, int[][] edges, double[] su＊＊＊rob, int start_node, int end_node) {
+        // 构建邻接表
+        List<List<Pair<Integer, Double>>> adj = new ArrayList<>();
+        for (int i = 0; i < n; ++i) {
+            adj.add(new ArrayList<>());
+        }
+        for (int i = 0; i < edges.length; ++i) {
+            int u = edges[i][0], v = edges[i][1];
+            adj.get(u).add(new Pair<>(v, su＊＊＊rob[i]));
+            adj.get(v).add(new Pair<>(u, su＊＊＊rob[i]));
+        }
+
+        double[] probs = new double[n];
+        probs[start_node] = 1.0;
+        boolean[] settled = new boolean[n];
+        // 按权重降序排列
+        PriorityQueue<Pair<Double, Integer>> pq = new PriorityQueue<>((a, b) -> Double.compare(b.getKey(), a.getKey()));
+        pq.add(new Pair<>(1.0, start_node));
+
+        while (!pq.isEmpty()) {
+            // 从优先队列中寻找外围概率最大的点, suProb 表示从源点 s 到 u 的 prob
+            Pair<Double, Integer> pair = pq.poll();
+            double suProb = pair.getKey();
+            int u = pair.getValue();
+            if (settled[u]) continue;
+            settled[u] = true;
+            if (u == end_node) return suProb;
+            // 松弛
+            for (Pair<Integer, Double> next : adj.get(u)) {
+                int v = next.getKey();
+                double prob = next.getValue();
+                double newProb = suProb * prob;
+                if (probs[v] < newProb) {
+                    probs[v] = newProb;
+                    pq.add(new Pair<>(newProb, v));
+                }
+            }
+        }
+
+        return 0.0;
+    }
+}
+```
+
+* []
+
+```Kotlin
+class Solution {
+    fun maxProbability(n: Int, edges: Array<IntArray>, su＊＊＊rob: DoubleArray, start_node: Int, end_node: Int): Double {
+        // 构建邻接表
+        val adj = List(n){ mutableListOf<Pair<Int, Double>>() }
+        for(i in edges.indices){
+            val (u, v) = edges[i]
+            adj[u] += v to su＊＊＊rob[i]
+            adj[v] += u to su＊＊＊rob[i]
+        }
+
+        val probs = DoubleArray(n)
+        probs[start_node] = 1.0
+        val settled = BooleanArray(n)
+        // 按权重降序排列
+        val pq = PriorityQueue<Pair<Int, Double>>(compareByDescending{ it.second })
+        pq += start_node to 1.0
+
+        while(pq.any()){
+            // 从优先队列中寻找外围概率最大的点, suProb 表示从源点 s 到 u 的 prob
+            val (u, suProb) = pq.remove()
+            if(settled[u]) continue
+            settled[u] = true
+            if(u == end_node) return suProb
+            // 松弛
+            for((v, prob) in adj[u]){
+                val newProb = suProb * prob
+                if(probs[v] < newProb){
+                    probs[v] = newProb
+                    pq += v to newProb
+                }
+            }
+        }
+
+        return 0.0
+    }
+}
+```
+
+# 题外
+
+1. 在循环中不判断是否提前遇到 `end_node` 也能通过，最后返回 `probs[end_node]` 即可。
+2. 在堆查找优化中针对本题移除数组 `probs`也能通过。
+
+以上均不影响最坏的时间复杂度。但是我们应该分析算法的运行过程，酌情在增加的代码量和实际节省的耗时之间抉择。

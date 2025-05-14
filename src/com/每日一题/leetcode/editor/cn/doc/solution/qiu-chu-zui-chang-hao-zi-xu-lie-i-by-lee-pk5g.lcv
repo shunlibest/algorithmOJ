@@ -1,0 +1,601 @@
+#### 方法一：动态规划
+
+**思路**
+
+很容易想到用 $\textit{dp}[i][j]$ 来表示以 $\textit{nums}[i]$ 结尾组成的最长合法序列中有 $j$ 个数字与其在序列中的后一个数字不相等。其中 $i$ 的取值为 $\textit{nums}$ 的长度，$j$ 不超过 $k$。初始时，有 $\textit{dp}[i][0] = 1$。对于转移，可以枚举每一个满足 $x < i$ 的下标，有：
+
+$$\textit{dp}[i][j] = \max_j {\textit{dp}[x][j-(\textit{nums}[x] \ne \textit{nums}[i])]}+1 $$
+
+**代码**
+
+* [sol1-C++]
+
+```C++
+class Solution {
+public:
+    int maximumLength(vector<int>& nums, int k) {
+        int ans = 0;
+        int len = nums.size();
+        vector<vector<int>> dp;
+        dp.resize(len, vector<int>(51, -1));
+
+        for (int i = 0; i < len; i++) {
+            dp[i][0] = 1;
+            for (int l = 0; l <= k; l++) {
+                for (int j = 0; j < i; j++) {
+                    int add = (nums[i] != nums[j]);
+                    if (l - add >= 0 && dp[j][l - add] != -1) {
+                        dp[i][l] = max(dp[i][l], dp[j][l - add] + 1);
+                    }
+                }
+                ans = max(ans, dp[i][l]);
+            }
+        }
+
+        return ans;
+    }
+};
+```
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    public int maximumLength(int[] nums, int k) {
+        int ans = 0;
+        int len = nums.length;
+        int[][] dp = new int[len][51];
+        for (int i = 0; i < len; i++) {
+            Arrays.fill(dp[i], -1);
+        }
+
+        for (int i = 0; i < len; i++) {
+            dp[i][0] = 1;
+            for (int l = 0; l <= k; l++) {
+                for (int j = 0; j < i; j++) {
+                    int add = nums[i] != nums[j] ? 1 : 0;
+                    if (l - add >= 0 && dp[j][l - add] != -1) {
+                        dp[i][l] = Math.max(dp[i][l], dp[j][l - add] + 1);
+                    }
+                }
+                ans = Math.max(ans, dp[i][l]);
+            }
+        }
+
+        return ans;
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    public int MaximumLength(int[] nums, int k) {
+        int ans = 0;
+        int len = nums.Length;
+        int[][] dp = new int[len][];
+        for (int i = 0; i < len; i++) {
+            dp[i] = new int[51];
+            Array.Fill(dp[i], -1);
+        }
+
+        for (int i = 0; i < len; i++) {
+            dp[i][0] = 1;
+            for (int l = 0; l <= k; l++) {
+                for (int j = 0; j < i; j++) {
+                    int add = nums[i] != nums[j] ? 1 : 0;
+                    if (l - add >= 0 && dp[j][l - add] != -1) {
+                        dp[i][l] = Math.Max(dp[i][l], dp[j][l - add] + 1);
+                    }
+                }
+                ans = Math.Max(ans, dp[i][l]);
+            }
+        }
+
+        return ans;
+    }
+}
+```
+
+* [sol1-Go]
+
+```Go
+func maximumLength(nums []int, k int) int {
+    lenNums := len(nums)
+	dp := make([][]int, lenNums)
+	for i := range dp {
+		dp[i] = make([]int, 51)
+		for j := range dp[i] {
+			dp[i][j] = -1
+		}
+	}
+
+	ans := 0
+
+	for i := 0; i < lenNums; i++ {
+		dp[i][0] = 1
+		for l := 0; l <= k; l++ {
+			for j := 0; j < i; j++ {
+				add := 0
+				if nums[i] != nums[j] {
+					add = 1
+				}
+				if l-add >= 0 && dp[j][l-add] != -1 {
+					dp[i][l] = max(dp[i][l], dp[j][l-add]+1)
+				}
+			}
+			ans = max(ans, dp[i][l])
+		}
+	}
+
+	return ans
+}
+```
+
+* [sol1-Python]
+
+```Python
+class Solution:
+    def maximumLength(self, nums: List[int], k: int) -> int:
+        n = len(nums)
+        dp = [[-1] * 51 for _ in range(n)]
+        ans = 0
+
+        for i in range(n):
+            dp[i][0] = 1
+            for l in range(k + 1):
+                for j in range(i):
+                    add = 1 if nums[i] != nums[j] else 0
+                    if l - add >= 0 and dp[j][l - add] != -1:
+                        dp[i][l] = max(dp[i][l], dp[j][l - add] + 1)
+                ans = max(ans, dp[i][l])
+
+        return ans
+```
+
+* [sol1-C]
+
+```C
+int maximumLength(int* nums, int numsSize, int k) {
+    int dp[numsSize][51];
+    memset(dp, -1, sizeof(dp));
+    int ans = 0;
+
+    for (int i = 0; i < numsSize; i++) {
+        dp[i][0] = 1;
+        for (int l = 0; l <= k; l++) {
+            for (int j = 0; j < i; j++) {
+                int add = (nums[i] != nums[j]);
+                if (l - add >= 0 && dp[j][l - add] != -1) {
+                    dp[i][l] = fmax(dp[i][l], dp[j][l - add] + 1);
+                }
+            }
+            ans = fmax(ans, dp[i][l]);
+        }
+    }
+
+    return ans;
+}
+```
+
+* [sol1-JavaScript]
+
+```JavaScript
+var maximumLength = function(nums, k) {
+    const dp = Array.from({ length: nums.length }, () => Array(51).fill(-1));
+    let ans = 0;
+
+    for (let i = 0; i < nums.length; i++) {
+        dp[i][0] = 1;
+        for (let l = 0; l <= k; l++) {
+            for (let j = 0; j < i; j++) {
+                const add = nums[i] !== nums[j] ? 1 : 0;
+                if (l - add >= 0 && dp[j][l - add] !== -1) {
+                    dp[i][l] = Math.max(dp[i][l], dp[j][l - add] + 1);
+                }
+            }
+            ans = Math.max(ans, dp[i][l]);
+        }
+    }
+
+    return ans;
+};
+```
+
+* [sol1-TypeScript]
+
+```TypeScript
+function maximumLength(nums: number[], k: number): number {
+    const dp: number[][] = Array.from({ length: nums.length }, () => Array(51).fill(-1));
+    let ans = 0;
+
+    for (let i = 0; i < nums.length; i++) {
+        dp[i][0] = 1;
+        for (let l = 0; l <= k; l++) {
+            for (let j = 0; j < i; j++) {
+                const add = nums[i] !== nums[j] ? 1 : 0;
+                if (l - add >= 0 && dp[j][l - add] !== -1) {
+                    dp[i][l] = Math.max(dp[i][l], dp[j][l - add] + 1);
+                }
+            }
+            ans = Math.max(ans, dp[i][l]);
+        }
+    }
+
+    return ans;
+};
+```
+
+* [sol1-Rust]
+
+```Rust
+impl Solution {
+    pub fn maximum_length(nums: Vec<i32>, k: i32) -> i32 {
+        let n = nums.len();
+        let mut dp = vec![vec![-1; 51]; n];
+        let mut ans = 0;
+
+        for i in 0..n {
+            dp[i][0] = 1;
+            for l in 0..=k as usize {
+                for j in 0..i {
+                    let add = if nums[i] != nums[j] { 1 } else { 0 };
+                    if l >= add && dp[j][l - add] != -1 {
+                        dp[i][l] = dp[i][l].max(dp[j][l - add] + 1);
+                    }
+                }
+                ans = ans.max(dp[i][l]);
+            }
+        }
+
+        ans
+    }
+}
+```
+
+**复杂度分析**
+
+- 时间复杂度：$O(n^2 \times k)$，其中 $n$ 为数组的长度，$k$ 如题意所示。
+
+- 空间复杂度：$O(n \times k)$。主要为 $\textit{dp}$ 数组的开销。
+
+#### 方法二：优化的动态规划
+
+**思路**
+
+还能对时间复杂度做进一步的优化，实际上，我们只需要枚举两种情况：
+
++ $\textit{nums}[i] \ne \textit{nums}[x]$，对于此情况可以维护一个长度为 $k$ 的辅助数组 $\textit{zd}$。其中 $\textit{zd}[j]$ 表示枚举到 $i$ 前有 $j$ 个与其在序列中的后一个不相等的合法序列最长长度，有转移 $\textit{dp}[i][j] = \max_j{\textit{zd}[j-1] + 1}$。
+
++ $\textit{nums}[i] = \textit{nums}[x]$，假设有下标 $a < b < c$， 并且 $\textit{nums}[a] = \textit{nums}[b] = \textit{nums}[c]$，对于 $c$ 来说如果选取由 $a$ 转移过来计算答案，那么一定不如 $a \to b \to c$ 更优，所以会选取下标最近的相同的数进行转移。针对这种情况，$\textit{dp}$ 使用哈希表维护能节省一些空间，并且在哈希表中用 $\textit{nums}[i]$ 替换 $i$。
+
+在每一次遍历 $i$ 计算完后更新 $\textit{zd}$，最后的 $\textit{zd}[k]$ 就是答案。
+
+**代码**
+
+* [sol2-C++]
+
+```C++
+class Solution {
+public:
+    int maximumLength(vector<int>& nums, int k) {
+        int len = nums.size();
+        unordered_map<int, vector<int>> dp;
+        vector<int> zd(k + 1, 0);
+
+        for (int i = 0; i < len; i++) {
+            int v = nums[i];
+            if (!dp.count(v)) {
+                dp[v] = vector<int>(k + 1, 0);
+            }
+
+            auto& tmp = dp[v];
+            for (int j = 0; j <= k; j++) {
+                tmp[j] = tmp[j] + 1;
+                if (j > 0) {
+                    tmp[j] = max(tmp[j], zd[j - 1] + 1);
+                }
+            }
+            for (int j = 0; j <= k; j++) {
+                zd[j] = max(zd[j], tmp[j]);
+            }
+        }
+        return zd[k];
+    }
+};
+```
+
+* [sol2-Java]
+
+```Java
+class Solution {
+    public int maximumLength(int[] nums, int k) {
+        int len = nums.length;
+        Map<Integer, int[]> dp = new HashMap<Integer, int[]>();
+        int[] zd = new int[k + 1];
+
+        for (int i = 0; i < len; i++) {
+            int v = nums[i];
+            dp.putIfAbsent(v, new int[k + 1]);
+
+            int[] tmp = dp.get(v);
+            for (int j = 0; j <= k; j++) {
+                tmp[j] = tmp[j] + 1;
+                if (j > 0) {
+                    tmp[j] = Math.max(tmp[j], zd[j - 1] + 1);
+                }
+            }
+            for (int j = 0; j <= k; j++) {
+                zd[j] = Math.max(zd[j], tmp[j]);
+                if (j > 0) {
+                    zd[j] = Math.max(zd[j], zd[j - 1]);
+                }
+            }
+        }
+        return zd[k];
+    }
+}
+```
+
+* [sol2-C#]
+
+```C#
+public class Solution {
+    public int MaximumLength(int[] nums, int k) {
+        int len = nums.Length;
+        IDictionary<int, int[]> dp = new Dictionary<int, int[]>();
+        int[] zd = new int[k + 1];
+
+        for (int i = 0; i < len; i++) {
+            int v = nums[i];
+            dp.TryAdd(v, new int[k + 1]);
+
+            int[] tmp = dp[v];
+            for (int j = 0; j <= k; j++) {
+                tmp[j] = tmp[j] + 1;
+                if (j > 0) {
+                    tmp[j] = Math.Max(tmp[j], zd[j - 1] + 1);
+                }
+            }
+            for (int j = 0; j <= k; j++) {
+                zd[j] = Math.Max(zd[j], tmp[j]);
+                if (j > 0) {
+                    zd[j] = Math.Max(zd[j], zd[j - 1]);
+                }
+            }
+        }
+        return zd[k];
+    }
+}
+```
+
+* [sol2-Go]
+
+```Go
+func maximumLength(nums []int, k int) int {
+    lenNums := len(nums)
+	dp := make(map[int][]int)
+	zd := make([]int, k + 1)
+
+	for i := 0; i < lenNums; i++ {
+		v := nums[i]
+		if _, ok := dp[v]; !ok {
+			dp[v] = make([]int, k + 1)
+		}
+
+		tmp := dp[v]
+		for j := 0; j <= k; j++ {
+			tmp[j]++
+			if j > 0 {
+				tmp[j] = max(tmp[j], zd[j - 1] + 1)
+			}
+		}
+
+		for j := 0; j <= k; j++ {
+			zd[j] = max(zd[j], tmp[j])
+			if j > 0 {
+				zd[j] = max(zd[j], zd[j - 1])
+			}
+		}
+	}
+	return zd[k]
+}
+```
+
+* [sol2-Python3]
+
+```Python
+class Solution:
+    def maximumLength(self, nums: List[int], k: int) -> int:
+        dp = defaultdict(lambda: [0] * (k + 1))
+        zd = [0] * (k + 1)
+
+        for v in nums:
+            tmp = dp[v]
+            for j in range(k + 1):
+                tmp[j] += 1
+                if j > 0:
+                    tmp[j] = max(tmp[j], zd[j - 1] + 1)    
+            for j in range(k + 1):
+                zd[j] = max(zd[j], tmp[j])
+                if j > 0:
+                    zd[j] = max(zd[j], zd[j - 1])
+        
+        return zd[k]
+```
+
+* [sol2-C]
+
+```C
+typedef struct {
+    int key;
+    int *val;
+    UT_hash_handle hh;
+} HashItem; 
+
+HashItem *hashFindItem(HashItem **obj, int key) {
+    HashItem *pEntry = NULL;
+    HASH_FIND_INT(*obj, &key, pEntry);
+    return pEntry;
+}
+
+bool hashAddItem(HashItem **obj, int key, int k) {
+    if (hashFindItem(obj, key)) {
+        return false;
+    }
+    HashItem *pEntry = (HashItem *)malloc(sizeof(HashItem));
+    pEntry->key = key;
+    pEntry->val = (int *)malloc(sizeof(int) * (k + 1));
+    memset(pEntry->val, 0, sizeof(int) * (k + 1));
+    HASH_ADD_INT(*obj, key, pEntry);
+    return true;
+}
+
+int* hashGetItem(HashItem **obj, int key) {
+    HashItem *pEntry = hashFindItem(obj, key);
+    if (!pEntry) {
+        return NULL;
+    }
+    return pEntry->val;
+}
+
+void hashFree(HashItem **obj) {
+    HashItem *curr = NULL, *tmp = NULL;
+    HASH_ITER(hh, *obj, curr, tmp) {
+        HASH_DEL(*obj, curr); 
+        free(curr->val); 
+        free(curr);
+    }
+}
+
+int maximumLength(int* nums, int numsSize, int k) {
+    int len = numsSize;
+    HashItem *dp = NULL;
+    int zd[k + 1];
+    memset(zd, 0, sizeof(int) * (k + 1));
+
+    for (int i = 0; i < len; i++) {
+        int v = nums[i];
+        if (!hashFindItem(&dp, v)) {
+            hashAddItem(&dp, v, k);
+        }
+
+        int *tmp = hashGetItem(&dp, v);
+        for (int j = 0; j <= k; j++) {
+            tmp[j] = tmp[j] + 1;
+            if (j > 0) {
+                tmp[j] = fmax(tmp[j], zd[j - 1] + 1);
+            }
+        }
+        for (int j = 0; j <= k; j++) {
+            zd[j] = fmax(zd[j], tmp[j]);
+            if (j > 0) {
+                zd[j] = fmax(zd[j], zd[j - 1]);
+            }
+        }
+    }
+    hashFree(&dp);
+    return zd[k];
+}
+```
+
+* [sol2-JavaScript]
+
+```JavaScript
+var maximumLength = function(nums, k) {
+    const dp = new Map();
+    const zd = Array(k + 1).fill(0);
+    nums.forEach(v => {
+        if (!dp.has(v)) {
+            dp.set(v, Array(k + 1).fill(0));
+        }
+
+        const tmp = dp.get(v);
+        for (let j = 0; j <= k; j++) {
+            tmp[j]++;
+            if (j > 0) {
+                tmp[j] = Math.max(tmp[j], zd[j - 1] + 1);
+            }
+        }
+
+        for (let j = 0; j <= k; j++) {
+            zd[j] = Math.max(zd[j], tmp[j]);
+            if (j > 0) {
+                zd[j] = Math.max(zd[j], zd[j - 1]);
+            }
+        }
+    });
+
+    return zd[k];
+};
+```
+
+* [sol2-TypeScript]
+
+```TypeScript
+function maximumLength(nums: number[], k: number): number {
+    const dp: Map<number, number[]> = new Map();
+    const zd: number[] = Array(k + 1).fill(0);
+
+    nums.forEach(v => {
+        if (!dp.has(v)) {
+            dp.set(v, Array(k + 1).fill(0));
+        }
+        const tmp = dp.get(v)!;
+        for (let j = 0; j <= k; j++) {
+            tmp[j]++;
+            if (j > 0) {
+                tmp[j] = Math.max(tmp[j], zd[j - 1] + 1);
+            }
+        }
+
+        for (let j = 0; j <= k; j++) {
+            zd[j] = Math.max(zd[j], tmp[j]);
+            if (j > 0) {
+                zd[j] = Math.max(zd[j], zd[j - 1]);
+            }
+        }
+    });
+
+    return zd[k];
+};
+```
+
+* [sol2-Rust]
+
+```Rust
+use std::collections::HashMap;
+
+impl Solution {
+    pub fn maximum_length(nums: Vec<i32>, k: i32) -> i32 {
+        let mut dp = HashMap::new();
+        let mut zd = vec![0; k as usize + 1];
+
+        for &v in &nums {
+            let mut tmp = dp.entry(v).or_insert(vec![0; k as usize + 1]);
+            for j in 0..=k as usize {
+                tmp[j] += 1;
+                if j > 0 {
+                    tmp[j] = tmp[j].max(zd[j - 1] + 1);
+                }
+            }
+
+            for j in 0..=k as usize {
+                zd[j] = zd[j].max(tmp[j]);
+                if j > 0 {
+                    zd[j] = zd[j].max(zd[j - 1]);
+                }
+            }
+        }
+        zd[k as usize]
+    }
+}
+```
+
+**复杂度分析**
+
+- 时间复杂度：$O(n \times k)$，其中 $n$ 为数组的长度，$k$ 如题意所示。
+
+- 空间复杂度：$O(n \times k)$。主要为 $\textit{dp}$ 数组的开销。
+

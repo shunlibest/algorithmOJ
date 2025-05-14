@@ -1,0 +1,54 @@
+大致思路就是 确定最晚能坐上车的时间 然后往前贪一个没有撞的时间点
+
+先对公交达到时间和乘客到达时间进行排序
+而根据题意,"我"应该要尽量往后去插队
+所以根据时间条件和容量条件来推出最后个能够上车走的人
+
+根据判断最后个公交是否坐满乘客来确定起始点
+如果坐满说明只能在最后上车的人之前到
+如果没有坐满说明只要在最后一个公交到站前到就行
+
+最后进行递减判断,只要没有和现有的人员时间点不重合就是能坐上公交的最晚起始点
+
+* 
+
+```
+class Solution {
+    public int latestTimeCatchTheBus(int[] buses, int[] passengers, int capacity) {
+        // 排序
+        Arrays.sort(buses);
+        Arrays.sort(passengers);
+        
+        // 公交是否坐满
+        boolean[] isFull = new boolean[buses.length];
+        // 最后一个达到公交站的索引
+        int index =0;
+        for(int i=0;i<buses.length;i++){
+            int count =0;
+           while(!isFull[i] && index<passengers.length && passengers[index]<=buses[i] ){
+               index++;
+               count++;
+               if(count ==  capacity){
+                   isFull[i] = true;
+               }
+           }
+        }
+        // 会多记了一次
+        index--;
+        
+        // 判断最后个公交是否满员 给ans赋值
+        // 如果满员插队位置只能是在最后上上车人之前
+        // 没满则是最后一个公交到站时间
+        int ans = isFull[buses.length-1]?passengers[index]:buses[buses.length-1];
+        for(int i=index;i>=0;i--){
+            if(ans != passengers[i]){
+                break;
+            }else{
+                ans--;
+            }
+        }
+        return ans;
+    }
+}
+```
+

@@ -1,0 +1,54 @@
+> Problem: [100336. 交替组 I](https://leetcode.cn/problems/alternating-groups-i/description/)
+
+[TOC]
+
+# 思路
+
+> 模拟，一次遍历。
+
+# 解题过程
+
+> 1、模拟，一次遍历，注意左右边界。
+
+# 复杂度
+
+- 时间复杂度: $O(1)$
+- 空间复杂度: $O(1)$
+
+# 执行结果
+
+![捕获.JPG](https://pic.leetcode.cn/1720401219-VdXycu-%E6%8D%95%E8%8E%B7.JPG)
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public int numberOfAlternatingGroups(int[] colors) {
+        int cnt = 0;
+        int len = colors.length;
+        int left = -1;
+        int right = -1;
+        // 模拟，一次遍历
+        for (int i = 0; i < len; i++) {
+            if (i == 0) {
+                left = colors[len - 1];
+            } else {
+                left = colors[i - 1];
+            }
+            if (i == len - 1) {
+                right = colors[0];
+            } else {
+                right = colors[i + 1];
+            }
+
+            if (colors[i] != left && colors[i] != right) {
+                cnt++;
+            }
+        }
+        return cnt;
+    }
+}
+```
+

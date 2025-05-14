@@ -1,0 +1,94 @@
+### 解题思路
+
+缓存就用Map没跑，关键在于如何实现LRU策略。方案如下：
+1. 使用一个双向链表来保存所有的Node（包含key, value, prev, next);
+2. 每次get和put的时候都调整这个链表，把最新操作的元素放到链表最后来；
+3. 每次put的时候检查是否需要剔除元素，需要的话，把第一个元素剔除。
+
+细节：
+1. 使用头节点；
+2. 要注意移除节点时，如果是tail节点，那么需要重置tail。
+
+### 代码
+
+* java
+
+```java
+class LRUCache {
+private int capacity;
+    private Map<Integer, Node> m;
+    private Node head;
+    private Node tail;
+
+
+    class Node {
+        int key;
+        int value;
+        Node prev;
+        Node next;
+        Node(int key, int value, Node prev, Node next) {
+            this.key = key;
+            this.value = value;
+            this.prev = prev;
+            this.next = next;
+        }
+    }
+
+    public LRUCache(int capacity) {
+        this.capacity = capacity;
+        this.m = new HashMap<>(capacity);
+        this.head = new Node(-1, -1, null, null);
+        this.tail = head;
+    }
+
+    public int get(int key) {
+        if (!m.containsKey(key)) {
+            return -1;
+        }
+        Node n = m.get(key);
+        remove(n);
+        n.prev = tail;
+        n.next = null;
+        append(n);
+        return n.value;
+    }
+
+    public void put(int key, int value) {
+        if (m.containsKey(key)) {
+            // if old node exists, remove it
+            remove(m.get(key));
+        }
+        // add new node to tail
+        Node node = new Node(key, value, tail, null);
+        m.put(key, node);
+        append(node);
+        // evict if necessary
+        if (m.size() > capacity) {
+            m.remove(head.next.key);
+            remove(head.next);
+        }
+    }
+
+    private void append(Node node) {
+        tail.next = node;
+        tail = node;
+    }
+
+    private void remove(Node node) {
+        node.prev.next = node.next;
+        if (node.next != null) {
+            node.next.prev = node.prev;
+        } else {
+            tail = node.prev;
+        }
+    }
+}
+
+/**
+ * Your LRUCache object will be instantiated and called as such:
+ * LRUCache obj = new LRUCache(capacity);
+ * int param_1 = obj.get(key);
+ * obj.put(key,value);
+ */
+```
+

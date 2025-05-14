@@ -1,0 +1,79 @@
+> Problem: [2896. 执行操作使两个字符串相等](https://leetcode.cn/problems/apply-operations-to-make-two-strings-equal/description/)
+
+[TOC]
+
+# 思路
+
+以看就知道是一个dp题目，但是实在是状态不会进行表示。
+不知道用什么进行状态的记录。
+i肯定是没有问题的，但是j和pre实在的想不出来是怎么想到的。
+然后定义了状态表示，那么状态转移就容易了。
+或者说就是状态的转移引起的状态表示？
+
+# 解题方法
+
+i：不用解释
+j：前面已经使用操作1，剩下后面能够操作的次数。
+pre：前面是否使用了操作2。
+
+转移：
+对于**不用操作**的情况：
+1. 如果前面已经使用操作2反转了，并且自己不相等，不用操作。
+2. 如果前面没有使用操作2反转，并且自己相等，不用操作。
+3. 如果前面还有剩余操作1的情况下，可以不用操作。
+
+对于**操作**的情况：
+1. 操作1： j + 1, pre = 0
+2. 操作2：j， pre = 1
+
+然后对于不用操作的前两种情况可以使用一句话进行描述。
+not 反转 == (两者相等)
+
+# 复杂度
+
+- 时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n^2)$
+
+- 空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n ^ 2)$
+
+# Code
+
+* []
+
+```C++
+
+class Solution {
+public:
+  int minOperations(string s1, string s2, int x) {
+
+      int n = s1.size();
+      int f[n][n][2];
+      memset(f, -1, sizeof f);
+      const int inf = 0x3f3f3f3f;
+      function<int(int, int, int)>dfs = [&](int i, int j, int pre) {
+          if (i == n) {
+              if (j || pre)   
+                  return inf; 
+              return 0;
+          } 
+          int &ans = f[i][j][pre];
+          if (ans >= 0) return ans;
+          if ((s2[i] == s1[i]) == (!pre)) 
+              return ans = dfs(i + 1, j, 0);
+          int res1 = dfs(i + 1, j + 1, 0) + x;
+          int res2 = dfs(i + 1, j, 1) + 1;
+          ans = min(res1, res2);
+          if (j > 0) 
+              ans = min(ans, dfs(i + 1, j - 1, 0));
+          
+          return ans;
+      };
+      int ans = dfs(0, 0, 0);
+      return ans >= inf / 2 ? -1 : ans;
+  }
+};
+```
+

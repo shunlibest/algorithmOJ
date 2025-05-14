@@ -1,0 +1,51 @@
+> Problem: [2332. 坐上公交的最晚时间](https://leetcode.cn/problems/the-latest-time-to-catch-a-bus/description/)
+
+[TOC]
+
+# 思路
+
+> 首先将公交和乘客列表排序，定义变量j和person，用来遍历乘客列表和记录当前公交已经承载人数，从零开始遍历公交数组，从j开始遍历乘客数组，满足上车条件就上车，且person加一，否则换车。
+> 当循环结束时j表示最后一个上车的下一个人，减一即可得到最后一个上车的人，除去特殊情况之后只需要从j开始向前遍历乘客列表，找到最晚到达时间，把最后一个人挤下去即可。详细过程见代码
+
+# 复杂度
+
+- 时间复杂度: $O(n*capacity)$
+
+# Code
+
+* []
+
+```JavaScript
+/**
+ * @param {number[]} buses
+ * @param {number[]} passengers
+ * @param {number} capacity
+ * @return {number}
+ */
+var latestTimeCatchTheBus = function (buses, passengers, capacity) {
+    buses.sort((a, b) => a - b)//将公交车到站时间和乘客到达时间进行排序，方便后续操作
+    passengers.sort((a, b) => a - b)
+    let j = 0, person = 0//创建两个变量，一个用来遍历乘客数组，一个用来记录当前车辆已经承载人数
+    for (let i = 0; i < buses.length; i++) {//遍历公交到站时间
+        person = 0//每次换车后当前车辆承载人数归零
+        for (j; j < passengers.length; j++) {//遍历乘客到站时间
+            if (passengers[j] <= buses[i] && person < capacity) {//当前乘客到站时间小于等于公交到站时间，并且当前公交承载人数没达到上限，那么该乘客可以上车
+                person++//承载乘客加一
+            } else {
+                break//不满足上述两个条件，那么就换车
+            }
+        }
+    }
+    j--//当循环结束后，表示所有公交已经在乘客到站的前提下满载了，在上述循环中j多加了一，减去一之后指向最后上车的那个人
+    if (j === -1 || (buses[buses.length - 1] - passengers[j] >= 1 && person < capacity)) {//如果j为-1，表示没人上车，即第一个人到站时间大于最后一辆车到站时间；或者此时最后一辆车没有满载，并且公交到站时间和第j个人到站时间之间还有时间差(因为乘客不能同时到达)
+        return buses[buses.length - 1]//那么表示你可以在最后一辆车到站同时到站
+    }
+    for (j; j > 0; j--) {//若不满足上述条件，那么从乘客数组的第j个人开始向前遍历
+        if (passengers[j] - passengers[j - 1] > 1) {//直到找到最近两个到站时间相差大于1的人
+            return passengers[j] - 1//此时只要你比第j个人提前一分钟到达即可
+        }
+    }
+    return passengers[0] - 1//若上述所有条件都不满足，那么表示你需要是乘客列表中第一个到达的才可以，所以是第一个人到站时间减一。
+};
+```
+

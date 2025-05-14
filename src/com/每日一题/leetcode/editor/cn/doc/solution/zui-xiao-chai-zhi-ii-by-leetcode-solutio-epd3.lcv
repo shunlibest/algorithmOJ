@@ -1,0 +1,181 @@
+#### 方法一：
+
+**思路与算法**
+
+如 **最小差值 I** 问题的解决方法，较小的 $\textit{nums}[i]$ 将增加，较大的 $\textit{nums}[i]$ 将变小。
+
+我们可以对上述想法形式化表述：如果 $\textit{nums}[i]$ 小于 $\textit{nums}[j]$，我们不必考虑当 $\textit{nums}[i]$ 增大时 $\textit{nums}[j]$ 会减小。这是因为区间 $(\textit{nums}[i] + k, \textit{nums}[j] - k)$ 是 $(\textit{nums}[i] - k, \textit{nums}[j] + k)$ 的子集。其中当 $a > b$ 时, $(a, b)$ 表示 $(b, a)$。
+
+这意味着对于 $(\textit{up}, \textit{down})$ 的选择一定不会差于 $(\textit{down}, \textit{up})$。我们可以证明其中一个区间是另一个的子集，通过证明 $\textit{nums}[i] + k$ 和 $\textit{nums}[j] - k$ 是在 $\textit{nums}[i] - k$ 和 $\textit{nums}[j] + k$ 之间。
+
+对于有序的数组，设 $\textit{nums}[i]$ 是最大的需要增长的 $i$，那么 $\textit{nums}[0] + k$,$\textit{nums}[i] + k$, $\textit{nums}[i + 1] - k, \textit{nums}[n - 1] - k$ 就是计算结果的唯一值。
+
+**代码**
+
+* [sol1-C++]
+
+```C++
+class Solution {
+public:
+    int smallestRangeII(vector<int>& nums, int k) {
+        sort(nums.begin(), nums.end());
+        int mi = nums[0], ma = nums.back();
+        int res = ma - mi;
+        for (int i = 0; i < nums.size() - 1; i++) {
+            int a = nums[i], b = nums[i + 1];
+            res = min(res, max(ma - k, a + k) - min(mi + k, b - k));
+        }
+        return res;
+    }
+};
+```
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    public int smallestRangeII(int[] nums, int k) {
+        Arrays.sort(nums);
+        int mi = nums[0], ma = nums[nums.length - 1];
+        int res = ma - mi;
+        for (int i = 0; i < nums.length - 1; i++) {
+            int a = nums[i], b = nums[i + 1];
+            res = Math.min(res, Math.max(ma - k, a + k) - Math.min(mi + k, b - k));
+        }
+        return res;
+    }
+}
+```
+
+* [sol1-Python3]
+
+```Python
+class Solution:
+    def smallestRangeII(self, nums: List[int], k: int) -> int:
+        nums.sort()
+        mi, ma = nums[0], nums[-1]
+        res = ma - mi
+        for i in range(len(nums) - 1):
+            a, b = nums[i], nums[i+1]
+            res = min(res, max(ma - k, a + k) - min(mi + k, b - k))
+        return res
+```
+
+* [sol1-JavaScript]
+
+```JavaScript
+var smallestRangeII = function(nums, k) {
+    nums.sort((a, b) => a - b);
+    const mi = nums[0], ma = nums[nums.length - 1];
+    let res = ma - mi;
+    for (let i = 0; i < nums.length - 1; i++) {
+        const a = nums[i], b = nums[i + 1];
+        res = Math.min(res, Math.max(ma - k, a + k) - Math.min(mi + k, b - k));
+    }
+    return res;
+};
+```
+
+* [sol1-TypeScript]
+
+```TypeScript
+function smallestRangeII(nums: number[], k: number): number {
+    nums.sort((a, b) => a - b);
+    const mi = nums[0], ma = nums[nums.length - 1];
+    let res = ma - mi;
+    for (let i = 0; i < nums.length - 1; i++) {
+        const a = nums[i], b = nums[i + 1];
+        res = Math.min(res, Math.max(ma - k, a + k) - Math.min(mi + k, b - k));
+    }
+    return res;
+};
+```
+
+* [sol1-Go]
+
+```Go
+func smallestRangeII(nums []int, k int) int {
+    sort.Ints(nums)
+    mi, ma := nums[0], nums[len(nums) - 1]
+    res := ma - mi
+    for i := 0; i < len(nums) - 1; i++ {
+        a, b := nums[i], nums[i + 1]
+        res = min(res, max(ma - k, a + k) - min(mi + k, b - k))
+    }
+    return res
+}
+
+func min(a, b int) int {
+    if a < b {
+        return a
+    }
+    return b
+}
+
+func max(a, b int) int {
+    if a > b {
+        return a
+    }
+    return b
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    public int SmallestRangeII(int[] nums, int k) {
+        Array.Sort(nums);
+        int mi = nums[0], ma = nums[nums.Length - 1];
+        int res = ma - mi;
+        for (int i = 0; i < nums.Length - 1; i++) {
+            int a = nums[i], b = nums[i + 1];
+            res = Math.Min(res, Math.Max(ma - k, a + k) - Math.Min(mi + k, b - k));
+        }
+        return res;
+    }
+}
+```
+
+* [sol1-C]
+
+```C
+int compare(const void *a, const void *b) {
+    return *(int *)a - *(int *)b;
+}
+
+int smallestRangeII(int* nums, int numsSize, int k) {
+    qsort(nums, numsSize, sizeof(int), compare);
+    int mi = nums[0], ma = nums[numsSize - 1];
+    int res = ma - mi;
+    for (int i = 0; i < numsSize - 1; i++) {
+        int a = nums[i], b = nums[i + 1];
+        res = fmin(res, fmax(ma - k, a + k) - fmin(mi + k, b - k));
+    }
+    return res;
+}
+```
+
+* [sol1-Rust]
+
+```Rust
+impl Solution {
+    pub fn smallest_range_ii(mut nums: Vec<i32>, k: i32) -> i32 {
+        nums.sort();
+        let (mi, ma) = (nums[0], nums[nums.len() - 1]);
+        let mut res = ma - mi;
+        for i in 0..nums.len() - 1 {
+            let (a, b) = (nums[i], nums[i + 1]);
+            res = res.min((ma - k).max(a + k) - (mi + k).min(b - k));
+        }
+        res
+    }
+}
+```
+
+**复杂度分析**
+
+- 时间复杂度：$O(n\log n)$，其中 $n$ 是数组的长度。
+
+- 空间复杂度：$O(1)$，额外空间就是自带排序算法的空间。
+

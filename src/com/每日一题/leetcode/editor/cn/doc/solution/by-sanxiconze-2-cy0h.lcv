@@ -1,0 +1,43 @@
+枚举能不能在某个乘客前边、能不能卡点上车
+
+思路是能不能尽可能晚的上车，分两种情况:
+1. 这辆车其他乘客可以上满，没有空位， 对于这种情况，我们尝试插队，枚举每个乘客前一个位置(passengers[j] - 1)是否能上车，如能则将该位置与 ans 取 max.
+2. 这辆车其他乘客上完了还有空位，此时我们尝试在车要出发时上车.
+
+需要注意一些边界情况
+
+* 
+
+```
+class Solution {
+    public int latestTimeCatchTheBus(int[] buses, int[] passengers, int capacity) {
+        Arrays.sort(buses);
+        Arrays.sort(passengers);
+        int ans = 0;
+        
+        HashSet<Integer> pset = new HashSet(); // 用于判断是否可以在乘客 i 前上车
+        for(int i : passengers) {
+            pset.add(i);
+        }
+        
+        for(int i = 0, j = 0; i < buses.length; i ++){ // i 表示车， j 表示乘客
+            int in = 0;
+            while(in < capacity && j < passengers.length && passengers[j] <= buses[i]){  // 如果车 i 还有位置
+                if ( !pset.contains(passengers[j] - 1) && passengers[j] - 1 <= buses[i]){  // 如果可以在某乘客前上车(passengers[j] - 1)
+                    ans = Math.max(ans, passengers[j] - 1);
+                }
+                
+                j ++;
+                in ++;
+            }
+            if (in < capacity && !pset.contains(buses[i])){  // 是否可以卡点上车(车来了再上车)
+                ans = Math.max(ans, buses[i]);
+            }
+            
+        }
+            
+        return ans;
+    }
+}
+```
+

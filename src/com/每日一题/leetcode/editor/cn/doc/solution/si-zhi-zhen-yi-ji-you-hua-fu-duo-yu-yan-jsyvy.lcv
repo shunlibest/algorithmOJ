@@ -1,0 +1,391 @@
+本篇题解要求读者先掌握[三数之和](https://leetcode.cn/problems/3sum/)，最好看我的[题解](https://leetcode.cn/problems/3sum/solution/jian-ji-tu-shi-tui-dao-duo-yu-yan-man-da-kzja/)以衔接这里的思路。
+
+# 思路
+
+![18_2.png](https://pic.leetcode.cn/1719743866-IYSyzT-18_2.png)
+这道题和此前的三数之和很相似，只是多套了一层循环。可按以下步骤求解：
+
+1. 先对数组排序。
+2. 从左向右枚举 $i$
+3. 固定 $i$，枚举 $j$，$j > i$
+4. 在 $(j, nums.size)$ 这个区间内使 $l$ 和 $r$ 双向滑动，求解满足元素和为 target 的四元组。
+5. 注意规避重复元素。
+
+要注意本题中给的 nums[r] 数字范围是 $[-10^9, 10^9]$，这在 C++ Java 等一些语言中相加时用 Int 是会溢出的，在这些语言中我们在求 $nums[i] + nums[j] + nums[l] + nums[r]$ 时要先转换为 `long`。这有点恶心，但这个设定在多种题型中都有可能出现，读者题目做得多一些就能一眼 get 了。
+
+# 代码
+
+* []
+
+```C++
+class Solution {
+public:
+    vector<vector<int>> fourSum(vector<int>& nums, int target) {
+        sort(nums.begin(), nums.end());
+        vector<vector<int>> quadruples; // 四元组
+
+        for (int i = 0; i < nums.size(); i++) {
+            // 去重
+            if (i > 0 && nums[i] == nums[i - 1]) continue;
+
+            for (int j = i + 1; j < nums.size(); j++) {
+                // 去重
+                if (j > i + 1 && nums[j] == nums[j - 1]) continue;
+
+                int l = j + 1;
+                int r = nums.size() - 1;
+
+                while (l < r) {
+                    if (r < nums.size() - 1 && nums[r] == nums[r + 1]) { // 去重
+                        r--;
+                    } else if (l > j + 1 && nums[l] == nums[l - 1]) { // 去重
+                        l++;
+                    } else if (long(nums[i]) + nums[j] + nums[l] + nums[r] > target) { 
+                        r--;
+                    } else if (long(nums[i]) + nums[j] + nums[l] + nums[r] < target) {
+                        l++;
+                    } else {
+                        quadruples.push_back({nums[i], nums[j], nums[l], nums[r]});
+                        l++; r--;
+                    }
+                }
+            }
+        }
+
+        return quadruples;
+    }
+};
+```
+
+* []
+
+```Python
+class Solution:
+    def fourSum(self, nums: List[int], target: int) -> List[List[int]]:
+        nums.sort()
+
+        quadruples = [] # 四元组
+
+        for i in range(len(nums)):
+            if i > 0 and nums[i] == nums[i - 1]: continue # 去重
+
+            for j in range(i + 1, len(nums)):
+                if j > i + 1 and nums[j] == nums[j - 1]: continue # 去重
+
+                l, r = j + 1, len(nums) - 1
+
+                while l < r:
+                    if r < len(nums) - 1 and nums[r] == nums[r + 1]: # 去重
+                        r -= 1
+                    elif l > j + 1 and nums[l] == nums[l - 1]: # 去重
+                        l += 1
+                    elif nums[i] + nums[j] + nums[l] + nums[r] > target:
+                        r -= 1
+                    elif nums[i] + nums[j] + nums[l] + nums[r] < target:
+                        l += 1
+                    else:
+                        quadruples.append([nums[i], nums[j], nums[l], nums[r]])
+                        l += 1; r -= 1
+
+        return quadruples
+```
+
+* []
+
+```Java
+class Solution {
+    public List<List<Integer>> fourSum(int[] nums, int target) {
+        Arrays.sort(nums);
+        List<List<Integer>> quadruples = new ArrayList<>(); // 四元组
+
+        for (int i = 0; i < nums.length; i++) {
+            if (i > 0 && nums[i] == nums[i - 1]) continue; // 去重
+
+            for (int j = i + 1; j < nums.length; j++) {
+                if (j > i + 1 && nums[j] == nums[j - 1]) continue; // 去重
+
+                int l = j + 1;
+                int r = nums.length - 1;
+
+                while (l < r) {
+                    if (r < nums.length - 1 && nums[r] == nums[r + 1]) { // 去重
+                        r--;
+                    } else if (l > j + 1 && nums[l] == nums[l - 1]) { // 去重
+                        l++;
+                    } else if ((long) nums[i] + nums[j] + nums[l] + nums[r] > target) { 
+                        r--;
+                    } else if ((long) nums[i] + nums[j] + nums[l] + nums[r] < target) {
+                        l++;
+                    } else {
+                        quadruples.add(Arrays.asList(nums[i], nums[j], nums[l], nums[r]));
+                        l++; r--;
+                    }
+                }
+            }
+        }
+
+        return quadruples;
+    }
+}
+```
+
+* []
+
+```Kotlin
+class Solution {
+    fun fourSum(nums: IntArray, target: Int): List<List<Int>> {
+        nums.sort()
+        val quadruples = mutableListOf<List<Int>>() // 四元组
+
+        for(i in nums.indices){
+            if(i > 0 && nums[i] == nums[i - 1]) continue // 去重
+            
+            for(j in i+1..< nums.size){
+                if(j > i + 1 && nums[j] == nums[j - 1]) continue // 去重
+
+                var l = j + 1
+                var r = nums.lastIndex
+
+                while(l < r){
+                    when{
+                        r < nums.lastIndex && nums[r] == nums[r+1] -> r-- // 去重
+                        
+                        l > j+1 && nums[l] == nums[l-1] -> l++ // 去重
+                        
+                        nums[i].toLong() + nums[j] + nums[l] + nums[r] > target -> r--
+                    
+                        nums[i].toLong() + nums[j] + nums[l] + nums[r] < target  -> l++
+                        
+                        else -> {
+                            quadruples += listOf(nums[i], nums[j], nums[l], nums[r])    
+                            l++; r--
+                        }
+                    }
+                }
+            }
+        }
+
+        return quadruples
+    }
+}
+```
+
+# 优化
+
+* []
+
+```C++
+class Solution {
+public:
+    vector<vector<int>> fourSum(vector<int>& nums, int target) {
+        sort(nums.begin(), nums.end());
+        vector<vector<int>> quadruples;
+        int n = nums.size();
+
+        // 因为下面的优化步骤中用到了 nums[i+3], 
+        // 所以这里使用 n-3 避免溢出
+        // 此前我们是在 while (l < r) 处自动规避
+        for (int i = 0; i < n - 3; i++) {
+            if (i > 0 && nums[i] == nums[i - 1]) continue; 
+            // 如果剩余四元组的最小元素和 > target，退出即可
+            if ((long)nums[i] + nums[i + 1] + nums[i + 2] + nums[i + 3] > target) break;
+            // 如果固定此 i 时，四元组的最大元素和 < target，跳到下一个 i
+            if ((long)nums[i] + nums[n - 1] + nums[n - 2] + nums[n - 3] < target) continue;
+
+            for (int j = i + 1; j < n - 2; j++) {
+                if (j > i + 1 && nums[j] == nums[j - 1]) continue;
+
+                // 固定此 i 并限定最小 j 时，如果剩余四元组的最小元素和 > target，跳到下一个 i
+                if ((long)nums[i] + nums[j] + nums[j + 1] + nums[j + 2] > target) break;
+                // 固定此 i j 时，如果四元组的最大元素和 < target，跳到下一个 j
+                if ((long)nums[i] + nums[j] + nums[n - 1] + nums[n - 2] < target) continue;
+
+                int l = j + 1;
+                int r = nums.size() - 1;
+
+                while (l < r) {
+                    if (r < nums.size() - 1 && nums[r] == nums[r + 1]) {
+                        r--;
+                    } else if (l > j + 1 && nums[l] == nums[l - 1]) {
+                        l++;
+                    } else if ((long)nums[i] + nums[j] + nums[l] + nums[r] > target) {
+                        r--;
+                    } else if ((long)nums[i] + nums[j] + nums[l] + nums[r] < target) {
+                        l++;
+                    } else {
+                        quadruples.push_back({nums[i], nums[j], nums[l], nums[r]});
+                        l++; r--;
+                    }
+                }
+            }
+        }
+
+        return quadruples;
+    }
+};
+```
+
+* []
+
+```Python
+class Solution:
+    def fourSum(self, nums: List[int], target: int) -> List[List[int]]:
+        nums.sort()
+        quadruples = [] # 四元组
+        n = len(nums)
+
+        # 因为下面的优化步骤中用到了 nums[i+3], 
+        # 所以这里使用 n-3 避免溢出
+        # 此前我们是在 while (l < r) 处自动规避
+        for i in range(n - 3):
+            if i > 0 and nums[i] == nums[i - 1]: continue
+            # 如果剩余四元组的最小元素和 > target，退出即可
+            if nums[i] + nums[i + 1] + nums[i + 2] + nums[i + 3] > target: break
+            # 如果固定此 i 时，四元组的最大元素和 < target，跳到下一个 i
+            if nums[i] + nums[n - 1] + nums[n - 2] + nums[n - 3] < target: continue
+
+            for j in range(i + 1, n - 2):
+                if j > i + 1 and nums[j] == nums[j - 1]: continue
+                # 固定此 i 并限定最小 j 时，如果剩余四元组的最小元素和 > target，跳到下一个 i
+                if nums[i] + nums[j] + nums[j + 1] + nums[j + 2] > target: break
+                # 固定此 i j 时，如果四元组的最大元素和 < target，跳到下一个 j
+                if nums[i] + nums[j] + nums[n - 1] + nums[n - 2] < target: continue
+
+                l, r = j + 1, n - 1
+                while l < r:
+                    if r < n - 1 and nums[r] == nums[r + 1]:
+                        r -= 1
+                    elif l > j + 1 and nums[l] == nums[l - 1]:
+                        l += 1
+                    elif nums[i] + nums[j] + nums[l] + nums[r] > target:
+                        r -= 1
+                    elif nums[i] + nums[j] + nums[l] + nums[r] < target:
+                        l += 1
+                    else:
+                        quadruples.append([nums[i], nums[j], nums[l], nums[r]])
+                        l += 1; r -= 1
+
+        return quadruples
+```
+
+* []
+
+```Java
+class Solution {
+    public List<List<Integer>> fourSum(int[] nums, int target) {
+        Arrays.sort(nums);
+        List<List<Integer>> quadruples = new ArrayList<>();
+        int n = nums.length;
+
+        // 因为下面的优化步骤中用到了 nums[i+3], 
+        // 所以这里使用 n-3 避免溢出
+        // 此前我们是在 while (l < r) 处自动规避
+        for (int i = 0; i < n - 3; i++) {
+            if (i > 0 && nums[i] == nums[i - 1]) continue;
+            // 如果剩余四元组的最小元素和 > target，退出即可
+            if ((long)nums[i] + nums[i + 1] + nums[i + 2] + nums[i + 3] > target) break;
+            // 如果固定此 i 时，四元组的最大元素和 < target，跳到下一个 i
+            if ((long)nums[i] + nums[n - 1] + nums[n - 2] + nums[n - 3] < target) continue;
+
+            for (int j = i + 1; j < n - 2; j++) {
+                if (j > i + 1 && nums[j] == nums[j - 1]) continue;
+
+                // 固定此 i 并限定最小 j 时，如果剩余四元组的最小元素和 > target，跳到下一个 i
+                if ((long)nums[i] + nums[j] + nums[j + 1] + nums[j + 2] > target) break;
+                // 固定此 i j 时，如果四元组的最大元素和 < target，跳到下一个 j
+                if ((long)nums[i] + nums[j] + nums[n - 1] + nums[n - 2] < target) continue;
+
+                int l = j + 1;
+                int r = nums.length - 1;
+
+                while (l < r) {
+                    if (r < nums.length - 1 && nums[r] == nums[r + 1]) {
+                        r--;
+                    } else if (l > j + 1 && nums[l] == nums[l - 1]) {
+                        l++;
+                    } else if ((long)nums[i] + nums[j] + nums[l] + nums[r] > target) {
+                        r--;
+                    } else if ((long)nums[i] + nums[j] + nums[l] + nums[r] < target) {
+                        l++;
+                    } else {
+                        quadruples.add(Arrays.asList(nums[i], nums[j], nums[l], nums[r]));
+                        l++; r--;
+                    }
+                }
+            }
+        }
+
+        return quadruples;
+    }
+}
+```
+
+* []
+
+```Kotlin
+class Solution {
+    fun fourSum(nums: IntArray, target: Int): List<List<Int>> {
+        nums.sort()
+        val quadruples = mutableListOf<List<Int>>()
+        val n = nums.size 
+
+        // 因为下面的优化步骤中用到了 nums[i+3], 
+        // 所以这里使用 n-3 避免溢出
+        // 此前我们是在 while (l < r) 处自动规避
+        for(i in 0..< n-3){
+            if(nums[i] == nums.getOrNull(i - 1)) continue
+            // 如果剩余四元组的最小元素和 > target，退出即可
+            if(nums[i].toLong() + nums[i+1] + nums[i+2] + nums[i+3] > target) break
+            // 如果固定此 i 时，四元组的最大元素和 < target，跳到下一个 i
+            if(nums[i].toLong() + nums[n - 1] + nums[n - 2] + nums[n - 3] < target) continue
+            
+            for(j in i+1..< n - 2){
+                if(j > i + 1 && nums[j] == nums[j - 1]) continue
+
+                // 固定此 i 并限定最小 j 时，如果剩余四元组的最小元素和 > target，跳到下一个 i
+                if(nums[i].toLong() + nums[j] + nums[j+1] + nums[j+2] > target) break
+                // 固定此 i j 时，如果四元组的最大元素和 < target，跳到下一个 j
+                if(nums[i].toLong() + nums[j] + nums[n - 1] + nums[n - 2] < target) continue
+
+                var l = j + 1
+                var r = nums.lastIndex
+
+                while(l < r){
+                    when{
+                        r < nums.lastIndex && nums[r] == nums[r+1] -> r--
+                        
+                        l > j+1 && nums[l] == nums[l-1] -> l++
+                        
+                        nums[i].toLong() + nums[j] + nums[l] + nums[r] > target -> r--
+                    
+                        nums[i].toLong() + nums[j] + nums[l] + nums[r] < target  -> l++
+                    
+                        else -> {
+                            quadruples += listOf(nums[i], nums[j], nums[l], nums[r])    
+                            l++; r--
+                        }
+                    }
+                }
+            }
+        }
+
+        return quadruples
+    }
+}
+```
+
+# 复杂度
+
+优化前后的复杂度相同。
+时间：$O(n^3)$
+空间：$\Theta(log\ n)$，主要考虑排序。
+
+# 推广
+
+以下皆为个人所著，兼顾了职场面试和本硕阶段的学术考试。
+- [不同层次的面试算法学习规划](https://leetcode.cn/circle/discuss/xV68NV/)
+- [附个人题解的双指针题单](https://leetcode.cn/circle/discuss/BI95fj/)
+- [图论入门](https://leetcode.cn/leetbook/detail/introduction-to-graph/)
+- [图论进阶](https://leetcode.cn/leetbook/detail/advanced-graph-theory/)
+
+点赞关注不迷路，祝各位早日上岸，飞黄腾达！

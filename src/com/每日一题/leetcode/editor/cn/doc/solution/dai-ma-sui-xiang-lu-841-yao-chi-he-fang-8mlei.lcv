@@ -1,0 +1,369 @@
+## 思路
+
+本题其实给我们是一个有向图， 意识到这是有向图很重要！
+
+图中给我的两个示例： `[[1],[2],[3],[]]` `[[1,3],[3,0,1],[2],[0]]`，画成对应的图如下：
+
+![image.png](https://pic.leetcode-cn.com/1658111239-NWmRKe-image.png)
+
+我们可以看出图1的所有节点都是链接的，而图二中，节点2 是孤立的。
+
+这就很容易让我们想起岛屿问题，只要发现独立的岛，就是不能进入所有房间。
+
+此时也容易想到用并查集的方式去解决。
+
+**但本题是有向图**，在有向图中，即使所有节点都是链接的，但依然不可能从0出发遍历所有边。
+给大家举一个例子：
+
+图3：[[5], [], [1, 3], [5]] ，如图：
+
+![image.png](https://pic.leetcode-cn.com/1658111255-OOAKuz-image.png)
+
+在图3中，大家可以发现，节点0只能到节点5，然后就哪也去不了了。
+
+所以本题是一个有向图搜索全路径的问题。 只能用深搜（DFS）或者广搜（BFS）来搜。
+
+关于DFS的理论，如果大家有困惑，可以先看我这篇题解： [DFS理论基础](https://leetcode.cn/problems/all-paths-from-source-to-target/solution/by-carlsun-2-66pf)
+
+**以下dfs分析 大家一定要仔细看，本题有两种dfs的解法，很多题解没有讲清楚**。 看完之后 相信你对dfs会有更深的理解。
+
+深搜三部曲：
+
+1. 确认递归函数，参数
+
+需要传入二维数组rooms来遍历地图，需要知道当前我们拿到的key，以至于去下一个房间。
+
+同时还需要一个数组，用来记录我们都走过了哪些房间，这样好知道最后有没有把所有房间都遍历的，可以定义一个一维数组。
+
+所以 递归函数参数如下：
+
+* C++
+
+```C++
+// key 当前得到的可以 
+// visited 记录访问过的房间 
+void dfs(const vector<vector<int>>& rooms, int key, vector<bool>& visited) {
+```
+
+2. 确认终止条件
+
+遍历的时候，什么时候终止呢？
+
+这里有一个很重要的逻辑，就是在递归中，**我们是处理当前访问的节点，还是处理下一个要访问的节点**。
+
+这决定 终止条件怎么写。
+
+首先明确，本题中什么叫做处理，就是 visited数组来记录访问过的节点，那么把该节点默认 数组里元素都是false，把元素标记为true就是处理 本节点了。
+
+如果我们是处理当前访问的节点，当前访问的节点如果是 true ，说明是访问过的节点，那就终止本层递归，如果不是true，我们就把它赋值为true，因为我们处理本层递归的节点。
+
+代码就是这样：
+
+* C++
+
+```C++
+// 写法一：处理当前访问的节点
+void dfs(const vector<vector<int>>& rooms, int key, vector<bool>& visited) {
+    if (visited[key]) { // 本层递归是true，说明访问过，立刻返回
+        return;
+    }
+    visited[key] = true; // 给当前遍历的节点赋值true 
+    vector<int> keys = rooms[key];
+    for (int key : keys) {
+        // 深度优先搜索遍历
+        dfs(rooms, key, visited);
+    }
+}
+```
+
+如果我们是处理下一层访问的节点，而不是当前层。那么就要在 深搜三部曲中第三步：处理目前搜索节点出发的路径 的时候对 节点进行处理。
+
+这样的话，就不需要终止条件，而是在 搜索下一个节点的时候，直接判断 下一个节点是否是我们要搜的节点。
+
+代码就是这样的：
+
+* C++
+
+```C++
+// 写法二：处理下一个要访问的节点
+void dfs(const vector<vector<int>>& rooms, int key, vector<bool>& visited) {
+    // 这里 没有终止条件，而是在 处理下一层节点的时候来判断
+    vector<int> keys = rooms[key];
+    for (int key : keys) { 
+        if (visited[key] == false) { // 处理下一层节点，判断是否要进行递归
+            visited[key] = true;
+            dfs(rooms, key, visited);
+        }       
+    }
+}
+```
+
+可以看出，如果看待 我们要访问的节点，直接决定了两种不一样的写法，很多同学对这一块很模糊，其实做过这道题，也没有思考到这个维度上。
+
+3. 处理目前搜索节点出发的路径
+
+其实在上面，深搜三部曲 第二部，就已经讲了，因为终止条件的两种写法， 直接决定了两种不一样的递归写法。
+
+这里还有细节：
+
+看上面两个版本的写法中， 好像没有发现回溯的逻辑。
+
+我们都知道，有递归就有回溯，回溯就在递归函数的下面， 那么之前我们做的dfs题目，都需要回溯操作，例如：[797.所有可能的路径](https://leetcode.cn/problems/all-paths-from-source-to-target/solution/by-carlsun-2-66pf/)， **为什么本题就没有回溯呢？**
+
+代码中可以看到dfs函数下面并没有回溯的操作。
+
+此时就要在思考本题的要求了，本题是需要判断 0节点是否能到所有节点，那么我们就没有必要回溯去撤销操作了，只要遍历过的节点一律都标记上。
+
+**那什么时候需要回溯操作呢？**
+
+当我们需要搜索一条可行路径的时候，就需要回溯操作了，因为没有回溯，就没法“调头”， 如果不理解的话，去看我写的  [797.所有可能的路径](https://leetcode.cn/problems/all-paths-from-source-to-target/solution/by-carlsun-2-66pf/) 的题解。
+
+以上分析完毕，DFS整体实现C++代码如下：
+
+* CPP
+
+```CPP
+// 写法一：处理当前访问的节点
+class Solution {
+private:
+    void dfs(const vector<vector<int>>& rooms, int key, vector<bool>& visited) {
+        if (visited[key]) {
+            return;
+        }
+        visited[key] = true;
+        vector<int> keys = rooms[key];
+        for (int key : keys) {
+            // 深度优先搜索遍历
+            dfs(rooms, key, visited);
+        }
+    }
+public:
+    bool canVisitAllRooms(vector<vector<int>>& rooms) {
+        vector<bool> visited(rooms.size(), false);
+        dfs(rooms, 0, visited);
+        //检查是否都访问到了
+        for (int i : visited) {
+            if (i == false) return false;
+        }
+        return true;
+    }
+};
+
+```
+
+* c++
+
+```c++
+写法二：处理下一个要访问的节点
+class Solution {
+private:  
+    void dfs(const vector<vector<int>>& rooms, int key, vector<bool>& visited) {
+        vector<int> keys = rooms[key];
+        for (int key : keys) { 
+            if (visited[key] == false) {
+                visited[key] = true;
+                dfs(rooms, key, visited);
+            }       
+        }
+    }
+public:
+    bool canVisitAllRooms(vector<vector<int>>& rooms) {
+        vector<bool> visited(rooms.size(), false); 
+        visited[0] = true; // 0 节点是出发节点，一定被访问过
+        dfs(rooms, 0, visited);  
+        //检查是否都访问到了
+        for (int i : visited) {
+            if (i == false) return false;
+        }
+        return true;
+    }
+};
+
+```
+
+本题我也给出 BFS C++代码，至于BFS，我后面会有单独文章来讲，代码如下：
+
+* CPP
+
+```CPP
+class Solution {
+bool bfs(const vector<vector<int>>& rooms) {
+    vector<int> visited(rooms.size(), 0); // 标记房间是否被访问过
+    visited[0] = 1; //  0 号房间开始
+    queue<int> que;
+    que.push(0); //  0 号房间开始
+
+    // 广度优先搜索的过程
+    while (!que.empty()) {
+        int key = que.front(); que.pop();
+         vector<int> keys = rooms[key];
+         for (int key : keys) {
+             if (!visited[key]) {
+                 que.push(key);
+                 visited[key] = 1;
+             }
+         }
+    }
+    // 检查房间是不是都遍历过了
+    for (int i : visited) {
+        if (i == 0) return false;
+    }
+    return true;
+
+}
+public:
+    bool canVisitAllRooms(vector<vector<int>>& rooms) {
+        return bfs(rooms);
+    }
+};
+```
+
+## 其他语言版本
+
+* []
+
+```java
+class Solution {
+     private void dfs(int key, List<List<Integer>>  rooms, List<Boolean> visited) {
+        if (visited.get(key)) {
+            return;
+        }
+        visited.set(key, true);
+        for (int k : rooms.get(key)) {
+            // 深度优先搜索遍历
+            dfs(k, rooms, visited);
+        }
+    }
+    public boolean canVisitAllRooms(List<List<Integer>> rooms) {
+        List<Boolean> visited = new ArrayList<Boolean>(){{
+            for(int i = 0 ; i < rooms.size(); i++){
+                add(false);
+            }
+        }};
+        dfs(0, rooms, visited);
+        //检查是否都访问到了
+        for (boolean flag : visited) {
+            if (!flag) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+```
+
+* []
+
+```python
+
+class Solution:
+    def dfs(self, key: int, rooms: List[List[int]]  , visited : List[bool] ) :
+        if visited[key] :
+            return
+        visited[key] = True
+        keys = rooms[key]
+        for i in range(len(keys)) :
+            # 深度优先搜索遍历
+            self.dfs(keys[i], rooms, visited)
+
+    def canVisitAllRooms(self, rooms: List[List[int]]) -> bool:
+        visited = [False for i in range(len(rooms))]
+
+        self.dfs(0, rooms, visited)
+
+        # 检查是否都访问到了
+        for i in range(len(visited)):
+            if not visited[i] :
+                return False
+        return True
+
+```
+
+* []
+
+```go
+
+func dfs(key int, rooms [][]int, visited []bool ) {
+	if visited[key] {
+		return;
+	}
+
+	visited[key] = true
+	keys := rooms[key]
+	for _ , key := range keys {
+		// 深度优先搜索遍历
+		dfs(key, rooms, visited);
+	}
+}
+
+func canVisitAllRooms(rooms [][]int) bool {
+	visited := make([]bool, len(rooms));
+	dfs(0, rooms, visited);
+	//检查是否都访问到了
+	for i := 0; i < len(visited); i++ {
+		if !visited[i] {
+			return false;
+		}
+	}
+	return true;
+}
+```
+
+* []
+
+```javascript
+//DFS
+var canVisitAllRooms = function(rooms) {
+    const dfs = (key, rooms, visited) => {
+        if(visited[key]) return;
+        visited[key] = 1;
+        for(let k of rooms[key]){
+            // 深度优先搜索遍历
+            dfs(k, rooms, visited);
+        }
+    }
+    const visited = new Array(rooms.length).fill(false);
+    dfs(0, rooms, visited);
+    //检查是否都访问到了
+    for (let i of visited) {
+        if (!i) {
+            return false;
+        }
+    }
+    return true;
+};
+
+//BFS
+var canVisitAllRooms = function(rooms) {
+    const bfs = rooms => {
+        const visited = new Array(rooms.length).fill(0); // 标记房间是否被访问过
+        visited[0] = 1; // 0 号房间开始
+        const queue = []; //js数组作为队列使用
+        queue.push(0); //  0 号房间开始
+        // 广度优先搜索的过程
+        while(queue.length !== 0){
+            let key = queue[0];
+            queue.shift();
+            for(let k of rooms[key]){
+                if(!visited[k]){
+                    queue.push(k);
+                    visited[k] = 1;
+                }
+            }
+        }
+        // 检查房间是不是都遍历过了
+        for(let i of visited){
+            if(i === 0) return false;
+        }
+        return true;
+    }
+    return bfs(rooms);
+};
+```
+
+-----------
+
+大家好，我是程序员Carl，如果你还在没有章法的刷题，**建议按照[代码随想录刷题路线](https://programmercarl.com/)来刷**，并提供[PDF下载](https://programmercarl.com/other/algo_pdf.html)，刷题路线同时也开源在[Github](https://github.com/youngyangyang04/leetcode-master)上，你会发现详见很晚！
+
+**如果感觉题解对你有帮助，不要吝啬给一个👍吧！**
+

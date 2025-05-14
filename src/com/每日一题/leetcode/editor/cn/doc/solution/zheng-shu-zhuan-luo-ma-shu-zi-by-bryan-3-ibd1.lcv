@@ -1,0 +1,74 @@
+### 解题思路
+
+把题目规则，完整翻译成代码即可。特别要注意的是其中的特殊规则。
+
+### 代码
+
+* java
+
+```java
+class Solution {
+    public String intToRoman(int num) {
+ StringBuilder stringBuilder = new StringBuilder();
+        int mCount = num/1000;
+        for(int i=0; i<mCount; i++){
+            stringBuilder.append("M");
+        }
+        int three = (num - mCount*1000) / 100;
+        if(three == 9){
+            stringBuilder.append("CM");
+        }else if(three == 4){
+            stringBuilder.append("CD");
+        }else if(three < 4){
+            for(int i=0; i<three; i++){
+                stringBuilder.append("C");
+            }
+        }else if(three == 5){
+            stringBuilder.append("D");
+        }else {
+            stringBuilder.append("D");
+            for(int i=0; i<three-5; i++){
+                stringBuilder.append("C");
+            }
+        }
+        
+        int two = (num - mCount*1000 - three*100) / 10;
+        if(two == 9){
+            stringBuilder.append("XC");
+        }else if(two == 4){
+            stringBuilder.append("XL");
+        }else if(two < 4){
+            for(int i=0; i<two; i++){
+                stringBuilder.append("X");
+            }
+        }else if(two == 5){
+            stringBuilder.append("L");
+        }else {
+            stringBuilder.append("L");
+            for(int i=0; i<two-5; i++){
+                stringBuilder.append("X");
+            }
+        }
+
+        int one = num - mCount*1000 - three*100 - two * 10;
+        if(one == 9){
+            stringBuilder.append("IX");
+        }else if(one == 4){
+            stringBuilder.append("IV");
+        }else if(one < 4){
+            for(int i=0; i<one; i++){
+                stringBuilder.append("I");
+            }
+        }else if(one == 5){
+            stringBuilder.append("V");
+        }else {
+            stringBuilder.append("V");
+            for(int i=0; i<one-5; i++){
+                stringBuilder.append("I");
+            }
+        }
+        return stringBuilder.toString();
+    }
+}
+```
+

@@ -1,0 +1,69 @@
+### 解题思路
+
+![image.png](https://pic.leetcode-cn.com/1640159429-PEJUcA-image.png)
+
+1、【预处理】 accessible[i][j] 表示 i处爆炸是否可以触发 j 处的炸弹爆炸；
+2、【BFS】可以求出引爆其中一个炸弹能引爆最躲的炸弹数目；
+3、 遍历每个点引爆炸弹时所能 引爆最多的炸弹数目，以此求出结果
+
+### 代码
+
+* java
+
+```java
+class Solution {
+    public int maximumDetonation(int[][] bombs) {
+        int n = bombs.length;
+
+        // accessible[i][j] 表示 i 可以触发 j
+        boolean[][] accessible = new boolean[n][n];
+        for (int i = 0; i < n; i++) {
+            for (int j = i + 1; j < n; j++) {
+                int a = bombs[i][0] - bombs[j][0];
+                int b = bombs[i][1] - bombs[j][1];
+                long aabb = 1L * a * a + 1L * b * b;
+
+                if (1L * bombs[i][2] * bombs[i][2] >= aabb) {
+                    accessible[i][j] = true;
+                }
+
+                if (1L * bombs[j][2] * bombs[j][2] >= aabb) {
+                    accessible[j][i] = true;
+                }
+            }
+        }
+
+        // 遍历每个点引爆炸弹时所能 引爆最多的炸弹数目
+        int maxAns = 0;
+        for (int i = 0; i < n; i++) {
+            LinkedList<Integer> queue = new LinkedList<>();
+            boolean[] visited = new boolean[n];
+            int cnt = 0;
+
+            queue.offer(i);
+            visited[i] = true;
+            while (!queue.isEmpty()) {
+                int poll = queue.poll();
+                cnt++;
+
+                for (int j = 0; j < n; j++) {
+                    if (!visited[j] && accessible[poll][j]) {
+                        queue.offer(j);
+                        visited[j] = true;
+                    }
+                }
+            }
+
+            maxAns = Math.max(maxAns, cnt);
+        }
+
+        return maxAns;
+    }
+}
+```
+
+### 最后
+
+如果有帮助到你，请给题解点个赞和收藏，让更多的人看到 ~ ("▔□▔)/
+
+也欢迎加我微信『 **code5bug** 』和 加入我们的「组队打卡」小群。

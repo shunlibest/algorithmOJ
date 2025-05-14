@@ -1,0 +1,88 @@
+#### 不能相等的情况
+
+仔细观察这两个操作，它们都是两两匹配进行反转，所以不同位置的个数一定偶数个，才能将两个字符串转换成相同的，所以我们数一下不同位置的个数，如果是奇数个就返回$-1$。
+
+#### 可以相等的情况
+
+因为我们只关心不同的位置之间的距离，所以我们将不同位置的下标处理出来，存到数组$diff$中
+
+很容易我们可以推出反转$s[i]$和$s[j]$的花费为
+$$$
+cost_{i,j} =min(x,diff[i]-diff[j])
+$$$
+那么我们现在的问题就是如何让这些不相等的位置两两匹配，来实现花费最小，我们可以设两个状态$dp[0][i]$代表前$i$个位置完全匹配的花费，$dp[1][i]$代表前$i$个位置有一个未匹配时的花费。我们可以写出如下的状态转移方程：
+$$$
+dp[0][i] =min( dp[0][i-2] + cost_{i,i-1},dp[1][i-3]+x+cost_{i-1,i-2})\\
+~\\
+dp[1][i] =min(dp[1][i-2]+cost_{i,i-1},dp[0][i-1])
+$$$
+我们可以发现只有$i$为奇数时才有可能有一个位置没有匹配，只有$i$为偶数时，才有可能完全匹配，所以我们没必要将这两个状态分成两个数组，到，我们可以写出如下递推公式：
+$$$
+\begin{align*}
+dp[i]&=min(dp[i-2]+cost_{i,i-1},dp[i-1]) && i为奇数\\
+dp[i]&=min(dp[i-2]+cost_{i,i-1},dp[i-3]+cost_{i-1,i-2}+x) &&i为偶数
+\end{align*}
+$$$
+
+* []
+
+```python
+class Solution:
+    def minOperations(self, s1: str, s2: str, x: int) -> int:
+        n = len(s1)
+        cnt = 0
+        diff = [0]
+        for i in range(n):
+            if s1[i] != s2[i]:
+                cnt += 1
+                diff.append(i)
+        if cnt & 1: return -1
+        if cnt == 0: return 0
+        dp = [0] * (cnt + 1)
+        for i in range(2, cnt + 1):
+            if i & 1:
+                cost = min(diff[i] - diff[i - 1], x)
+                dp[i] = min(dp[i - 2] + cost, dp[i - 1])
+            else:
+                cost1 = min(diff[i] - diff[i - 1], x)
+                cost2 = min(diff[i - 1] - diff[i - 2], x)
+                dp[i] = min(dp[i - 2] + cost1, dp[i - 3] + cost2 + x)
+        return dp[cnt]
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    int minOperations(string s1, string s2, int x) {
+        int n = s1.size(), cnt = 0;
+        vector<int> diff(1);
+        for(int i = 0;i < n;++i){
+            if(s1[i]!=s2[i]){
+                cnt++;
+                diff.push_back(i);
+            }
+        }
+        if(cnt & 1)return -1;
+        if(!cnt)return 0;
+        vector<int> dp(cnt + 1);
+        dp[2] = min(diff[2] - diff[1], x);
+        for(int i = 3;i <= cnt; ++i){
+            if(i & 1){
+                int cost = min(diff[i] - diff[i - 1], x);
+                dp[i] = min(dp[i - 2] + cost, dp[i - 1]);
+            }
+            else{
+                int cost1 = min(diff[i] - diff[i - 1], x);
+                int cost2 = min(diff[i - 1] - diff[i - 2], x);
+                dp[i] = min(dp[i - 2] + cost1, dp[i - 3] + cost2 + x);
+            }
+        }
+        return dp[cnt];
+    }
+}; 
+```
+
+时间复杂度：$O(n)$
+空间复杂度：$O(n)$

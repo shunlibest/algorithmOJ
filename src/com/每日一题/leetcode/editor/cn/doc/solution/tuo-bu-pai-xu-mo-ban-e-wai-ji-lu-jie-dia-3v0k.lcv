@@ -1,0 +1,208 @@
+> Problem: [1462. 课程表 IV](https://leetcode.cn/problems/course-schedule-iv/description/)
+
+[TOC]
+
+# 思路
+
+> 拓扑排序模板，使用一个列表中额外记录节点直接和间接的节点
+
+核心代码为：
+"""
+修改的部分，在这个在加一个set类型的parent，用来记录每个节点其前面的节点（就是直接或者间接指向这个点的节点）
+"""
+
+        self.parent = [set() for _ in range(n)]
+
+        # 修改部分
+        # 记录这个点的直接指向和间接指向节点
+        self.parent[node].add(cur)  # 直接的节点
+        self.parent[node].update(self.parent[cur])  # 在更新间接的节点
+
+# 解题方法
+
+> 建议直接看第二种代码的开始和结束，第一种代码的开始和结束是最开始接触拓扑排序写的。
+
+# Code
+
+* []
+
+```Python
+
+# 第二种代码的开始：
+
+# 下是一个简单的拓扑排序的Python模板，使用了广度优先搜索（BFS）：
+from collections import defaultdict, deque
+
+
+# 基于下标从0开始的：
+class TF:
+    def __init__(self, n):
+        self.graph = defaultdict(list)  # 使用邻接表存储有向图
+        self.result = []
+        self.indegree = [0] * n  # 每个节点的入度初始化均为0
+        """
+        修改的部分，在这个在加一个set类型的parent，用来记录每个节点其前面的节点（就是直接或者间接指向这个点的节点）
+        """
+        self.parent = [set() for _ in range(n)]
+
+    def add_edge(self, u, v):
+        # 添加边
+        self.graph[u].append(v)  # 表示的意思是，u节点指向V节点
+        self.indegree[v] += 1  # 对后面节点的入读进行加1处理
+
+    def bfs(self):
+        # 广度优先搜索
+        q = deque([i for i, v in enumerate(self.indegree) if v == 0])  # 处理入度均为0的节点
+        # 修改部分，这里需要加一个parent的代码
+
+        while q:
+            cur = q.popleft()  # 取出最前面的节点（相当于最先放入的节点）
+            self.result.append(cur)  # 记录节点的结果
+            for node in self.graph[cur]:  # 遍历cur节点指向的后面全部节点
+                # 修改部分
+                # 记录这个点的直接指向和间接指向节点
+                self.parent[node].add(cur)  # 直接的节点
+                self.parent[node].update(self.parent[cur])  # 在更新间接的节点
+
+                self.indegree[node] -= 1  # 入度全部进行减一操作
+                if self.indegree[node] == 0:  # 如果入度为0，则需要加入到队列中去
+                    q.append(node)
+        # 以上就是拓扑排序的核心代码，处理入度为0的节点即可
+
+    def topological_sort(self):
+        # 拓扑排序
+        self.bfs()
+        # 只需要返回结果即可：
+        return self.result
+
+    # 增加的代码部分：
+    def connect(self, x, y):  # 判断两个节点是否是间接或者直接的关系（x是不是y的先行课程（x是不是指向y的））
+        return y in self.parent[x]
+
+
+class Solution(object):
+    def checkIfPrerequisite(self, numCourses, prerequisites, queries):
+        """
+        :type numCourses: int
+        :type prerequisites: List[List[int]]
+        :type queries: List[List[int]]
+        :rtype: List[bool]
+        """
+        # 拓扑排序，只需要使用一个字典来记录每次节点的上一个父亲节点即可（具体看拓扑排序代码修改部分）
+        n = numCourses
+        tf = TF(n)
+        for x in prerequisites:
+            tf.add_edge(x[1], x[0])
+        res = []
+        tf.bfs()  # 在外围运行bfs，保证parent以及记录到
+        for x in queries:
+            res.append(tf.connect(x[0], x[1]))
+        return res
+
+# 第二种代码的结束：
+```
+
+* []
+
+```Python
+
+
+# 第一种代码的开始：
+class Solution(object):
+    def checkIfPrerequisite(self, numCourses, prerequisites, queries):
+        """
+        :type numCourses: int
+        :type prerequisites: List[List[int]]
+        :type queries: List[List[int]]
+        :rtype: List[bool]
+        """
+        # 这个代码编译器可以过，这里就过不了，有点问题
+        # # 进行拓扑排序
+        # graph = collections.defaultdict(list)
+        # for course in prerequisites:
+        #     a, b = course
+        #     if a not in graph:
+        #         graph[a] = []
+        #     graph[a].append(b)
+        # ingree = collections.defaultdict(int)
+        # q = []
+        # for courses in graph:
+        #     if courses not in ingree:
+        #         ingree[courses] = 0
+        #     for course in graph[courses]:
+        #         if course not in ingree:
+        #             ingree[course] = 0
+        #         ingree[course] += 1
+
+        # for x in ingree:
+        #     if ingree[x] == 0:
+        #         q.append(x)
+
+        # li = []
+        # while q:
+        #     cur = q.pop(0)
+        #     li.append(cur) # 将拓扑排序的元素存在li的列表汇总
+        #     ingree[cur] -= 1
+        #     for course in graph[cur]:
+        #         ingree[course] -= 1
+        #         if ingree[course] == 0:
+        #             q.append(course)
+        # res = [] # 处理结果
+        # print(li)
+        # for x in queries:
+        #     a, b = x
+        #     if a not in li and b not in li:  # 如果a不在li中出现，说明可以是任意学习的，没有前提条件
+        #         res.append(False)
+        #     elif a in li and b in li:
+        #         x_a = li.index(a)
+        #         x_b = li.index(b)
+        #         if x_a < x_b:
+        #             res.append(True)
+        #         else:
+        #             res.append(False)
+        #     elif a not in li or b not in li:
+        #         res.append(False)
+        # return res
+
+        # 方法二：
+        # 创建大小为 n x n 的二维数组 f，并初始化为 False
+        n = numCourses
+        f = [[False] * n for _ in range(n)]
+
+        # 创建大小为 n 的列表 g 和 indeg，并初始化为 0
+        g = [[] for _ in range(n)]
+        indeg = [0] * n
+
+        # 建立课程之间的依赖关系和入度
+        for a, b in prerequisites:
+            # 添加后续课程到 g[a] 列表中
+            g[a].append(b)
+            # 增加课程 b 的入度
+            indeg[b] += 1
+
+        # 将入度为 0 的课程索引加入队列 q
+        q = collections.deque(i for i, x in enumerate(indeg) if x == 0)
+
+        # 通过拓扑排序判断课程之间的依赖关系
+        while q:
+            i = q.popleft()
+            # 遍历课程 i 的后续课程列表
+            for j in g[i]:
+                # 将课程 i 和课程 j 之间的依赖关系设置为 True
+                f[i][j] = True
+                # 更新其他课程与课程 j 之间的依赖关系
+                for h in range(n):
+                    f[h][j] = f[h][j] or f[h][i]
+                # 减少课程 j 的入度
+                indeg[j] -= 1
+                # 如果课程 j 的入度变为 0，将其索引加入队列 q
+                if indeg[j] == 0:
+                    q.append(j)
+
+        # 返回查询列表中的依赖关系结果
+        return [f[a][b] for a, b in queries]
+
+
+# 第一种代码的结束：
+```
+

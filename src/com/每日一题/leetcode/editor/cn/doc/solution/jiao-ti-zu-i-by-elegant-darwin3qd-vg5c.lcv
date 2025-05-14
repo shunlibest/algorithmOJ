@@ -1,0 +1,49 @@
+> Problem: [3206. 交替组 I](https://leetcode.cn/problems/alternating-groups-i/description/)
+
+[TOC]
+
+# 思路
+
+> 题目的要求是判断一个数组中元素的值和左右的值是否相同,如果不相同就是交替数组。由于是环，所以第一个元素和最后一个元素是相邻的，它们互为各自的左右元素。可以遍历每一个元素，判断其值和左右元素的值是否相同，第一个和最后一个进行单独处理。
+
+# 复杂度
+
+- 时间复杂度: $O(n)$
+  遍历长度为n的数组
+- 空间复杂度: $O(1)$
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public int numberOfAlternatingGroups(int[] colors) {
+       return demo(colors); 
+    }
+
+    private int demo(int[] colors) {
+        // 颜色的个数
+        int n = colors.length;
+        // 记录交替环的个数
+        int cnt = 0;
+        // 遍历每一个元素
+        for (int i = 1; i < n-1; i++) {
+            if (colors[i-1] != colors[i] && colors[i] != colors[i+1]) {
+                cnt++;
+            }
+        }
+        // 判断第一个的前一个和后一个
+        if (colors[0] != colors[n-1] && colors[0] != colors[1]) {
+            cnt++;
+        }
+        // 判断最后一个的前一个和后一个
+        if (colors[n-1] != colors[n-2] && colors[n-1] != colors[0]) {
+            cnt++;
+        }
+        // 返回记录的个数
+        return cnt; 
+    } 
+}
+```
+

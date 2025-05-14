@@ -1,0 +1,31 @@
+> Problem: [100337. 最大化子数组的总成本](https://leetcode.cn/problems/maximize-total-cost-of-alternating-subarrays/description/)
+
+[TOC]
+
+# 思路
+
+> DP
+> 题目没限制分割子数组的数目，意味着我们可以从任意位置视为一个子数组的开头，因此正号可以任意添加。而负号元素只能紧接在正号元素后面，意味着如果第i个位置选择了负号，那么第i-1位置一定是正号。
+
+# 解题方法
+
+> 转移方程为：
+> $dp[i] = max(dp[i-1] + nums[i], dp[i-2] + nums[i-1] - nums[i])$
+
+解释：对于第一个条件，我们从头划分子数组，因此当前i位置为正号；对于第二个条件，第i位置为负号，那么第i-1个位置一定为正号，因此选择从dp[i-2]处进行转移。
+
+# Code
+
+* []
+
+```Python
+class Solution:
+    def maximumTotalCost(self, nums: List[int]) -> int:
+        dp = [0] * (len(nums)+1)
+        dp[0], dp[1] = 0, nums[0]
+        for i in range(2, len(nums)+1):
+            dp[i] = max(dp[i-1]+nums[i-1], dp[i-2]+nums[i-2]-nums[i-1])
+
+        return dp[-1]
+```
+

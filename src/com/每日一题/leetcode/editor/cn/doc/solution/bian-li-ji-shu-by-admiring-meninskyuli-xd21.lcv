@@ -1,0 +1,32 @@
+> Problem: [1287. 有序数组中出现次数超过25%的元素](https://leetcode.cn/problems/element-appearing-more-than-25-in-sorted-array/description/)
+
+[TOC]
+
+# 思路
+
+遍历计数
+
+# Code
+
+执行用时分布0ms击败100.00%；消耗内存分布8.52MB击败83.33%
+
+* []
+
+```C
+int findSpecialInteger(int* arr, int arrSize) {
+    int * a = arr;
+    for (int i = 1, c = 1, ma = 1; i < arrSize; ++ i) 
+        if (arr[i] != arr[i - 1]) c = 1;
+        else if (++ c > ma) a = arr + i, ma = c;
+    return * a;
+}
+```
+
+* []
+
+```Pyhton3
+class Solution:
+    def findSpecialInteger(self, arr: List[int]) -> int:
+        return max((v, k) for k, v in Counter(arr).items())[-1]
+```
+

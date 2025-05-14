@@ -1,0 +1,84 @@
+那么基于窗口的思想，因为数组是排序过的，那么只要在这个所谓的大于25%长度的窗口里，首位数字与末尾数字相同，那么便可以确定这个数
+
+* java
+
+```java
+    private int NOT_FIND_RESULT_NUM = -1;
+
+    //滑动窗口思想
+    public int findSpecialInteger_2(int[] arr) {
+        int n = arr.length;
+        int windowsSize = n / 4;
+        for (int i = 0; i < n; i++) {
+            if (arr[i] == arr[i + windowsSize]) {
+                return arr[i];
+            }
+        }
+        return NOT_FIND_RESULT_NUM;
+    }
+```
+
+法二一样是滑动窗口思想，不过这里确定窗口的大小用的是二分查找办法来确定。lowerBound与upperBound实际上是C++里的函数，这里我们选择自己在Java里用左开右闭区间的二分法实现一次
+
+思想可以参考
+[lower_bound（）和upper_bound（）详解（附源码）](https://blog.csdn.net/qq_36172505/article/details/77380559)
+以及我另一篇文章
+[二分查找细节详解-为什么选择左开右闭区间-Java](https://blog.csdn.net/m0_37302219/article/details/107180126)
+
+`lower_bound( begin,end,num)`：从数组的`begin`位置到`end-1`位置二分查找**第一个大于或等于num的数字**，找到返回该数字的地址，不存在则返回`end`。
+
+`upper_bound( begin,end,num)`：从数组的`begin`位置到`end-1`位置二分查找**第一个大于num的数字**，找到返回该数字的地址，不存在则返回`end`。
+
+两个值直接相减就是这个区间的长度。同时这里隐含了一个条件：因为arr[i]是这个数组里确定有的数，因此这两个函数返回的索引值不会等于n
+
+* java
+
+```java
+    private int NOT_FIND_RESULT_NUM = -1;
+
+    public int findSpecialInteger(int[] arr) {
+        int n = arr.length;
+        int distance = n / 4 ;
+        for (int i = 0; i < n; i += distance) {
+            int left = lowerBound(arr, 0, n, arr[i]);
+            int right = upperBound(arr, 0, n, arr[i]);
+            if (right - left > distance) {
+                return arr[i];
+            }
+        }
+
+        return NOT_FIND_RESULT_NUM;
+    }
+
+    int lowerBound(int[] arr, int begin, int end, int target) {
+        int low = begin;
+        int high = end;
+
+        while (low < high) {
+            int mid = low + ((high - low) >> 1);
+            if (arr[mid] < target) {
+                low = mid + 1;
+            } else {
+                high = mid;
+            }
+        }
+        return low;
+    }
+
+    int upperBound(int[] arr, int begin, int end, int target) {
+
+        int low = begin;
+        int high = end;
+
+        while (low < high) {
+            int mid = low + ((high - low) >> 1);
+            if (arr[mid] <= target) {
+                low = mid + 1;
+            } else {
+                high = mid;
+            }
+        }
+        return low;
+    }
+```
+

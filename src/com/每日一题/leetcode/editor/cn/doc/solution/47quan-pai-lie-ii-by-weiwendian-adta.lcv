@@ -1,0 +1,52 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* cpp
+
+```cpp
+class Solution {
+public:
+    vector<vector<int>> res;
+    vector<int> path;
+
+    //1. flag 用来标记当前加入队列的数字
+    void trival(vector<int> &nums, int len, vector<int> &flag)
+    {
+        if(len == path.size()) {
+            res.push_back(path);
+            return;
+        }
+
+        for(int i = 0; i < len; i++) {
+            if((1 == flag[i])) {
+                continue;
+            }
+            // 2. 如果nums[i] == nums[i-1]，说明有数字重复，
+            // 但当flag[i-1] = 0,说明nums[i-1],已经放置过一遍，nums[i]就不能再重复放置
+            else if(i > 0 && nums[i] == nums[i-1] && 0 == flag[i-1]) {
+                continue;
+            }
+            else {
+                flag[i] = 1;
+                path.push_back(nums[i]);
+                trival(nums, len, flag);
+                path.pop_back();
+                flag[i] = 0;
+            }
+        }
+    }
+
+    vector<vector<int>> permuteUnique(vector<int>& nums) {
+        int len = nums.size();
+        vector<int> flag(len, 0);
+        // 3.去除重复，最重要的是 排序
+        sort(nums.begin(), nums.end());
+        trival(nums, len, flag);
+        return res;
+    }
+};
+```
+

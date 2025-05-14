@@ -1,0 +1,72 @@
+> Problem: [100279. 访问消失节点的最少时间](https://leetcode.cn/problems/minimum-time-to-visit-disappearing-nodes/description/)
+
+[TOC]
+
+# 思路
+
+> 寻找从0到达每一个节点的花费, 可以想到单源最短路径, 使用dijkstra算法
+
+# 解题方法
+
+> 1.创建一个邻接表, 记录每一个节点可以前往的节点的信息
+> 2.根据edges和disappear填充邻接表信息
+> 3.使用dijkstra算法即可
+> 我额外使用了一个剪枝方法在第46行
+> 只有currentTime + costTime < invalidTime && cost[nextNode] == -1情况下
+> 才会将新的节点加入到pq中
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public int[] minimumTime(int n, int[][] edges, int[] disappear) {
+        List<int[]>[] newEdges = new List[n];
+        for(int i = 0; i < n; i++){
+            newEdges[i] = new ArrayList<>();
+        }
+
+        for(int i = 0; i < edges.length; i++){
+            int x = edges[i][0];
+            int y = edges[i][1];
+            int cost = edges[i][2];
+            newEdges[x].add(new int[]{y, cost, disappear[y]});
+            newEdges[y].add(new int[]{x, cost, disappear[x]});
+        }
+
+        int[] cost = new int[n];
+        Arrays.fill(cost, -1);
+
+        int[] result = new int[n];
+        Arrays.fill(result, -1);
+
+        PriorityQueue<int[]> pq = new PriorityQueue<>((x, y) -> x[1] - y[1]);
+        pq.add(new int[]{0, 0});
+        while(!pq.isEmpty()){
+            int[] currentData = pq.poll();
+            int currentNode = currentData[0];
+            int currentTime = currentData[1];
+            if(cost[currentNode] == -1){
+                cost[currentNode] = currentTime;
+                result[currentNode] = currentTime;
+            }
+            else{
+                continue;
+            }
+
+            for(int[] nextData : newEdges[currentNode]){
+                int nextNode= nextData[0];
+                int costTime = nextData[1];
+                int invalidTime = nextData[2];
+                if(currentTime + costTime < invalidTime){
+                    pq.add(new int[]{nextNode, currentTime + costTime});
+                }
+            }
+        }
+
+        return result;
+    }
+}
+```
+

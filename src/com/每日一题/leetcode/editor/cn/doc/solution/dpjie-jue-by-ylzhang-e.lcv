@@ -1,0 +1,25 @@
+### 解题思路
+
+首先设置dp(N)为先手在N的时候的输赢，由于x是任选的（对最终的输赢没有影响），因此可以直接使用x=1来作为每次的选择结果。只要N大于1，那么其输赢总归决定于后者，状态转移为dp(N) = ~dp(N-1)。
+
+### 代码
+
+* cpp
+
+```cpp
+class Solution {
+public:
+    bool divisorGame(int N) {
+        std::cout<<N;
+        bool flag;
+        if(N <= 1)
+        {
+            return false;
+        }
+        flag = divisorGame(N-1);
+        return !flag;
+
+    }
+};
+```
+

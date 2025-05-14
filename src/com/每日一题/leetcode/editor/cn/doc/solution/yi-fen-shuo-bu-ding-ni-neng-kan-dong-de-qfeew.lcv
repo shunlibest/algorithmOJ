@@ -1,0 +1,75 @@
+> Problem: [600. 不含连续1的非负整数](https://leetcode.cn/problems/non-negative-integers-without-consecutive-ones/description/)
+
+[TOC]
+
+# 思路
+
+> 参考宫水三叶对【数位DP】的讲解，从高位到低位运用动态规划，这个表达式很直观，比较麻烦的就是要在[0,n]区间内计数，我的思路是从左到右依次将n中的“1”替换为“0”，每一次替换后右边集合的计数值（也就是在dp中存储的长度等于右边集合、且不含连续1的数的个数）进行累加，就是所有区间内的情况了。需要注意的是最后不要漏掉了n自身，这个我是在后面测试2,4,8出错时发现的
+
+# 解题方法
+
+> 动态规划
+
+# 复杂度
+
+- 时间复杂度:
+
+> $O(1)$
+
+- 空间复杂度:
+
+> $O(n)$
+
+# Code
+
+* []
+
+```Python
+
+class Solution(object):
+    def findIntegers(self, n):
+        """
+        :type n: int
+        :rtype: int
+        """
+        if n==0:
+            return 1
+
+        # 二进制数n的长度：m
+        for m in range(31,-1,-1):
+            if (n>>m)&1==1:
+                m += 1
+                break
+
+        #dp[i][0]:长度为i+1，最高位为0的不含连续1的个数
+        #dp[i][1]:长度为i+1，最高位为1的不含连续1的个数      
+        dp = [[0,1] for i in range(m)] 
+
+        dp[0][0] = 1 
+        dp[0][1] = 1
+        for i in range(1,m):
+            dp[i][0] = dp[i-1][1]+dp[i-1][0]
+            dp[i][1] = dp[i-1][0]
+            
+        ans = 0
+        prev = 0
+
+        #从第m-1位（n的最高位）开始遍历
+        for i in range(m-1,-1,-1): 
+            #当前来到第i位，比i高的位次的值都与n相同
+            cur = ((n>>i)&1==1)
+            if cur==1:
+                #第i位替换成0
+                ans += dp[i][0]
+            #判断当前是否出现连续为1【关键判断条件】
+            if (cur==1) & (prev==1):
+                break 
+            #容易被遗忘的边界，即判断n是否含有连续1
+            if i==0:
+                ans += 1
+            prev = cur
+
+        return ans
+
+```
+

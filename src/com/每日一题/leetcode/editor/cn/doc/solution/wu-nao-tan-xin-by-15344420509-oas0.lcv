@@ -1,0 +1,30 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* java
+
+```java
+class Solution {
+    String[] s = new String[]{"I","IV","V","IX","X","XL","L","XC","C","CD","D","CM","M"};
+    int[] nums = new int[]{1,4,5,9,10,40,50,90,100,400,500,900,1000};
+    String res = "";
+    public String intToRoman(int num) {
+        for(int i = nums.length -1 ; i>=0; i--) {
+            if(nums[i] <= num) {
+            
+                int cnt = num/nums[i];
+                for(int k = 0; k < cnt; k++) {
+                    res += s[i];
+                }
+                num -= cnt * nums[i];
+            }
+        } 
+        return res;
+    }
+       
+}
+```
+

@@ -1,0 +1,145 @@
+#### 方法一：一次遍历
+
+**思路与算法**
+
+按照题目要求对数组 $\textit{nums}$ 进行一次遍历：第 $0$ 个元素无需遍历，从第 $1$ 个元素开始遍历，只需它和前一个元素的奇偶性不同即可。
+
+**代码**
+
+* [sol1-C++]
+
+```C++
+class Solution {
+public:
+    bool isArraySpecial(vector<int>& nums) {
+        int n = nums.size();
+        for (int i = 1; i < n; ++i) {
+            if (nums[i - 1] % 2 == nums[i] % 2) {
+                return false;
+            }
+        }
+        return true;
+    }
+};
+```
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    public boolean isArraySpecial(int[] nums) {
+        int n = nums.length;
+        for (int i = 1; i < n; ++i) {
+            if (nums[i - 1] % 2 == nums[i] % 2) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    public bool IsArraySpecial(int[] nums) {
+        int n = nums.Length;
+        for (int i = 1; i < n; ++i) {
+            if (nums[i - 1] % 2 == nums[i] % 2) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+```
+
+* [sol1-Python3]
+
+```Python
+class Solution:
+    def isArraySpecial(self, nums: List[int]) -> bool:
+        n = len(nums)
+        for i in range(1, n):
+            if nums[i - 1] % 2 == nums[i] % 2:
+                return False
+        return True
+```
+
+* [sol1-Go]
+
+```Go
+func isArraySpecial(nums []int) bool {
+    n := len(nums)
+    for i := 1; i < n; i++ {
+        if nums[i - 1] % 2 == nums[i] % 2 {
+            return false
+        }
+    }
+    return true
+}
+```
+
+* [sol1-C]
+
+```C
+bool isArraySpecial(int* nums, int numsSize) {
+    for (int i = 1; i < numsSize; ++i) {
+        if (nums[i - 1] % 2 == nums[i] % 2) {
+            return false;
+        }
+    }
+    return true;
+}
+```
+
+* [sol1-JavaScript]
+
+```JavaScript
+var isArraySpecial = function(nums) {
+    const n = nums.length;
+    for (let i = 1; i < n; ++i) {
+        if (nums[i - 1] % 2 == nums[i] % 2) {
+            return false;
+        }
+    }
+    return true;
+};
+```
+
+* [sol1-TypeScript]
+
+```TypeScript
+function isArraySpecial(nums: number[]): boolean {
+    const n = nums.length;
+    for (let i = 1; i < n; ++i) {
+        if (nums[i - 1] % 2 == nums[i] % 2) {
+            return false;
+        }
+    }
+    return true;
+};
+```
+
+* [sol1-Rust]
+
+```Rust
+impl Solution {
+    pub fn is_array_special(nums: Vec<i32>) -> bool {
+        for i in 1..nums.len() {
+            if (nums[i - 1] % 2 == nums[i] % 2) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+```
+
+**复杂度分析**
+
+- 时间复杂度：$O(n)$，其中 $n$ 是数组 $\textit{nums}$ 的长度。
+
+- 空间复杂度：$O()$。
+

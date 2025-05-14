@@ -1,0 +1,53 @@
+### 解题思路
+
+比常规拓扑排序多了一个存储前面节点的数组(**这里的前面指的是拓扑排序后的顺序**)的数组，用``set``去重。
+核心思想：在当前节点前面的**节点集合中所有节点**，一定在后继节点的**前面**
+
+### 代码
+
+* cpp
+
+```cpp
+class Solution {
+public:
+    vector<bool> checkIfPrerequisite(int numCourses, vector<vector<int>>& prerequisites, vector<vector<int>>& queries) {
+
+        vector<vector<int>> adj(numCourses);
+        vector<int> degree(numCourses);
+        vector<set<int>> pre(numCourses);
+        for(auto &v:prerequisites){
+            int v1=v[0],v2=v[1];
+            adj[v1].push_back(v2);
+            degree[v2]++;
+        }
+
+        queue<int> q;
+        for(int i=0;i<numCourses;i++){
+            if(degree[i]==0)
+                q.push(i);
+        }
+        while(!q.empty()){
+            int course=q.front();
+            q.pop();
+            for(auto next:adj[course]){
+                degree[next]--;
+                pre[next].insert(pre[course].begin(),pre[course].end());
+                pre[next].insert(course);
+                if(degree[next]==0)
+                    q.push(next);
+            }
+        }
+        vector<bool>res;
+       
+        for(auto q:queries){
+            if(pre[q[1]].find(q[0])!=pre[q[1]].end())
+                res.push_back(true);
+            else
+                res.push_back(false);
+        }
+        return res;
+    }
+
+};
+```
+

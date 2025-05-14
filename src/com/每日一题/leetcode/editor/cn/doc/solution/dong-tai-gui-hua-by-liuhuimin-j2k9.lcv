@@ -1,0 +1,52 @@
+> Problem: [2140. 解决智力问题](https://leetcode.cn/problems/solving-questions-with-brainpower/description/)
+
+[TOC]
+
+# Code
+
+* []
+
+```C++
+// class Solution {
+// public:
+//     long long mostPoints(vector<vector<int>>& questions) {
+// //这也是典型的动态规划的问题,使用dp数组来完成
+// //dp[i]的含义为以questions[i]结尾的子数组的可获得的最高的分数
+// int n=questions.size();
+// vector<long long> dp(n);
+// dp[0]=questions[0][0];
+// int j;
+// long long res;
+// //先初始化dp[i]的初值
+// for(int i=1;i<n;i++){
+//     dp[i]=questions[i][0];
+// }
+// for(int i=0;i<n;i++){
+// j=i+questions[i][1]+1;
+// for(int k=j;k<n;k++){
+// dp[k]=max(dp[k],dp[i]+questions[k][0]);
+// }
+// }
+// res=*max_element(dp.begin(),dp.end());
+// return res;
+//     }
+// };
+
+//以上是通过正序的搜索是会出现超时的现象,由于其是前面的状态取决于后面的状态,因此
+//dp[i]的含义为i-n-1范围内包括i问题的最高的得分,最终返回结果dp[0];
+class Solution {
+public:
+long long mostPoints(vector<vector<int>>& questions) {
+int n=questions.size();
+vector<long long> dp(n+1);
+//这里dp[n]=0;
+for(int i=n-1;i>=0;i--){
+int j=i+questions[i][1]+1;//表示可以向前选的第一个可行的问题
+dp[i]=max(dp[i+1],dp[min(n,j)]+questions[i][0]);
+//这里dp[i+1]表示跳过,dp[min(n,j)]+questions[i][0]表示不跳过
+}
+return dp[0];
+    }
+};
+```
+

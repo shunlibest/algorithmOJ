@@ -1,0 +1,56 @@
+颜色交替的最短路径
+​
+BFS应用和去重访问的设计
+​
+本题与最经典基本的BFS的区别是比较明显的，经典有向无权图BFS求最短路就是利用邻接矩阵或者邻接表，配合dis数组，可能还会有visited数组来去重访问，利用queue进行广度优先搜索更新dis就可以了。那么本题的区别就是要求在红蓝边交替进行遍历的条件限制下进行，思路很显然就是在原来经典BFS的基础上加上红蓝标记就行了，编码中就利用0和1在作为标记位就行了。剩下的就是去重的思考了。
+​
+经典BFS去重就是visited表示，其实dis数组更新也能过实现去重的效果，是遇到一个节点就放进visited数组中，而本题是不能这样处理的，因为红蓝边的交替导致可以重复访问一个点来改变红蓝交替的路线来抵达目标点，那么关键的就是抓住这个区别，我们给普通的一维visited数组加个0和1标记位变成二维visited数组，当既从红色边访问过这个点，又从蓝色边访问过这个点，这个点就可以不用再访问了。而可以保证这样做的原因就是很纯粹的，就是基于经典BFS思路和本题的区别所在。因为允许重复访问一个节点的根本原因就是为了改变红蓝访问路线，所以在基于这样的充分理解下，本题就可以很轻松地写出来了。
+
+代码如下：
+
+* 
+
+```
+class Solution {
+public:
+    vector<int> shortestAlternatingPaths(int n, vector<vector<int>>& redEdges, vector<vector<int>>& blueEdges) {
+        vector<vector<pair<int,int>>> graph(n);
+        vector<vector<int>> visited(n,vector<int>(2,0));
+        //0表示red 1表示blue
+        for(auto& edge:redEdges){
+            int from=edge[0];
+            int to=edge[1];
+            graph[from].push_back({to,0});
+        }
+        for(auto& edge:blueEdges){
+            int from=edge[0];
+            int to=edge[1];
+            graph[from].push_back({to,1});
+        }
+        queue<vector<int>> q;
+        vector<int> dis(n,INT_MAX);
+        dis[0]=0;
+        q.push({0,0,1});//节点 距离 颜色
+        q.push({0,0,0});
+        while(!q.empty()){
+            auto it=q.front();
+            int from=it[0];
+            int distance=it[1];
+            int col=it[2];
+            q.pop();
+            for(auto& [to,colour]:graph[from]){
+                if(colour==(!col) && !visited[to][colour]){
+                    dis[to]=min(dis[to],distance+1);
+                    q.push({to,distance+1,colour});
+                    visited[to][colour]=1;
+                }
+            }
+        }
+        for(int i=0;i<n;i++){
+            if(dis[i]==INT_MAX)dis[i]=-1;
+        }
+        return dis;
+    }
+};
+```
+

@@ -1,0 +1,138 @@
+> Problem: [3112. 访问消失节点的最少时间](https://leetcode.cn/problems/minimum-time-to-visit-disappearing-nodes/description/)
+
+[TOC]
+
+# 思路
+
+本题要求计算从起点节点 $0$ 出发，到所有其他节点的最短路径时间，同时考虑节点的消失时间。使用 $Dijkstra$ 算法是解决单源最短路径问题的经典方法，在此基础上，我们引入节点消失时间的约束，并通过优化剪枝进一步减少不必要的计算。
+
+# 解题过程
+
+1. **构建图的邻接表**：
+
+   - 使用邻接表表示图，其中每个节点存储其相邻节点及边的长度。
+   - 遍历 $edges$ 数组，根据边的信息构建邻接表。
+2. **初始化数据结构**：
+
+   - 使用优先队列（最小堆）来存储当前节点的距离和节点编号，初始时将起点节点 $0$ 加入优先队列，距离为 $0$。
+   - 创建一个 $answer$ 数组，用于存储从节点 $0$ 到其他节点的最短路径时间，初始化为 $-1$，表示节点不可达。
+   - 使用一个 $visited$ 数组记录节点是否已经被处理过，初始值为 $false$。
+   - 使用一个 $minTime$ 数组记录从节点 $0$ 到其他节点的最短时间，初始化为无穷大。
+3. **执行 $Dijkstra$ 算法并进行剪枝优化**：
+
+   - 当优先队列不为空时，重复以下步骤：
+     - 从优先队列中取出当前距离最小的节点。
+     - 如果当前节点已经被处理过或当前时间超过节点的消失时间，则跳过该节点。
+     - 否则，标记该节点为已处理，并更新 $answer$ 数组中的最短路径时间。
+     - 遍历该节点的所有相邻节点，计算从起点到相邻节点的路径时间。
+     - 仅当路径有效且时间小于相邻节点的消失时间和当前最短时间时，更新 $minTime$ 数组，并将相邻节点加入优先队列。
+4. **返回结果**：
+   - 返回 $answer$ 数组，其中每个元素表示从节点0到该节点的最短路径时间，如果不可达则为 $-1$。
+
+# 复杂度
+
+- **时间复杂度**：$O((V + E) log V)$
+
+  - 使用优先队列优化的 $Dijkstra$ 算法，时间复杂度为 $O((V + E) log V)$，其中 $V$ 是节点数，$E$ 是边数。
+  - 由于使用了二叉堆，实际运行效率较高。
+- **空间复杂度**：$O(V + E)$
+  - 存储图的邻接表和优先队列的空间复杂度为$O(V + E)$。
+
+# Code
+
+* []
+
+```Rust
+use std::collections::{BinaryHeap, HashMap};
+use std::cmp::Reverse;
+
+impl Solution {
+    pub fn minimum_time(n: i32, edges: Vec<Vec<i32>>, disappear: Vec<i32>) -> Vec<i32> {
+        let n = n as usize;
+        let mut graph: Vec<Vec<(usize, i32)>> = vec![Vec::new(); n];
+        for edge in edges.iter() {
+            let u = edge[0] as usize;
+            let v = edge[1] as usize;
+            let length = edge[2];
+            graph[u].push((v, length));
+            graph[v].push((u, length));
+        }
+
+        let mut answer = vec![-1; n];
+        let mut visited = vec![false; n];
+        let mut min_time = vec![i32::MAX; n];
+        min_time[0] = 0;
+
+        let mut pq = BinaryHeap::new();
+        pq.push(Reverse((0, 0)));
+
+        while let Some(Reverse((time, node))) = pq.pop() {
+            if visited[node] { continue; }
+            visited[node] = true;
+            answer[node] = time;
+
+            for &(next_node, length) in &graph[node] {
+                let next_time = time + length;
+                if !visited[next_node] && next_time < disappear[next_node] && next_time < min_time[next_node] {
+                    min_time[next_node] = next_time;
+                    pq.push(Reverse((next_time, next_node)));
+                }
+            }
+        }
+
+        answer
+    }
+}
+```
+
+* []
+
+```Java
+class Solution {
+    public int[] minimumTime(int n, int[][] edges, int[] disappear) {
+        List<int[]>[] graph = new ArrayList[n];
+        for (int i = 0; i < n; i++) {
+            graph[i] = new ArrayList<>();
+        }
+        for (int[] edge : edges) {
+            int u = edge[0], v = edge[1], length = edge[2];
+            graph[u].add(new int[]{v, length});
+            graph[v].add(new int[]{u, length});
+        }
+
+        PriorityQueue<int[]> pq = new PriorityQueue<>(Comparator.comparingInt(a -> a[0]));
+        pq.add(new int[]{0, 0});
+
+        int[] answer = new int[n];
+        Arrays.fill(answer, -1);
+        boolean[] visited = new boolean[n];
+        int[] minTime = new int[n];
+        Arrays.fill(minTime, Integer.MAX_VALUE);
+        minTime[0] = 0;
+
+        while (!pq.isEmpty()) {
+            int[] current = pq.poll();
+            int time = current[0];
+            int node = current[1];
+
+            if (visited[node] || time >= disappear[node]) continue;
+
+            visited[node] = true;
+            answer[node] = time;
+
+            for (int[] neighbor : graph[node]) {
+                int nextNode = neighbor[0];
+                int nextTime = time + neighbor[1];
+
+                if (!visited[nextNode] && nextTime < disappear[nextNode] && nextTime < minTime[nextNode]) {
+                    minTime[nextNode] = nextTime;
+                    pq.add(new int[]{nextTime, nextNode});
+                }
+            }
+        }
+
+        return answer;
+    }
+}
+```
+

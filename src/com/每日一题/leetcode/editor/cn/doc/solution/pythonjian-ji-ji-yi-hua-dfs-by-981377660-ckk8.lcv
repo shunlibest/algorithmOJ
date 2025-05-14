@@ -1,0 +1,21 @@
+### 代码
+
+* python3
+
+```python
+class Solution:
+    def mostPoints(self, questions: List[List[int]]) -> int:
+        n = len(questions)
+
+        @cache
+        def dfs(cur: int) -> int:
+            if cur > n - 1:
+                return 0
+            if cur == n - 1:
+                return questions[n - 1][0]
+            score, jump = questions[cur]
+            return max(score + dfs(cur + jump + 1), dfs(cur + 1))
+
+        return dfs(0)
+```
+

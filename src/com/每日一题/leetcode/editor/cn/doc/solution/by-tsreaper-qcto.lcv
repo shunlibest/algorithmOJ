@@ -1,0 +1,43 @@
+## 解法：贪心 & two pointers
+
+本题的难点在于“答案不能和已有乘客到达的时间相同”。如果直接二分答案可能需要进行一些判断，比较繁琐。
+
+由于求的是最晚到达公交站的时间，根据贪心容易得到，这个时间要么是某个公交的发车时间，要么比某个乘客早到 $1$ 单位时间。因此我们通过 two pointers 的方式模拟上车过程，并枚举所有可能的答案：
+* 当一个乘客在 $t$ 时刻到达时，我们尝试抢先在它之前上车。只要不存在 $(t - 1)$ 时刻到达的乘客即可；
+* 当公交发车时，若当前公交没有坐满，且不存在发车时到达的乘客，我们可以在这个时刻上车。
+
+在所有可以上车的时刻中取最大值即可。复杂度 $\mathcal{O}(n\log n)$。
+
+## 参考代码（c++）
+
+* c++
+
+```c++
+class Solution {
+public:
+    int latestTimeCatchTheBus(vector<int>& buses, vector<int>& passengers, int capacity) {
+        int n = buses.size(), m = passengers.size();
+        sort(buses.begin(), buses.end());
+        set<int> P;
+        for (int x : passengers) P.insert(x);
+
+        int ans = 1, cnt = 0;
+        auto it = P.begin();
+        // 利用 two pointers 的方式模拟上车过程
+        for (int i = 0; i < n; i++) {
+            while (cnt < capacity && it != P.end() && *it <= buses[i]) {
+                // 乘客上车，抢先在它之前上车
+                // 由于 set 是有序的，如果存在 t - 1 时刻到达的乘客，那么一定是上一个乘客
+                if (it == P.begin() || *prev(it) != *it - 1) ans = *it - 1;
+                it++; cnt++;
+            }
+            // 公交没有坐满，准备发车
+            if (cnt < capacity && P.count(buses[i]) == 0) ans = buses[i];
+            cnt = 0;
+        }
+
+        return ans;
+    }
+};
+```
+

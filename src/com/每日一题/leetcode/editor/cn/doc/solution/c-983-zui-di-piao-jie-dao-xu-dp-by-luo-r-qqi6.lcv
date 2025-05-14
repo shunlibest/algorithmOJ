@@ -1,0 +1,34 @@
+> Problem: [983. 最低票价](https://leetcode.cn/problems/minimum-cost-for-tickets/description/)
+
+# Code
+
+* []
+
+```C++
+class Solution {
+public:
+    int mincostTickets(vector<int>& days, vector<int>& costs) {
+        unordered_map<int,int> mp; //记录必须出行的是哪些天
+        for(int i=0;i<days.size();i++) {
+            mp[days[i]] = i;
+        }
+        int a = costs[0];
+        int b = costs[1];
+        int c = costs[2];
+        int f[400];
+        memset(f,0,sizeof f);
+        for(int i=365;i>=1;i--) {
+            if(!mp.count(i)){
+                f[i] = f[i+1];
+                continue;
+            } 
+            f[i] = f[i+1]+a; //免一日
+            f[i] = min(f[i],f[i+7] + b);//免七日
+            f[i] = min(f[i],f[i+30] + c);//免三十日
+        }
+
+        return f[1];
+    }
+};
+```
+

@@ -1,0 +1,41 @@
+- 由于要使数的大小增加，而数的每一位相加反而减少，那么只能是依次进位
+- 进十位 => 进百位 => 进千位...
+- 例如(467,6)，进十位=>470,不行于是再进百位=>500：5+0+0<6成功
+- (4353,6)，进十位=>4360,进百位=>4400，进千位=>5000满足
+- -进十位，则十位后的个位都不用考虑了，同理进百位，则百位后的十位、个位也不用考虑了
+- 增加的差值用 最后成功的n值 - 原来初始的n值 即可
+
+* 
+
+```
+class Solution {
+  public static long makeIntegerBeautiful(long n, int target) {
+        if(judge(n,target))
+            return 0;
+        long ans = 0;
+        long i = 10;
+        while(!judge(n,target)){
+            //没增加时的 n
+            long lastN = n;
+            //每次将n进位
+            n = (n/i + 1)*i;
+            //进十位 => 进百位 =>进千位
+            i = i*10;
+            //增加的差值就是n-lastN
+            ans +=  n-lastN;
+        }
+        return ans;
+    }
+
+    //判断一个数的所有位加起来是不是 <= target
+    public static boolean judge(long x, int target){
+        long sum = 0;
+        while(x != 0){
+            sum += x%10;
+            x = x/10;
+        }
+        return sum<=target? true:false;
+    }
+}
+```
+

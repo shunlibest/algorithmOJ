@@ -1,0 +1,47 @@
+考虑给一个回文串 $t$，怎么判断是不是 $s$ 的子串。
+
+如果 $|t|$ 偶数，我们可以设两个指针 $(l,r)$，初始 $l=0,r=n+1$，然后遍历 $t_{1\dots n/2}$，每遍历一个 $c$ 就让 $l$ 变成之后第一个 $c$ 的位置，$r$ 变成前面第一个 $c$ 的位置。正确性显然。
+
+然后把这个东西放到自动机上。一共 $\mathcal O(n^2)$ 个点 $\mathcal O(n^2|\Sigma|)$ 种转移。
+
+当然不用显式建自动机直接对 $(l,r)$ 转移即可。
+
+如果 $|t|$ 是奇数就判断一下中间的。
+
+* cpp
+
+```cpp
+const int mod=1e9+7;
+const int N=1e3+10;
+class Solution {
+public:
+    int nxt[N][26],pre[N][26];
+    int dp[N][N];
+    int countPalindromicSubsequences(string s) {
+        int n=s.size();
+        for(int i=1;i<=n;i++){
+            memcpy(pre[i],pre[i-1],sizeof pre[i]);
+            pre[i][s[i-1]-'a']=i;
+        }
+        fill(nxt[n+1],nxt[n+1]+26,n+1);
+        for(int i=n;i;i--){
+            memcpy(nxt[i],nxt[i+1],sizeof nxt[i]);
+            nxt[i][s[i-1]-'a']=i;
+        }
+        dp[0][n+1]=1;
+        int ans=-1;
+        for(int len=n+1;len;len--)
+            for(int i=0,j=len;j<=n+1;i++,j++)if(dp[i][j]){
+                (ans+=dp[i][j])%=mod;
+                for(int c=0;c<26;c++){
+                    if(nxt[i+1][c]<j)(ans+=dp[i][j])%=mod;
+                    if(nxt[i+1][c]!=pre[j-1][c])
+                        (dp[nxt[i+1][c]][pre[j-1][c]]+=dp[i][j])%=mod;
+                }
+            }
+        return ans;
+    }
+};
+```
+
+呱呱呱

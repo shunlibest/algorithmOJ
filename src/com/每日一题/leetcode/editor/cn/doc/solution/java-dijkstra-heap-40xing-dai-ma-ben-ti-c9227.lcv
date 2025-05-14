@@ -1,0 +1,55 @@
+> Problem: [1514. 概率最大的路径](https://leetcode.cn/problems/path-with-maximum-probability/description/)
+
+[TOC]
+
+# Dijkstra's
+
+> 相较于传统找最小路径，本题需要找到最大花费
+> 同时在初始化dis[] & pq.offer时需要加入 1 而不是 0 作为初始倍数
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public double maxProbability(int n, int[][] edges, double[] su＊＊＊rob, int start_node, int end_node) {
+        List<double[]>[] adj = new List[n];
+        for (int i = 0; i < n; i++) {
+            adj[i] = new ArrayList<>();
+        }
+
+        for (int i = 0; i < edges.length; i++) {
+            int u = edges[i][0], v = edges[i][1];
+            double w = su＊＊＊rob[i];
+
+            adj[u].add(new double[]{v, w});
+            adj[v].add(new double[]{u, w});
+        }
+
+        double[] dis = new double[n];
+
+        PriorityQueue<double[]> pq = new PriorityQueue<double[]>((a, b) -> Double.compare(a[0], b[0]));
+        pq.offer(new double[]{start_node, 1});
+        dis[start_node] = 1;
+
+        while (!pq.isEmpty()) {
+            double[] p = pq.poll();
+            int u = (int) p[0];
+            double t = p[1];
+            if (t < dis[u]) continue;
+
+            for (double[] next : adj[u]) {
+                int v = (int) next[0];
+                double c = next[1];
+                if (c * t > dis[v]) {
+                    dis[v] = c * t;
+                    pq.offer(new double[]{v, c * t});
+                }
+            }
+        }
+        return dis[end_node];
+    }
+}
+```
+

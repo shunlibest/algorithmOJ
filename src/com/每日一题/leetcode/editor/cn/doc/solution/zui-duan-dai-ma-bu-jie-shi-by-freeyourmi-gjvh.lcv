@@ -1,0 +1,13 @@
+* []
+
+```python
+class Solution:
+    def maximumDetonation(self, bombs: List[List[int]]) -> int:
+        d = [0] * (n := len(bombs))
+        for i, j in product(range(n), repeat = 2):
+            if dist(bombs[i][:2], bombs[j][:2]) <= bombs[i][2]: d[i] |= (1 << j)
+        for k, i in product(range(n), repeat = 2):
+            if (d[i] >> k) & 1: d[i] |= d[k]
+        return max(d[i].bit_count() for i in range(n))
+```
+

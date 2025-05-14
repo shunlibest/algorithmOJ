@@ -1,0 +1,321 @@
+## 昨日回顾
+
+昨天我们通过两道题目，讲解了二进制与位运算的操作。
+
+偏底层的东西确实略显枯燥，但没办法，这就是面试官们的最爱，只能耐着性子学下去了。
+
+那么今天作为整数的第三天，我们来讲讲关于取模与幂运算的操作吧。
+
+## 来段前戏
+
+先来一个解惑吧，我们经常在做算法题目的时候，会遇到这么一句话：
+
+> 答案可能很大，所以返回对 `10 ^ 9 + 7` **取余** 的结果。
+
+10 ^ 9 + 7到底有什么含义呢？答案是....没有含义。what，没有意义为什么到处都在用它？
+
+word很大，你忍一下？
+
+这里要解释下，一般情况下我们都会在算法时，为了避免溢出，且不用频繁执行取模操作，希望使用一个**足够大且为质数的数字进行取模，这样可以减少冲突。**
+
+**什么冲突？你蒙对答案的冲突...**
+
+比如一道题，因为数字可能比较大，需要你返回对2取模的结果。那么答案就只有0和1，你蒙对答案的几率为50%，那还做什么算法！
+
+OK，开篇讲一个小知识，来帮助我们快速进入学习状态。
+
+## 关于取模
+
+关于取模有什么说的呢？大家只需要记住一个公式即可：
+
+`(x * y ) % z ==> ((x % z) * (y % z)) % z`
+
+既然是公式，肯定就要涉及到证明了，我们如何能保证等式成立呢？来看证明过程：
+
+* 
+
+```
+假设：
+x = a * z + b
+y = c * z + d
+则：
+( x * y ) % z
+= (( a*z + b) * (c*z + d)) % z 
+= ( a * c * z * z + a * z * d + b * c * z + b * d) % z
+= a * c * z * z % z + a * z * d % z + b * c * z % z +  b * d % z
+= 0 + 0 + 0 + (b * d) % z
+b 、d 为 x、y 本身的取模结果。
+```
+
+知道这个公式，当两个较大的数做乘法时，我们先求余再相乘，可以有效避免溢出。
+
+## 快速幂
+
+> **快速幂**（**Exponentiation by squaring**，平方求幂）是一种简单而有效的小算法，它可以 O(logn) 的时间复杂度计算乘方。快速幂不仅本身非常常见，而且后续很多算法也都会用到快速幂。
+
+关于快速幂的算法面试与日常题目，简直不要太多，一个知识点变着法的考你，但这个知识点很难？真不难...让我们先了解快速幂的实现思想，再来结合知识进一步的刷题吧！
+
+举个例子，日常生活中，我们要计算3的10次方如何算？
+
+**Python：**
+
+* python
+
+```python
+print(3 ** 10)
+print(pow(3, 10))
+```
+
+**Java :**
+
+* java
+
+```java
+class Solution {
+    public static void main(String[] args) {
+//        内置函数
+        System.out.println((int)Math.pow(3, 10));
+//        循环相乘
+        int ret = 1;
+        for (int i = 0; i < 10; i++)
+            ret *= 3;
+        System.out.println(ret);
+    }
+}
+```
+
+抛开内置函数，我们通过循环来实现x ^ y 的时间复杂度是多少？ **O(n)**
+
+数量级小的情况下，我们可能看不出太多东西，那换个用例，比如我是夜店小王子，我要求857857的百万次方又该如何操作呢？怕溢出，没关系，上面告诉你取模的方法和常数了，我就是任性要求857857的百万次，来吧展示。
+
+按照上面的循环，我们需要计算 **O(n)** 的时间复杂度，即一百万次。有没有办法优化呢？这里就需要引出我们的快速幂操作了。
+
+快速幂是如何在 **O(logn)** 的时间复杂度完成幂的计算呢？这里需要介绍下 **分治思想** ，所为分治就是分而治之。
+
+比如我们要计算x的y次方。通常情况我们需要执行y次。但是如果我们将其转化为`(x*x) ^ (y/2)`就只需要执行一半的时间了，那么如果是`()(x*x) * (x*x)) ^ (y/2/2)`就只用四分之一的时间了，好家伙我直呼好家伙这不就是 **O(logn)** 的方式么。但这里有一个问题，你怎么知道y能一直被二整除呢？如果不能被整除怎么办？举个大家都会举的例子，计算3 ^ 10，第一次转化为了9 ^ 5 但下一次5/2不够除该怎么办？转化为（9^4）*（9^1），即：
+
+* python
+
+```python
+3^10=3*3*3*3*3*3*3*3*3*3
+3^10=(3*3)*(3*3)*(3*3)*(3*3)*(3*3)
+3^10=(3*3)^5
+3^10=9^5
+9^5=（9^4）*（9^1）
+9^5=（9^4）*（9^1）
+9^5=（6561^1）*(9^1)
+```
+
+思路理解了，下来就看该如何实现了。
+
+通过上面的分治思想，我们可以很轻易的想到递归的实现方法，来看看吧：
+
+**Python:**
+
+* python
+
+```python
+def quick_pow(x, y):
+    if y == 0:
+        return 1
+    ret = quick_pow(x, y // 2)
+    return ret * ret if y % 2 == 0 else ret * ret * x
+```
+
+**Java:**
+
+* Java
+
+```Java
+public int quickPow(int x, int y) {
+    if (y == 0) {
+        return 1;
+    }
+    int ret = quickPow(x, y / 2);
+    return y % 2 == 0 ? ret * ret : ret * ret * x;
+}
+```
+
+## 循环快速幂
+
+递归快速取模的算法思想没有问题，但是在递归的过程中，会使用很多额外的栈空间，是否存在一种办法，能通过迭代的循环方式完成，而非递归实现呢？答案当然是有的。我们只需要判断什么时候指数不能被2整除，则单独乘以底数，否则就将当前的数值平方即可。那么如何判断当前的指数是否能被2整除呢？使用y对2取模？不不不，我们来复习一下第一天学到的二进制**与操作**吧！
+
+思路很简单：当一个数 & 1若为1，即该数的最后一位为1，不能被2整除，否则代表可以被2整数。
+
+* 
+
+```
+10:     00001010
+1 :     00000001
+按位与  00000000
+-----------------
+9:      00001001
+1:      00000001
+按位与  00000001
+```
+
+最终代码为：
+
+**Python：**
+
+* Python
+
+```Python
+def quick_pow(x, y):
+    res = 1
+    while y:
+        if y & 1:
+            res *= x
+        x *= x
+        y = y >> 1
+    return res
+```
+
+**Java：**
+
+* java
+
+```java
+public int quickPow(int x, int y) {
+    int ret = 1;
+    while(y != 0){
+        if((y & 1) != 0) {
+            ret = ret * x;
+        }
+        x = x * x;
+        y >>= 1;
+    }
+    return ret;
+}
+```
+
+上面的两种方法，着重在于讲解快速幂的实现，但是Java的朋友们会说了，使用int类型不是轻轻松松就内存溢出了....
+
+所以，我们可以看下Java的pow就是使用的double类型。正好，我们来看一道力扣的题目。
+
+# [50.Pow(x, n)](https://leetcode-cn.com/problems/powx-n/solution/50-powx-n-kuai-su-mi-de-ji-chu-zhi-shi-d-z7ny/)
+
+> https://leetcode-cn.com/problems/powx-n/solution/50-powx-n-kuai-su-mi-de-ji-chu-zhi-shi-d-z7ny/
+>
+> 难度：中等
+
+## 题目
+
+实现 pow(x, n) ，即计算 x 的 n 次幂函数（即，xn）。
+
+## 示例
+
+* 
+
+```
+示例 1：
+输入：x = 2.00000, n = 10
+输出：1024.00000
+
+示例 2：
+输入：x = 2.10000, n = 3
+输出：9.26100
+
+示例 3：
+输入：x = 2.00000, n = -2
+输出：0.25000
+解释：2-2 = 1/22 = 1/4 = 0.25
+```
+
+提示：
+
+- -100.0 < x < 100.0
+- -2 ^ 31 <= n <= 2 ^ 31-1
+- -10 ^ 4 <= x ^ n <= 10 ^ 4
+
+## 分析
+
+这道题是对于上面学习的快速幂的检验，基础的知识点，在上面已经讲过了。
+在这里，我们分别使用递归与二进制的方式实现。
+这里需要注意一点，n为负数时，我们需要对结果取倒数。
+
+## 递归解题
+
+**Python:**
+
+* python
+
+```python
+class Solution:
+    def myPow(self, x: float, n: int) -> float:
+        def quick_pow(N):
+            if N == 0:
+                return 1.0
+            y = quick_pow(N // 2)
+            return y * y if N % 2 == 0 else y * y * x
+
+        return quick_pow(n) if n >= 0 else 1.0 / quick_pow(-n)
+```
+
+**Java:**
+
+* java
+
+```java
+class Solution {
+    public double myPow(double x, int n) {
+        long N = n;
+        return N >= 0 ? quickPow(x, N) : 1.0 / quickPow(x, -N);
+    }
+
+    public double  quickPow(double  x, long y) {
+        if (y == 0) {
+            return 1.0;
+        }
+        double ret = quickPow(x, y / 2);
+        return y % 2 == 0 ? ret * ret : ret * ret * x;
+    }
+}
+```
+
+## 二进制解题
+
+**Python:**
+
+* python
+
+```python
+class Solution:
+    def myPow(self, x: float, n: int) -> float:
+        def quickMul(x, N):
+            ans = 1.0
+            while N > 0:
+                if N % 2 == 1:
+                    ans *= x
+                x *= x
+                N //= 2
+            return ans
+
+        return quickMul(x, n) if n >= 0 else 1.0 / quickMul(x, -n)
+```
+
+**Java:**
+
+* java
+
+```java
+class Solution {
+    public double myPow(double x, int n) {
+        long N = n;
+        return N >= 0 ? quickPow(x, N) : 1.0 / quickPow(x, -N);
+    }
+
+    public double quickPow(double x, long y) {
+        double ret = 1.0;
+        while(y != 0){
+            if((y & 1) != 0) {
+                ret = ret * x;
+            }
+            x = x * x;
+            y >>= 1;
+        }
+        return ret;
+    }
+}
+```
+

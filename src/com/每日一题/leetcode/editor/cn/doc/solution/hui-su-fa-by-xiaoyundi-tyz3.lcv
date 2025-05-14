@@ -1,0 +1,40 @@
+### 解题思路
+
+此处撰写解题思路
+
+### 代码
+
+* java
+
+```java
+class Solution {
+List<List<Integer>> result = new LinkedList<>();
+    int[] cur;
+    public List<List<Integer>> permuteUnique(int[] nums) {
+        cur = nums;
+        DFS( 0);
+        return result;
+    }
+
+    private void DFS(int x) {
+        if (x == cur.length -1) {
+            if(!result.contains(Arrays.stream(cur).boxed().collect(Collectors.toList()))) {
+                result.add(Arrays.stream(cur).boxed().collect(Collectors.toList()));
+            }
+            return;
+        }
+        for (int j = x; j < cur.length; j++) {
+            swap(j,x);
+            DFS(x + 1);
+            swap(x,j);
+        }
+    }
+
+    private void swap(int j, int x) {
+        int a = cur[j];
+        cur[j] = cur[x];
+        cur[x] = a;
+    }
+}
+```
+

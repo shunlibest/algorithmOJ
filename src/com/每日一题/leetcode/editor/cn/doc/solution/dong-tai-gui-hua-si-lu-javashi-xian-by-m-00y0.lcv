@@ -1,0 +1,52 @@
+> Problem: [375. 猜数字大小 II](https://leetcode.cn/problems/guess-number-higher-or-lower-ii/description/)
+
+[TOC]
+
+# 思路
+
+这题考虑最坏情况，当我们在 [1, n] 之间考虑时，首先，我们任选一个坐标 k ，由于讨论最坏情况，我们需认为 k 不正确，那么要在剩下的坐标继续选择；此时，[1,n] 的最坏情况会在 [1, k - 1] 和 [k + 1, n] 两个区间最坏情况中发生；
+令 f[i][j] 表示在区间 [i, j] 的最坏情况下所花费的钱，f'[i, j, k] 表示区间 [i, j] 中首次选择 k 的最坏情况，即：
+
+f'(1, n, k) = Math.max(f[1][k - 1], f[k + 1, n]) + k;
+
+依旧由于考虑最坏情况，我们还需讨论首次选择 [1, n] 中任一坐标的最坏情况，即：
+
+    f[i][j] = Math.max(f'[i, j, k)), k 从 [1, n] 遍历
+            = Math.max(Math.max(f[i][k - 1], f[k + 1, j]) + k)
+
+此时，我们已经将问题划分为子问题，通过 DP 去求解即可；
+
+# 解题过程
+
+注意 DP 顺序，子问题对应当前区间的一个子区间，因此，我们按可选择区间长度从小到大遍历；
+
+# 复杂度
+
+- 时间复杂度: $O(n ^ 3)$
+- 空间复杂度: $O(n ^ 2)$
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public int getMoneyAmount(int n) {
+        int[][] f = new int[n + 1][n + 1];
+        for (int k = 1; k < n; ++k) {
+            for (int i = 1; i <= n; ++i) {
+                int last = i + k;
+                if (last > n) {
+                    break;
+                }
+                f[i][last] = Math.min(i + f[i + 1][last], last + f[i][last - 1]);
+                for (int j = i + 1; j < last; ++j) {
+                    f[i][last] = Math.min(f[i][last], Math.max(f[i][j - 1], f[j + 1][last]) + j);
+                }
+            }
+        }
+        return f[1][n];
+    }
+}
+```
+

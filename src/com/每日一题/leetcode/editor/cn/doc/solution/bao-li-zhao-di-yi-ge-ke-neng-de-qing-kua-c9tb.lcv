@@ -1,0 +1,28 @@
+> [3132. 找出与数组相加的整数 II](https://leetcode.cn/problems/find-the-integer-added-to-array-ii/description/) - [第 395 场周赛](https://leetcode.cn/contest/weekly-contest-395)
+
+# 找一个基准
+
+这个是个阅读题，这题核心是一定要看清楚题目说的 “相等” 是一个什么样的定义，它是说，频率相同就行，数字顺序可以忽略。由于 nums1 一定就比 nums2 数字要多，那么假设当前设置某个数字就是 x， `nums1[a] + x` 这个数字出现的次数就应该比在 `nums2` 内至少一致，多无所谓，可以删，但不能少，所以枚举全部可能的 `x` 也不是不可以；
+
+但很明显枚举全部可能的 `x` 是一个绝对超时的事情，那么如何收窄这个范围就是解题关键了，由于 `nums2` 中全部的数字都需要被覆盖，那么我们只需要锚定任意一个也可以发掘出可能的 `x`，那么我们就锚定 “最小的”，也就是 `minNum2 = min(nums2)` ，那么就有 `min(nums1) + x = minNum2` 这个 `x` 可被求，那如果 `nums1` 最小值并不符合，也就是说会被删掉，那就试试倒数第二小的数字，如果还是不行就是第三小，由于题目说明一定有解，故必然就是这 3 个可能的组合里面，全部都试试就好了；
+
+从计算量的角度出发，最多最多也只枚举 6 次 nums1，5 次 nums2，属于 $O(n)$ 范畴；
+
+* []
+
+```Python
+class Solution:
+    def minimumAddedInteger(self, nums1: List[int], nums2: List[int]) -> int:
+        queue = nsmallest(3, nums1)
+        nums2Min = min(nums2)
+        xs = [nums2Min - queue[0], nums2Min - queue[1], nums2Min - queue[2]]
+        dic = Counter(nums2).items()
+        for x in xs[::-1]:
+            cur = Counter(num + x for num in nums1)
+            for k, v in dic:
+                if cur[k] < v: break
+            else: return x
+        return 0
+        
+```
+

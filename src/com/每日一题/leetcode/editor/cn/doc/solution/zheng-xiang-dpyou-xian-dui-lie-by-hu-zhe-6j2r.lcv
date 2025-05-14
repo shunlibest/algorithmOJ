@@ -1,0 +1,45 @@
+maxPre记录之前可以用的最大值
+每次dp后把时间和当前值放入优先队列
+
+* 
+
+```
+class Solution {
+public:
+
+using pii = pair<long long, long long>;
+static bool cmp(pii& a, pii& b)
+{
+    return a.second > b.second;
+}
+
+long long mostPoints(vector<vector<int>>& questions) {
+    int n = questions.size();
+    vector<vector<long long>> dp(n, vector<long long>(2));
+    priority_queue<pii, vector<pii>, decltype(&cmp)> que(cmp);
+    long long maxPre=0;
+    for (int i = 0; i < n; ++i)
+    {
+        while (que.size() > 0 && que.top().second < i)
+        {
+            auto p = que.top();
+            que.pop();
+            //maxPre = max(maxPre, p.first);
+            maxPre = maxPre > p.first ? maxPre : p.first;
+        }
+        if (i == 0) dp[i][1] = questions[i][0];
+        else
+        {
+            dp[i][0] = dp[i - 1][0] > dp[i - 1][1] ? dp[i - 1][0] : dp[i- 1][1];
+            dp[i][1] = maxPre + questions[i][0];
+        }
+        que.push({ dp[i][1],questions[i][1] + i });
+    }
+    return dp[n - 1][0] > dp[n - 1][1] ? dp[n - 1][0] : dp[n - 1][1];
+}
+
+
+
+};
+```
+

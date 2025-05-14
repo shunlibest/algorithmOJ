@@ -1,0 +1,91 @@
+## 解法：DP
+
+容易想到，用 $f(i, j)$ 表示以下标为 $i$ 的元素为结尾，且有 $j$ 个相邻但不相等元素的子序列的最大长度。有转移方程
+
+$$
+f(i, j) = \max\limits_{0 \le i' < i} \left( 1, \begin{cases}
+f(i', j) + 1 & \text{if } a_i = a_{i'} \\
+f(i', j - 1) + 1 & \text{otherwise}
+\end{cases} \right)
+$$
+
+答案就是 $\max f(i, j)$，直接计算转移方程的复杂度为 $\mathcal{O}(n^2k)$。
+
+注意到分情况取值的那一项只和 $a_i$ 是否等于 $a_{i'}$ 有关，而与 $i'$ 的具体取值无关。因此不妨转换思路，考虑用 $f(x, j)$ 表示以值等于 $x$ 的元素为结尾，且有 $j$ 个相邻但不相等元素的子序列的最大长度。则转移方程变为
+
+$$
+f(x, j) = \max(1, f(x, j) + 1, f(x' \ne x, j - 1) + 1)
+$$
+
+要求出 $\max f(x' \ne x, j - 1)$，比较无脑的做法是对每个 $j$ 创建一个 `multiset`，把 $j$ 固定时，每种 $f(x, j)$ 的值记下来。这样，只要把 $f(x, j - 1)$ 从 `multiset` 里临时删去，此时 `multiset` 里的最大值就是 $\max f(x' \ne x, j - 1)$。这样做的复杂度是 $\mathcal{O}(nk\log n)$ 的。当然，注意到本题中 $f(x, j)$ 的值只增不减，因此可以用另一种方式将复杂度降低至 $\mathcal{O}(nk)$，详见参考代码。
+
+## 参考代码（c++）
+
+* c++
+
+```c++
+class Solution {
+public:
+    int maximumLength(vector<int>& nums, int K) {
+        const int INF = 1e9;
+
+        struct Magic {
+            int k1, v1, k2, v2;
+
+            Magic(): k1(-1), v1(-INF), k2(-1), v2(-INF) {}
+
+            // 将某个 key 的 value 更新成一个【更大】的值
+            void update(int k, int v) {
+                if (k == k1) v1 = v;
+                else if (k == k2) {
+                    if (v > v1) k2 = k1, v2 = v1, k1 = k, v1 = v;
+                    else v2 = v;
+                } else {
+                    if (v > v1) k2 = k1, v2 = v1, k1 = k, v1 = v;
+                    else if (v > v2) k2 = k, v2 = v;
+                }
+            }
+
+            // 求除了某个 key 对应的 value 以外，剩下的 value 中的最大值
+            int query(int k) {
+                if (k == k1) return v2;
+                else return v1;
+            }
+        };
+
+        int n = nums.size();
+
+        // 将值域离散化，方便后面直接用数组求 dp 方程
+        unordered_map<int, int> mp;
+        for (int x : nums) mp[x] = 1;
+        int m = 0;
+        for (auto &p : mp) p.second = m++;
+        for (auto &x : nums) x = mp[x];
+
+        int f[m][K + 1];
+        Magic g[K + 1];
+        for (int i = 0; i < m; i++) for (int j = 0; j <= K; j++) f[i][j] = -INF;
+
+        for (int i = 0; i < n; i++) {
+            int x = nums[i];
+
+            // 临时保存旧的 f[x][j] 值，计算过程中要用
+            int old[K + 1];
+            for (int j = 0; j <= K; j++) old[j] = f[x][j];
+
+            // 转移方程第一项
+            f[x][0] = max(f[x][0], 1);
+            // 转移方程第二项
+            for (int j = 0; j <= K; j++) f[x][j] = max(f[x][j], old[j] + 1);
+            // 转移方程第三项
+            for (int j = 1; j <= K; j++) f[x][j] = max(f[x][j], g[j - 1].query(x) + 1);
+            for (int j = 0; j <= K; j++) g[j].update(x, f[x][j]);
+        }
+
+        int ans = 0;
+        for (int i = 0; i < m; i++) for (int j = 0; j <= K; j++) ans = max(ans, f[i][j]);
+        return ans;
+    }
+};
+```
+

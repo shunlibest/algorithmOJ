@@ -1,0 +1,55 @@
+> Problem: [93. 复原 IP 地址](https://leetcode.cn/problems/restore-ip-addresses/description/)
+
+[TOC]
+
+# 思路
+
+用一个vector<string>来保存前面已经验证过的ip地址段，只需要判断它的大小为3，再判断最后一段是不是正确的即可。
+
+# Code
+
+* []
+
+```C++
+class Solution {
+public:
+    vector<string> res;
+    vector<string> path;
+    bool isvalid(const string& s){
+        if(s.size() == 0) return false;
+        if(s[0] == '0' && s.size() > 1) return false;
+        int num = 0;
+        for(int i = 0; i < s.size(); i++){
+            if(s[i] < '0' || s[i] > '9') return false;
+            num = num * 10 + s[i] - '0';
+            if(num > 255) return false;
+        }
+        return true;
+    }
+    void tracebacking(string s, int index){
+        if(path.size() == 3){
+            if(isvalid(s.substr(index))){
+                string tmp;
+                for(auto c : path)
+                    tmp += c + '.';
+                tmp += s.substr(index);
+                res.push_back(tmp);
+            }
+            return ;
+        }
+        for(int i = index; i < s.size(); i++){
+            string tmp = s.substr(index, i - index + 1);
+            if(isvalid(tmp)){
+                path.push_back(tmp);
+                tracebacking(s, i + 1);
+                path.pop_back(); 
+            }
+        }
+    }
+    vector<string> restoreIpAddresses(string s) {
+        tracebacking(s, 0);
+        return res;
+    }
+};
+```
+

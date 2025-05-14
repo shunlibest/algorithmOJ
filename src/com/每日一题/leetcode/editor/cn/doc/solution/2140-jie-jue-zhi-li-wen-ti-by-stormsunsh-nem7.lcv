@@ -1,0 +1,286 @@
+# 解法一
+
+## 思路和算法
+
+用 $n$ 表示数组 $\textit{questions}$ 的长度。为了计算考试中能获得的最高分数，对于每个 $0 \le i < n$ 需要分别计算题目下标范围 $[i, n - 1]$ 中能获得的最高分数，计算得到题目下标范围 $[0, n - 1]$ 中能获得的最高分数即为答案。可以使用动态规划计算最高分数。
+
+创建长度为 $n + 1$ 的数组 $\textit{dp}$，其中 $\textit{dp}[i]$ 为题目下标范围 $[i, n - 1]$ 中能获得的最高分数。将数组 $\textit{dp}$ 的长度定为 $n + 1$ 是为了方便定义边界条件。
+
+当 $i = n$ 时，题目下标范围 $[i, n - 1]$ 为空，能获得的最高分数是 $0$。因此动态规划的边界情况是 $\textit{dp}[n] = 0$。
+
+当 $i < n$ 时，问题 $i$ 可以跳过或解决，两种情况对应的最高分数分别计算如下。
+
+- 如果跳过问题 $i$，则最高分数为下标范围 $[i + 1, n - 1]$ 中能获得的最高分数，此时的最高分数是 $\textit{dp}[i + 1]$。
+
+- 如果解决问题 $i$，定义 $\textit{points} = \textit{questions}[i][0]$，$\textit{brainpower} = \textit{questions}[i][1]$，则问题 $i$ 后面的 $\textit{brainpower}$ 个问题都要跳过。用 $\textit{nextPoints}$ 表示问题 $i$ 后面的下标范围的最高分数，当 $i + \textit{brainpower} + 1 < n$ 时 $\textit{nextPoints} = \textit{dp}[i + \textit{brainpower} + 1]$，当 $i + \textit{brainpower} + 1 \ge n$ 时 $\textit{nextPoints} = 0$，最高分数为问题 $i$ 加问题 $i$ 后面的下标范围的最高分数，此时的最高分数是 $\textit{points} + \textit{nextPoints}$。
+
+下标范围 $[i, n - 1]$ 中能获得的最高分数是两种情况中的最大值，因此动态规划的状态转移方程如下。
+
+- 当 $i + \textit{questions}[i][1] + 1 < n$ 时，$\textit{dp}[i] = \max(\textit{dp}[i + 1], \textit{questions}[i][0] + \textit{dp}[i + \textit{questions}[i][1] + 1])$。
+
+- 当 $i + \textit{questions}[i][1] + 1 < n$ 时，$\textit{dp}[i] = \max(\textit{dp}[i + 1], \textit{questions}[i][0])$。
+
+由于每一项依赖于之后的项，因此应从大到小遍历每个 $i$ 并计算 $\textit{dp}[i]$。计算得到 $\textit{dp}[0]$ 即为结果。
+
+## 代码
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    public long mostPoints(int[][] questions) {
+        int n = questions.length;
+        long[] dp = new long[n + 1];
+        for (int i = n - 1; i >= 0; i--) {
+            int points = questions[i][0], brainpower = questions[i][1];
+            long nextPoints = i + brainpower + 1 < n ? dp[i + brainpower + 1] : 0;
+            dp[i] = Math.max(dp[i + 1], points + nextPoints);
+        }
+        return dp[0];
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    public long MostPoints(int[][] questions) {
+        int n = questions.Length;
+        long[] dp = new long[n + 1];
+        for (int i = n - 1; i >= 0; i--) {
+            int points = questions[i][0], brainpower = questions[i][1];
+            long nextPoints = i + brainpower + 1 < n ? dp[i + brainpower + 1] : 0;
+            dp[i] = Math.Max(dp[i + 1], points + nextPoints);
+        }
+        return dp[0];
+    }
+}
+```
+
+## 复杂度分析
+
+- 时间复杂度：$O(n)$，其中 $n$ 是数组 $\textit{questions}$ 的长度。状态数是 $O(n)$，每个状态的计算时间是 $O(1)$，因此时间复杂度是 $O(n)$。
+
+- 空间复杂度：$O(n)$，其中 $n$ 是数组 $\textit{questions}$ 的长度。需要创建长度为 $n + 1$ 的数组 $\textit{dp}$。
+
+# 解法二
+
+## 思路和算法
+
+解法一的动态规划状态为一维状态，也可以定义二维状态。
+
+用 $n$ 表示数组 $\textit{questions}$ 的长度。创建 $(n + 1) \times 2$ 的二维数组 $\textit{dp}$，其中 $\textit{dp}[i][0]$ 为跳过问题 $i$ 时下标范围 $[i, n - 1]$ 中能获得的最高分数，$\textit{dp}[i][1]$ 为解决问题 $i$ 时下标范围 $[i, n - 1]$ 中能获得的最高分数。
+
+当 $i = n$ 时，下标范围 $[i, n - 1]$ 为空，能获得的最高分数是 $0$，因此动态规划的边界情况是 $\textit{dp}[n][0] = \textit{dp}[n][1] = 0$。
+
+当 $i < n$ 时，问题 $i$ 可以跳过或解决，最高分数根据下标范围 $[i + 1, n - 1]$ 中能获得的最高分数与问题 $i$ 的情况计算。
+
+- 如果跳过问题 $i$，则可以跳过或解决问题 $i + 1$，此时的最高分数是 $\max(\textit{dp}[i + 1][0], \textit{dp}[i + 1][1])$。
+
+- 如果解决问题 $i$，定义 $\textit{points} = \textit{questions}[i][0]$，$\textit{brainpower} = \textit{questions}[i][1]$，则问题 $i$ 后面的 $\textit{brainpower}$ 个问题都要跳过。用 $\textit{nextPoints}$ 表示问题 $i$ 后面的下标范围的最高分数，当 $i + \textit{brainpower} + 1 < n$ 时 $\textit{nextPoints} = \textit{dp}[i + \textit{brainpower} + 1]$，当 $i + \textit{brainpower} + 1 \ge n$ 时 $\textit{nextPoints} = 0$，最高分数为问题 $i$ 加问题 $i$ 后面的下标范围的最高分数，此时的最高分数是 $\textit{points} + \textit{nextPoints}$。
+
+因此动态规划的状态转移方程如下。
+
+- 任何情况下，$\textit{dp}[i][0]$ 的计算方法确定：$\textit{dp}[i][0] = \max(\textit{dp}[i + 1][0], \textit{dp}[i + 1][1])$。
+
+- 当 $i + \textit{questions}[i][1] + 1 < n$ 时，$\textit{dp}[i][1] = \textit{questions}[i][0] + \textit{dp}[i + \textit{questions}[i][1] + 1]$。
+
+- 当 $i + \textit{questions}[i][1] + 1 < n$ 时，$\textit{dp}[i][1] = \textit{questions}[i][0])$。
+
+由于每一项的两个状态值依赖于之后的项，因此应从大到小遍历每个 $i$ 并计算 $\textit{dp}[i][0]$ 和 $\textit{dp}[i][1]$。由于获得最高分数时可能跳过或解决问题 $0$，因此最高分数是 $\max(\textit{dp}[0][0], \textit{dp}[0][1])$。
+
+## 代码
+
+* [sol2-Java]
+
+```Java
+class Solution {
+    public long mostPoints(int[][] questions) {
+        int n = questions.length;
+        long[][] dp = new long[n + 1][2];
+        for (int i = n - 1; i >= 0; i--) {
+            dp[i][0] = Math.max(dp[i + 1][0], dp[i + 1][1]);
+            int points = questions[i][0], brainpower = questions[i][1];
+            long nextPoints = i + brainpower + 1 < n ? Math.max(dp[i + brainpower + 1][0], dp[i + brainpower + 1][1]) : 0;
+            dp[i][1] = points + nextPoints;
+        }
+        return Math.max(dp[0][0], dp[0][1]);
+    }
+}
+```
+
+* [sol2-C#]
+
+```C#
+public class Solution {
+    public long MostPoints(int[][] questions) {
+        int n = questions.Length;
+        long[][] dp = new long[n + 1][];
+        for (int i = 0; i <= n; i++) {
+            dp[i] = new long[2];
+        }
+        for (int i = n - 1; i >= 0; i--) {
+            dp[i][0] = Math.Max(dp[i + 1][0], dp[i + 1][1]);
+            int points = questions[i][0], brainpower = questions[i][1];
+            long nextPoints = i + brainpower + 1 < n ? Math.Max(dp[i + brainpower + 1][0], dp[i + brainpower + 1][1]) : 0;
+            dp[i][1] = points + nextPoints;
+        }
+        return Math.Max(dp[0][0], dp[0][1]);
+    }
+}
+```
+
+## 复杂度分析
+
+- 时间复杂度：$O(n)$，其中 $n$ 是数组 $\textit{questions}$ 的长度。状态数是 $O(n)$，每个状态的计算时间是 $O(1)$，因此时间复杂度是 $O(n)$。
+
+- 空间复杂度：$O(n)$，其中 $n$ 是数组 $\textit{questions}$ 的长度。需要创建 $n \times 2$ 的二维数组 $\textit{dp}$。
+
+# 拓展问题
+
+## 问题描述
+
+原始问题只有计算能获得的最高分数，在原始问题的基础上，可以提出拓展问题：获得最高分数的方案是什么，即解决哪些问题？如果有多种方案，返回其中任意一种。
+
+## 解法分析
+
+动态规划的计算过程为下标递减的顺序，根据动态规划的状态值，可以按下标递增的顺序依次计算解决的所有问题。两种动态规划的实现都可以计算解决的所有问题，在计算每个状态时可以知道该状态值从哪一个状态值计算得到。
+
+使用解法一的实现计算获得最高分数时解决哪些问题的做法如下。
+
+计算得到动态规划的状态之后，用 $\textit{index}$ 表示问题下标，初始时 $\textit{index} = 0$。当 $\textit{index} < n$ 时，执行如下操作。
+
+- 如果 $\textit{dp}[\textit{index}] = \textit{dp}[\textit{index}]$，则跳过问题 $\textit{index}$，将 $\textit{index}$ 的值加 $1$。
+
+- 如果 $\textit{dp}[\textit{index}] \ne \textit{dp}[\textit{index}]$，则解决问题 $\textit{index}$，将 $\textit{index}$ 添加到解决的问题列表中，然后将 $\textit{index}$ 的值加 $\textit{questions}[\textit{index}][1] + 1$。
+
+重复上述操作，直到 $\textit{index} \ge n$ 时结束操作，此时得到解决的所有问题。
+
+使用解法二的实现计算获得最高分数时解决哪些问题的做法如下。
+
+用 $\textit{sum}$ 表示获得的最高分数，初始时 $\textit{sum} = \max(\textit{dp}[0][0], \textit{dp}[0][1])$。正向遍历动态规划的状态，对于从 $0$ 到 $n - 1$ 的每个下标 $i$，执行如下操作：如果 $\textit{sum} = \textit{dp}[i][1]$，则解决问题 $i$，将 $i$ 添加到解决的问题列表中，然后将 $\textit{sum}$ 减 $\textit{questions}[i][0]$；如果 $\textit{sum} \ne \textit{dp}[i][1]$，则跳过问题 $i$。
+
+遍历结束之后，即可得到解决的所有问题。
+
+## 代码
+
+下面的代码为解法一对应的实现，返回值是一个列表，包含获得最高分数时解决的所有问题。
+
+* [sol3_1-Java]
+
+```Java
+class Solution {
+    public List<Integer> mostPoints(int[][] questions) {
+        int n = questions.length;
+        long[] dp = new long[n + 1];
+        for (int i = n - 1; i >= 0; i--) {
+            int points = questions[i][0], brainpower = questions[i][1];
+            long nextPoints = i + brainpower + 1 < n ? dp[i + brainpower + 1] : 0;
+            dp[i] = Math.max(dp[i + 1], points + nextPoints);
+        }
+        List<Integer> solved = new ArrayList<Integer>();
+        int index = 0;
+        while (index < n) {
+            if (dp[index] == dp[index + 1]) {
+                index++;
+            } else {
+                solved.add(index);
+                index += questions[index][1] + 1;
+            }
+        }
+        return solved;
+    }
+}
+```
+
+* [sol3_1-C#]
+
+```C#
+public class Solution {
+    public IList<int> MostPoints(int[][] questions) {
+        int n = questions.Length;
+        long[] dp = new long[n + 1];
+        for (int i = n - 1; i >= 0; i--) {
+            int points = questions[i][0], brainpower = questions[i][1];
+            long nextPoints = i + brainpower + 1 < n ? dp[i + brainpower + 1] : 0;
+            dp[i] = Math.Max(dp[i + 1], points + nextPoints);
+        }
+        IList<int> solved = new List<int>();
+        int index = 0;
+        while (index < n) {
+            if (dp[index] == dp[index + 1]) {
+                index++;
+            } else {
+                solved.Add(index);
+                index += questions[index][1] + 1;
+            }
+        }
+        return solved;
+    }
+}
+```
+
+下面的代码为解法二对应的实现，返回值是一个列表，包含获得最高分数时解决的所有问题。
+
+* [sol3_2-Java]
+
+```Java
+class Solution {
+    public List<Integer> mostPoints(int[][] questions) {
+        int n = questions.length;
+        long[][] dp = new long[n + 1][2];
+        for (int i = n - 1; i >= 0; i--) {
+            dp[i][0] = Math.max(dp[i + 1][0], dp[i + 1][1]);
+            int points = questions[i][0], brainpower = questions[i][1];
+            long nextPoints = i + brainpower + 1 < n ? Math.max(dp[i + brainpower + 1][0], dp[i + brainpower + 1][1]) : 0;
+            dp[i][1] = points + nextPoints;
+        }
+        List<Integer> solved = new ArrayList<Integer>();
+        long sum = Math.max(dp[0][0], dp[0][1]);
+        for (int i = 0; i < n; i++) {
+            if (sum == dp[i][1]) {
+                solved.add(i);
+                sum -= questions[i][0];
+            }
+        }
+        return solved;
+    }
+}
+```
+
+* [sol3_2-C#]
+
+```C#
+public class Solution {
+    public IList<int> MostPoints(int[][] questions) {
+        int n = questions.Length;
+        long[][] dp = new long[n + 1][];
+        for (int i = 0; i <= n; i++) {
+            dp[i] = new long[2];
+        }
+        for (int i = n - 1; i >= 0; i--) {
+            dp[i][0] = Math.Max(dp[i + 1][0], dp[i + 1][1]);
+            int points = questions[i][0], brainpower = questions[i][1];
+            long nextPoints = i + brainpower + 1 < n ? Math.Max(dp[i + brainpower + 1][0], dp[i + brainpower + 1][1]) : 0;
+            dp[i][1] = points + nextPoints;
+        }
+        IList<int> solved = new List<int>();
+        long sum = Math.Max(dp[0][0], dp[0][1]);
+        for (int i = 0; i < n; i++) {
+            if (sum == dp[i][1]) {
+                solved.Add(i);
+                sum -= questions[i][0];
+            }
+        }
+        return solved;
+    }
+}
+```
+
+## 复杂度分析
+
+- 时间复杂度：$O(n)$，其中 $n$ 是数组 $\textit{questions}$ 的长度。动态规划计算最高分数的时间是 $O(n)$，计算解决的所有问题的时间是 $O(n)$，因此和原始问题解法的时间复杂度相同。
+
+- 空间复杂度：$O(n)$，其中 $n$ 是数组 $\textit{questions}$ 的长度。由于可以根据动态规划的所有状态值计算解决的所有问题，因此和原始问题解法的空间复杂度相同。
+

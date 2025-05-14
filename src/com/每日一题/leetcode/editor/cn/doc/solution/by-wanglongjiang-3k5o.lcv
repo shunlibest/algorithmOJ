@@ -1,0 +1,29 @@
+### 解题思路
+
+思路：动态规划
+设数组dp[n]，dp[i]的意思是从i出发到结尾能得到的最高分。
+这道题需要从右向左遍历数组，状态转移方程为：
+dp[i]=max(dp[i+1],stones[i][0]+dp[i+stones[i][1]+1])
+状态转移方程的意思是从i出发到结尾，想要得到最高分，有2种选择：
+a、跳过stones[i]，最大值为dp[i+1]
+b、不跳过stones[i]，最大值是stones[i][0]+dp[i+stones[i][1]+1]，如果i+stones[i][1]+1越界，取stones[i][0]
+最终结果是dp[0]
+
+时间复杂度：O(n)
+空间复杂度：O(n)
+
+### 代码
+
+* python3
+
+```python
+class Solution:
+    def mostPoints(self, stones: List[int]) -> bool:
+        n = len(stones)
+        dp = [0] * n
+        dp[-1] = stones[-1][0]
+        for i in range(n - 2, -1, -1):
+            dp[i] = max(dp[i + 1], stones[i][0] + (dp[i + stones[i][1] + 1] if i + stones[i][1] + 1 < n else 0))
+        return dp[0]
+```
+

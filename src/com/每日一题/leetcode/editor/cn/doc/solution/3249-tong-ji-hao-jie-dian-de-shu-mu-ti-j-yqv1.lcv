@@ -1,0 +1,93 @@
+### 方法，深度优先搜索
+
+**解题思路**
+
+首先根据边数组 $edges$ 构建邻接表 $adj$。在树中，边的数量为节点数量减 $1$。因此，节点数 $n$ 为 $edges$ 的长度加 $1$。再进行深度优先搜索，输入为当前遍历的节点 $node$ 和其父节点 $parent$，返回值为以 $node$ 为根节点的树的节点数量。需要递归调用 $node$ 的所有子节点。因为 $adj$ 中存的是邻接关系，所以要跳过节点 $parent$。在计算节点数量和的同时，需要判断 $node$ 的所有子节点是否拥有相同的节点数。如果是的话，将结果加 $1$。最后调用 $dfs(0,−1)$ 并返回结果。
+
+[参考](https://leetcode.cn/problems/count-the-number-of-good-nodes/solutions/2977809/tong-ji-hao-jie-dian-de-shu-mu-by-leetco-4q70/)
+
+### 代码
+
+* []
+
+```Java
+class Solution {
+    int res;
+    List<Integer>[] adj;
+
+    public int countGoodNodes(int[][] edges) {
+        int n = edges.length + 1;
+        res = 0;
+        adj = new List[n];
+        for (int i = 0; i < n; ++i) {
+            adj[i] = new ArrayList<>();
+        }
+        for (int[] edge : edges) {
+            adj[edge[0]].add(edge[1]);
+            adj[edge[1]].add(edge[0]);
+        }
+        dfs(0, -1);
+        return res;
+    }
+
+    public int dfs(int node, int parent) {
+        int treeSize = 0;
+        int subtreeSize = 0;
+        boolean valid = true;
+        for (int child : adj[node]) {
+            if (child != parent) {
+                int size = dfs(child, node);
+                if (subtreeSize == 0) {
+                    subtreeSize = size;
+                } else if (subtreeSize != size) {
+                    valid = false;
+                }
+                treeSize += size;
+            }
+        }
+        if (valid) {
+            res++;
+        }
+        return treeSize + 1;
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def countGoodNodes(self, edges: List[List[int]]) -> int:
+        self.res = 0
+        n = len(edges) + 1
+        adj = [[] for _ in range(n)]
+        for x, y in edges:
+            adj[x].append(y)
+            adj[y].append(x)
+
+        def dfs(node: int, parent: int) -> int:
+            treeSize = 0
+            subtreeSize = 0
+            valid = True
+            for child in adj[node]:
+                if child != parent:
+                    size = dfs(child, node)
+                    if subtreeSize == 0:
+                        subtreeSize = size
+                    elif subtreeSize != size:
+                        valid = False
+                    treeSize += size
+            if valid:
+                self.res += 1
+            return treeSize + 1
+
+        dfs(0, -1)
+        return self.res
+```
+
+**复杂度分析**
+
+- 时间复杂度：$O(n)$。
+
+- 空间复杂度：$O(n)$。
+

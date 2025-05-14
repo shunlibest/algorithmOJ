@@ -1,0 +1,425 @@
+「出现次数超过数组元素总数的 $25\%$」等价于出现次数至少为 $\left\lfloor\dfrac{n}{4}\right\rfloor+1$，其中 $n$ 是 $\textit{arr}$ 的长度。
+
+由于 $\textit{arr}$ 是有序的，所有相同的元素必定组成一个连续子数组。利用这个性质，我们无需遍历整个数组，而是检查若干下标 $i$，然后 [34. 在排序数组中查找元素的第一个和最后一个位置](https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/)，从而计算等于 $\textit{arr}[i]$ 的元素个数。
+
+例如 $n=4$，我们只需检查下标 $1$ 和 $3$，其中一定有一个 $\textit{arr}[i]$ 的出现次数至少为 $\left\lfloor\dfrac{n}{4}\right\rfloor+1=2$：
+
+$$
+0,\underline{1},2,\underline{3}
+$$
+
+**证明**：用反证法证明。假设 $\textit{arr}[1]$ 和 $\textit{arr}[3]$ 的出现次数都小于 $2$，那么剩下的两个数 $\textit{arr}[0]$ 和 $\textit{arr}[2]$ 的出现次数至多是 $1$，于是整个数组都没有出现次数至少为 $2$ 的数，但题目又保证这样的数一定存在，矛盾。所以原命题成立。
+
+又例如 $n=10$，我们只需检查下标 $2$、$5$ 和 $8$，其中一定有一个 $\textit{arr}[i]$ 的出现次数至少为 $\left\lfloor\dfrac{n}{4}\right\rfloor+1=3$：
+
+$$
+0,1,\underline{2},3,4,\underline{5},6,7,\underline{8},9
+$$
+
+**证明**：用反证法证明。假设 $\textit{arr}[2]$、$\textit{arr}[5]$ 和 $\textit{arr}[8]$ 的出现次数都小于 $3$，由于其余元素的出现次数至多是 $2$，于是整个数组都没有出现次数至少为 $3$ 的数，与已知条件矛盾。所以原命题成立。
+
+设 $m=\left\lfloor\dfrac{n}{4}\right\rfloor$。一般地，我们至多检查 $3$ 个下标 $m,2m+1,3m+2$，其中一定有一个 $\textit{arr}[i]$ 的出现次数至少为 $m+1$。
+
+**证明**：用反证法证明。假设 $\textit{arr}[m]$、$\textit{arr}[2m+1]$ 和 $\textit{arr}[3m+2]$ 的出现次数都小于 $m+1$，那么：
+
+- 下标在 $[0,m-1]$ 中的数，出现次数至多为 $m$。（注：这也可以反证，如果出现次数大于 $m$，那么必然包含 $\textit{arr}[m]$，矛盾。）
+- 下标在 $[m+1,2m]$ 中的数，出现次数至多为 $m$。
+- 下标在 $[2m+2,3m+1]$ 中的数，出现次数至多为 $m$。
+- 下标在 $[3m+3,n-1]$ 中的数，出现次数至多为 $n-3m-3$。由于 $4m=4\left\lfloor\dfrac{n}{4}\right\rfloor = n-(n\bmod 4)\ge n-3$，所以移项得 $n-3m-3\le m$。
+
+于是整个数组都没有出现次数至少为 $m+1$ 的数，与已知条件矛盾。所以原命题成立。
+
+综上所述，我们只需检查 $m,2m+1,3m+2$ 这三个下标（$\ge n$ 的下标不检查），然后用 [34. 在排序数组中查找元素的第一个和最后一个位置](https://leetcode.cn/problems/find-first-and-last-position-of-element-in-sorted-array/) 的算法，计算 $\ge \textit{arr}[i]$ 的第一个位置 $p$ 和 $> \textit{arr}[i]$ 的第一个位置 $q$，那么下标在 $[p,q-1]$ 中的数都等于 $\textit{arr}[i]$，所以 $\textit{arr}[i]$ 的出现次数是 $q-p$。如果出现次数 $\ge m+1$，即 $> m$，那么返回 $\textit{arr}[i]$。
+
+由于题目保证答案一定存在，可以只检查 $m$ 和 $2m+1$ 这两个下标，如果都不符合要求，那么答案一定是 $\textit{arr}[3m+2]$。这样可以少跑两次二分。
+
+> 注：虽然 $n=1$ 的时候 $2m+1=1$ 越界，但 $i=m=0$ 的时候一定会返回 $\textit{arr}[0]$，所以不会出现这种情况。
+
+### 优化前：四次二分
+
+* [sol-Python3]
+
+```py
+class Solution:
+    def findSpecialInteger(self, arr: List[int]) -> int:
+        m = len(arr) // 4
+        for i in (m, m * 2 + 1):
+            x = arr[i]
+            if bisect_right(arr, x) - bisect_left(arr, x) > m:
+                return x
+        # 如果答案不是 arr[m] 也不是 arr[2m+1]，那么答案一定是 arr[3m+2]
+        return arr[m * 3 + 2]
+```
+
+* [sol-Java]
+
+```java
+class Solution {
+    public int findSpecialInteger(int[] arr) {
+        int m = arr.length / 4;
+        for (int i : new int[]{m, m * 2 + 1}) {
+            int x = arr[i];
+            // > x 等价于 >= x+1
+            if (lowerBound(arr, x + 1) - lowerBound(arr, x) > m) {
+                return x;
+            }
+        }
+        // 如果答案不是 arr[m] 也不是 arr[2m+1]，那么答案一定是 arr[3m+2]
+        return arr[m * 3 + 2];
+    }
+
+    // lowerBound 返回最小的满足 nums[i] >= target 的下标 i
+    // 如果数组为空，或者所有数都 < target，则返回 nums.length
+    // 要求 nums 是非递减的，即 nums[i] <= nums[i + 1]
+    // 原理见 https://www.bilibili.com/video/BV1AP41137w7/
+    private int lowerBound(int[] nums, int target) {
+        int left = -1;
+        int right = nums.length; // 开区间 (left, right)
+        while (left + 1 < right) { // 区间不为空
+            // 循环不变量：
+            // nums[left] < target
+            // nums[right] >= target
+            int mid = left + (right - left) / 2;
+            if (nums[mid] >= target) {
+                right = mid; // 范围缩小到 (left, mid)
+            } else {
+                left = mid; // 范围缩小到 (mid, right)
+            }
+        }
+        // 循环结束后 left+1 = right
+        // 此时 nums[left] < target 而 nums[right] >= target
+        // 所以 right 就是第一个 >= target 的元素下标
+        return right;
+    }
+}
+```
+
+* [sol-C++]
+
+```cpp
+class Solution {
+public:
+    int findSpecialInteger(vector<int>& arr) {
+        int m = arr.size() / 4;
+        for (int i : {m, m * 2 + 1}) {
+            int x = arr[i];
+            if (ranges::upper_bound(arr, x) - ranges::lower_bound(arr, x) > m) {
+                return x;
+            }
+        }
+        // 如果答案不是 arr[m] 也不是 arr[2m+1]，那么答案一定是 arr[3m+2]
+        return arr[m * 3 + 2];
+    }
+};
+```
+
+* [sol-C++写法二]
+
+```cpp
+class Solution {
+public:
+    int findSpecialInteger(vector<int>& arr) {
+        int m = arr.size() / 4;
+        for (int i : {m, m * 2 + 1}) {
+            int x = arr[i];
+            auto [p, q] = ranges::equal_range(arr, x);
+            if (q - p > m) {
+                return x;
+            }
+        }
+        // 如果答案不是 arr[m] 也不是 arr[2m+1]，那么答案一定是 arr[3m+2]
+        return arr[m * 3 + 2];
+    }
+};
+```
+
+* [sol-C]
+
+```c
+// lowerBound 返回最小的满足 nums[i] >= target 的下标 i
+// 如果数组为空，或者所有数都 < target，则返回 numsSize
+// 要求 nums 是非递减的，即 nums[i] <= nums[i + 1]
+// 原理见 https://www.bilibili.com/video/BV1AP41137w7/
+int lowerBound(int* nums, int numsSize, int target) {
+    int left = -1, right = numsSize; // 开区间 (left, right)
+    while (left + 1 < right) { // 区间不为空
+        // 循环不变量：
+        // nums[left] < target
+        // nums[right] >= target
+        int mid = left + (right - left) / 2;
+        if (nums[mid] >= target) {
+            right = mid; // 范围缩小到 (left, mid)
+        } else {
+            left = mid; // 范围缩小到 (mid, right)
+        }
+    }
+    // 循环结束后 left+1 = right
+    // 此时 nums[left] < target 而 nums[right] >= target
+    // 所以 right 就是第一个 >= target 的元素下标
+    return right;
+}
+
+int findSpecialInteger(int* arr, int arrSize) {
+    int m = arrSize / 4;
+    for (int i = m; i <= m * 2 + 1; i += m + 1) {
+        int x = arr[i];
+        // > x 等价于 >= x+1
+        if (lowerBound(arr, arrSize, x + 1) - lowerBound(arr, arrSize, x) > m) {
+            return x;
+        }
+    }
+    // 如果答案不是 arr[m] 也不是 arr[2m+1]，那么答案一定是 arr[3m+2]
+    return arr[m * 3 + 2];
+}
+```
+
+* [sol-Go]
+
+```go
+func findSpecialInteger(arr []int) int {
+    m := len(arr) / 4
+    for _, i := range []int{m, m*2 + 1} {
+        x := arr[i]
+        // > x 等价于 >= x+1
+        if sort.SearchInts(arr, x+1)-sort.SearchInts(arr, x) > m {
+            return x
+        }
+    }
+    // 如果答案不是 arr[m] 也不是 arr[2m+1]，那么答案一定是 arr[3m+2]
+    return arr[m*3+2]
+}
+```
+
+* [sol-JavaScript]
+
+```js
+var findSpecialInteger = function(arr) {
+    const m = Math.floor(arr.length / 4);
+    for (const i of [m, m * 2 + 1]) {
+        const x = arr[i];
+        if (_.sortedLastIndex(arr, x) - _.sortedIndex(arr, x) > m) {
+            return x;
+        }
+    }
+    // 如果答案不是 arr[m] 也不是 arr[2m+1]，那么答案一定是 arr[3m+2]
+    return arr[m * 3 + 2];
+};
+```
+
+* [sol-Rust]
+
+```rust
+impl Solution {
+    pub fn find_special_integer(arr: Vec<i32>) -> i32 {
+        let m = arr.len() / 4;
+        for i in [m, m * 2 + 1] {
+            let x = arr[i];
+            if arr.partition_point(|&y| y <= x) - arr.partition_point(|&y| y < x) > m {
+                return x;
+            }
+        }
+        // 如果答案不是 arr[m] 也不是 arr[2m+1]，那么答案一定是 arr[3m+2]
+        arr[m * 3 + 2]
+    }
+}
+```
+
+### 优化：两次二分
+
+上面的做法是，直接求出恰好等于 $x=\textit{arr}[i]$ 的元素个数。
+
+但本题只要求判断元素个数是否大于 $m$，我们可以先求出最左边的 $x$ 的下标 $j$，然后判断 $\textit{arr}[j+m]$ 是否等于 $x$。这样又可以少跑两次二分。
+
+**问**：$j+m$ 会不会下标越界？
+
+**答**：不会。反证法，如果下标越界，说明没有符合要求的数，与题目给定条件矛盾。
+
+* [sol-Python3]
+
+```py
+class Solution:
+    def findSpecialInteger(self, arr: List[int]) -> int:
+        m = len(arr) // 4
+        for i in (m, m * 2 + 1):
+            x = arr[i]
+            j = bisect_left(arr, x)
+            if arr[j + m] == x:
+                return x
+        return arr[m * 3 + 2]
+```
+
+* [sol-Java]
+
+```java
+class Solution {
+    public int findSpecialInteger(int[] arr) {
+        int m = arr.length / 4;
+        for (int i : new int[]{m, m * 2 + 1}) {
+            int x = arr[i];
+            int j = lowerBound(arr, x);
+            if (arr[j + m] == x) {
+                return x;
+            }
+        }
+        return arr[m * 3 + 2];
+    }
+
+    // lowerBound 返回最小的满足 nums[i] >= target 的下标 i
+    // 如果数组为空，或者所有数都 < target，则返回 nums.length
+    // 要求 nums 是非递减的，即 nums[i] <= nums[i + 1]
+    // 原理见 https://www.bilibili.com/video/BV1AP41137w7/
+    private int lowerBound(int[] nums, int target) {
+        int left = -1;
+        int right = nums.length; // 开区间 (left, right)
+        while (left + 1 < right) { // 区间不为空
+            // 循环不变量：
+            // nums[left] < target
+            // nums[right] >= target
+            int mid = left + (right - left) / 2;
+            if (nums[mid] >= target) {
+                right = mid; // 范围缩小到 (left, mid)
+            } else {
+                left = mid; // 范围缩小到 (mid, right)
+            }
+        }
+        // 循环结束后 left+1 = right
+        // 此时 nums[left] < target 而 nums[right] >= target
+        // 所以 right 就是第一个 >= target 的元素下标
+        return right;
+    }
+}
+```
+
+* [sol-C++]
+
+```cpp
+class Solution {
+public:
+    int findSpecialInteger(vector<int>& arr) {
+        int m = arr.size() / 4;
+        for (int i : {m, m * 2 + 1}) {
+            int x = arr[i];
+            int j = ranges::lower_bound(arr, x) - arr.begin();
+            if (arr[j + m] == x) {
+                return x;
+            }
+        }
+        return arr[m * 3 + 2];
+    }
+};
+```
+
+* [sol-C]
+
+```c
+// lowerBound 返回最小的满足 nums[i] >= target 的下标 i
+// 如果数组为空，或者所有数都 < target，则返回 numsSize
+// 要求 nums 是非递减的，即 nums[i] <= nums[i + 1]
+// 原理见 https://www.bilibili.com/video/BV1AP41137w7/
+int lowerBound(int* nums, int numsSize, int target) {
+    int left = -1, right = numsSize; // 开区间 (left, right)
+    while (left + 1 < right) { // 区间不为空
+        // 循环不变量：
+        // nums[left] < target
+        // nums[right] >= target
+        int mid = left + (right - left) / 2;
+        if (nums[mid] >= target) {
+            right = mid; // 范围缩小到 (left, mid)
+        } else {
+            left = mid; // 范围缩小到 (mid, right)
+        }
+    }
+    // 循环结束后 left+1 = right
+    // 此时 nums[left] < target 而 nums[right] >= target
+    // 所以 right 就是第一个 >= target 的元素下标
+    return right;
+}
+
+int findSpecialInteger(int* arr, int arrSize) {
+    int m = arrSize / 4;
+    for (int i = m; i <= m * 2 + 1; i += m + 1) {
+        int x = arr[i];
+        int j = lowerBound(arr, arrSize, x);
+        if (arr[j + m] == x) {
+            return x;
+        }
+    }
+    return arr[m * 3 + 2];
+}
+```
+
+* [sol-Go]
+
+```go
+func findSpecialInteger(arr []int) int {
+    m := len(arr) / 4
+    for _, i := range []int{m, m*2 + 1} {
+        x := arr[i]
+        j := sort.SearchInts(arr, x)
+        if arr[j+m] == x {
+            return x
+        }
+    }
+    return arr[m*3+2]
+}
+```
+
+* [sol-JavaScript]
+
+```js
+var findSpecialInteger = function(arr) {
+    const m = Math.floor(arr.length / 4);
+    for (const i of [m, m * 2 + 1]) {
+        const x = arr[i];
+        const j = _.sortedIndex(arr, x);
+        if (arr[j + m] == x) {
+            return x;
+        }
+    }
+    return arr[m * 3 + 2];
+};
+```
+
+* [sol-Rust]
+
+```rust
+impl Solution {
+    pub fn find_special_integer(arr: Vec<i32>) -> i32 {
+        let m = arr.len() / 4;
+        for i in [m, m * 2 + 1] {
+            let x = arr[i];
+            let j = arr.partition_point(|&y| y < x);
+            if arr[j + m] == x {
+                return x;
+            }
+        }
+        arr[m * 3 + 2]
+    }
+}
+```
+
+#### 复杂度分析
+
+- 时间复杂度：$\mathcal{O}(\log n)$，其中 $n$ 是 $\textit{arr}$ 的长度。
+- 空间复杂度：$\mathcal{O}(1)$。
+
+## 分类题单
+
+[如何科学刷题？](https://leetcode.cn/circle/discuss/RvFUtj/)
+
+1. [滑动窗口与双指针（定长/不定长/单序列/双序列/三指针/分组循环）](https://leetcode.cn/circle/discuss/0viNMK/)
+2. [二分算法（二分答案/最小化最大值/最大化最小值/第K小）](https://leetcode.cn/circle/discuss/SqopEo/)
+3. [单调栈（基础/矩形面积/贡献法/最小字典序）](https://leetcode.cn/circle/discuss/9oZFK9/)
+4. [网格图（DFS/BFS/综合应用）](https://leetcode.cn/circle/discuss/YiXPXW/)
+5. [位运算（基础/性质/拆位/试填/恒等式/思维）](https://leetcode.cn/circle/discuss/dHn9Vk/)
+6. [图论算法（DFS/BFS/拓扑排序/最短路/最小生成树/二分图/基环树/欧拉路径）](https://leetcode.cn/circle/discuss/01LUak/)
+7. [动态规划（入门/背包/状态机/划分/区间/状压/数位/数据结构优化/树形/博弈/概率期望）](https://leetcode.cn/circle/discuss/tXLS3i/)
+8. [常用数据结构（前缀和/差分/栈/队列/堆/字典树/并查集/树状数组/线段树）](https://leetcode.cn/circle/discuss/mOr1u6/)
+9. [数学算法（数论/组合/概率期望/博弈/计算几何/随机算法）](https://leetcode.cn/circle/discuss/IYT3ss/)
+10. [贪心与思维（基本贪心策略/反悔/区间/字典序/数学/思维/脑筋急转弯/构造）](https://leetcode.cn/circle/discuss/g6KTKL/)
+11. [链表、二叉树与回溯（前后指针/快慢指针/DFS/BFS/直径/LCA/一般树）](https://leetcode.cn/circle/discuss/K0n2gO/)
+12. [字符串（KMP/Z函数/Manacher/字符串哈希/AC自动机/后缀数组/子序列自动机）](https://leetcode.cn/circle/discuss/SJFwQI/)
+
+[我的题解精选（已分类）](https://github.com/EndlessCheng/codeforces-go/blob/master/leetcode/SOLUTIONS.md)
+
+欢迎关注 [B站@灵茶山艾府](https://space.bilibili.com/206214)

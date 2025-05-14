@@ -1,0 +1,88 @@
+> Problem: [2901. 最长相邻不相等子序列 II](https://leetcode.cn/problems/longest-unequal-adjacent-groups-subsequence-ii/description/)
+
+[TOC]
+
+# 思路
+
+> 讲述看到这一题的思路
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+- 时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+- 空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```C++
+
+class Solution {
+public:
+    vector<string> getWordsInLongestSubsequence(int n, vector<string>& words, vector<int>& groups) 
+    {
+        //记录以i为结尾的最长长度,定后缀求最大,第一个位置只有一个字符串初始化为1
+        vector<int> ans(n,0);
+        ans[0]=1;
+        //记录i的前一项是什么,初始时都没有前一项,也就是-1就是开头
+        vector<int> from(n,-1);
+        //判断两个字符串是否符合条件
+        function<bool(string,string)> check=[&](string x,string y)
+        {
+            if(x.size()!=y.size()) return false;
+            int cnt=0;
+            for(int i=0;i<x.size();i++)
+            {
+                if(x[i]!=y[i])cnt++;
+                if(cnt>=2) return false;
+            }
+            return true;
+        };
+
+        int mx=1;//记录最大长度
+        int jl=0;//记录最大长度的末尾
+        for(int i=1;i<words.size();i++)
+        {
+            //遍历 0 --> (i-1)为后缀的情况,递推到i
+            for(int j=0;j<i;j++)
+            {
+                if((groups[i]!=groups[j])&&check(words[i],words[j]))
+                {
+                    //符合条件后,求以i结尾最大长度,和来源
+                    if(ans[i]<ans[j]+1)
+                    {
+                        ans[i]=ans[j]+1;
+                        from[i]=j;
+                    }
+                }
+                else ans[i]=max(1,ans[i]);
+                //找不到的情况就是不符合条件,那么以他自己为最长
+            }
+            if(ans[i]>mx)
+            {
+                //找最大和最大的后缀的位置
+                mx=ans[i];
+                jl=i;
+            }
+        }
+        //记录答案
+        vector<string> t;
+        //-1的位置就是开头,一开始全部都初始化为了-1
+        //把从最长后缀的位置往回退,获得倒着的答案
+        for(int i=jl;i!=-1;i=from[i]) t.push_back(words[i]);
+        //翻转过来
+        reverse(t.begin(),t.end());
+        return t;
+    }
+};
+```
+

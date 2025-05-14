@@ -1,0 +1,51 @@
+第一种思路是令状态方程为二维的，dp[i,j]表示为第i个题选或不选的最大值(j = 0或1)
+
+此时状态转移为
+
+- `dp[i][0] = max(dp[i + 1][1],dp[i + 1][0])` 第i件不选的情况
+- `dp[i][1] = q[i - 1][0] 选择了i件后，之后的全不能选`
+- `dp[i][1] = q[i - 1][0] + Math.max(dp[r + 1][0],dp[r + 1][1]) 选择了i件后，还可以选后面的`
+
+* java
+
+```java
+class Solution {
+    public long mostPoints(int[][] q) {
+        int n = q.length;
+        long[][] dp = new long[n + 1][2];
+        dp[n][1] = q[n - 1][0];
+        for(int i = n - 1;i > 0;i--){
+            int r = i + q[i - 1][1];
+            dp[i][0] = Math.max(dp[i + 1][1],dp[i + 1][0]);
+            dp[i][1] = q[i - 1][0];
+            if(r + 1 <= n) dp[i][1] += Math.max(dp[r + 1][0],dp[r + 1][1]);
+        }
+        return Math.max(dp[1][0],dp[1][1]);
+    }
+}
+```
+
+第二种是一维的，dp[i]就是选或不选的最大值
+
+- 如果不选，则不选的最大值，应该是后面选或不选的最大值，所以直接相等。
+- 如果选，则和上面二维的一样。
+
+* java
+
+```java
+class Solution {
+    public long mostPoints(int[][] q) {
+        int n = q.length;
+        long[] dp = new long[n + 1];
+        dp[n] = q[n - 1][0];
+        for(int i = n - 1;i > 0;i--){
+            int r = i + q[i - 1][1];
+            long no = dp[i + 1];
+            long y = q[i - 1][0] + (r < n ? dp[r + 1] : 0);
+            dp[i] = y < no ? no : y;
+        }
+        return dp[1];
+    }
+}
+```
+

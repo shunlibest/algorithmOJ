@@ -1,0 +1,74 @@
+> Problem: [841. 钥匙和房间](https://leetcode.cn/problems/keys-and-rooms/description/)
+
+[TOC]
+
+# 思路
+
+> BFS，用一个队列存放房间中所有钥匙的信息，再用一个visited记录当前房间是否被访问过
+
+# 解题方法
+
+> 注释写的很详细
+
+# 复杂度
+
+时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```C++
+class Solution {
+public:
+    bool canVisitAllRooms(vector<vector<int>>& rooms) {
+        // 0号房间中无钥匙，直接返回false
+        if (rooms[0].size() == 0)
+            return false;
+
+        // 定义一个数组记录这个房间是否被访问过
+        vector<bool> visited(rooms.size(), false);
+        // 记录下一个钥匙能打开的房门号
+        queue<int> que;
+
+        // 将第0号房间中所包含的的钥匙都放入队列中
+        visited[0] = true;        
+        for (auto ele : rooms[0]) {
+            que.push(ele);
+        }
+
+        while (!que.empty()) {
+            // 取出一把钥匙，判断其能打开的房间是否存在
+            int room_num = que.front();
+            que.pop();
+
+            // 这把钥匙能打开的房间已经访问过了
+            if (visited[room_num] == true) {
+                continue;
+            }
+
+            // 这个房间没有被访问过，则把这个房间中所有钥匙放入队列中，标记这个房间号已访问过
+            visited[room_num] = true;
+            for (auto ele : rooms[room_num]) {
+                que.push(ele);
+            }
+        }
+
+        // 如果存在没有被访问过的房间，则返回false
+        for (auto flag : visited) {
+            if (!flag) {
+                return false;
+            }
+        }
+        // 所有房间都被访问过了
+        return true;
+    }
+};
+```
+

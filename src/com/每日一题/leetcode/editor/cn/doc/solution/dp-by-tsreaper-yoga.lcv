@@ -1,0 +1,39 @@
+## 解法：DP
+
+设经过的方格为 $c_1, c_2, \cdots, c_k$，那么得分为 $(c_2 - c_1) + (c_3 - c_2) + \cdots + (c_k - c_{k - 1}) = c_k - c_1$，也就是说得分只和路径上第一个方格以及最后一个方格有关。
+
+因此问题变为：给一个矩阵，每次可以往右或往下走，对于每个终点，问起点的最小值可以是多少。
+
+设 $f(i, j)$ 表示终点在方格 $(i, j)$ 时，起点的最小值，则 DP 方程为
+
+$$
+f(i, j) = \min(f(i - 1, j), f(i, j - 1), a_{i, j})
+$$
+
+当然，由于题目要求我们至少移动一步，因此答案是 $\min(a_{i, j} - \min(f(i - 1, j), f(i, j - 1)))$。
+
+复杂度 $\mathcal{O}(nm)$。
+
+## 参考代码（c++）
+
+* c++
+
+```c++
+class Solution {
+public:
+    int maxScore(vector<vector<int>>& grid) {
+        int n = grid.size(), m = grid[0].size();
+        long long f[n][m];
+        long long ans = -1e18;
+        for (int i = 0; i < n; i++) for (int j = 0; j < m; j++) {
+            long long mn = 1e18;
+            if (i > 0) mn = min(mn, f[i - 1][j]);
+            if (j > 0) mn = min(mn, f[i][j - 1]);
+            ans = max(ans, grid[i][j] - mn);
+            f[i][j] = min(1LL* grid[i][j], mn);
+        }
+        return ans;
+    }
+};
+```
+

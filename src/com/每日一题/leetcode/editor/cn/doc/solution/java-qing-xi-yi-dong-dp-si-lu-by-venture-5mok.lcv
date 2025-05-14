@@ -1,0 +1,53 @@
+![...Consecutive Ones.mp4](https://leetcode.cn/problems/non-negative-integers-without-consecutive-ones/solution/java-qing-xi-yi-dong-dp-si-lu-by-venture-5mok/8943576f-b9db-4976-8d12-fc3df5aa4d49)
+
+### 更多精彩视频题解还请查看个人主页  https://space.bilibili.com/479038960
+
+### 代码
+
+* java
+
+```java
+class Solution {
+    public int findIntegers(int num) {
+        /*
+        dp[i] = dp[i - 1] + dp[i - 2]
+        */
+        int[] dp = new int[32];
+        dp[0] = 1;
+        dp[1] = 2;
+        dp[2] = 3;
+        
+        for(int i = 3; i < 32; i++)
+            dp[i] = dp[i - 1] + dp[i - 2];
+        
+        //15  _/  1111
+        String numStr = getBinary(num);
+        
+        int res = 0;
+        for(int i = 0; i< numStr.length(); i++){
+            if(numStr.charAt(i) == '0')
+                continue;
+            
+            res += dp[numStr.length() - i - 1];
+            if(i != 0 && numStr.charAt(i - 1) == '1')
+                return res;
+        }
+        
+        return res + 1;
+    }
+    
+    
+    //get the binary form of number
+    //15  -> 1111
+    private String getBinary(int num){
+        StringBuilder sb = new StringBuilder();
+        while(num > 0){
+            sb.insert(0, num & 1);
+            num >>= 1;
+        }
+        
+        return sb.toString();
+    }
+}
+```
+

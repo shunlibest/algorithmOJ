@@ -1,0 +1,45 @@
+### 解题思路
+
+遍历数组，数组的每一项都有选和不选两种状态、求最优解，很自然的会想到动态规划的解法
+
+根据依赖关系，我们知道第`i`项，
+
+> 选择的话可以反过来依赖于后面的`i+ questions[i][1]+1`位置的最大值的情况
+> 而如果不选择的话可以依赖于第`i+1`项的最大值
+
+如下图`int[][] questions`数组
+![空白白板 (5).png](https://pic.leetcode-cn.com/1644483112-wRWuII-%E7%A9%BA%E7%99%BD%E7%99%BD%E6%9D%BF%20(5).png)
+
+末位可以直接当前`questions[i][0]`即可，就是65
+
+到了倒数第二位值为`49`的时候，往后隔4个位置找不到存在的值，那么就只能和最后一位的`65`对比，结果显然应该放弃`49`,继续选择`65`，接下来继续往前
+
+![空白白板 (6).png](https://pic.leetcode-cn.com/1644483384-tNmFXz-%E7%A9%BA%E7%99%BD%E7%99%BD%E6%9D%BF%20(6).png)
+
+到了值为`58`的时候，往后隔2个位置最大值`65`，如果当前位置也选的话可以得到新的最大值`123`，如果不选的话则依旧集成后面一位的时候的最大值情况`65`，此时自然应当选择`123`，后面就继续重复这个过程，直到遍历到数组开头位置，
+
+![空白白板 (7).png](https://pic.leetcode-cn.com/1644483628-apWvLf-%E7%A9%BA%E7%99%BD%E7%99%BD%E6%9D%BF%20(7).png)
+
+> 两个小细节
+> `questions[i][0]`会比`dp[i+1]`大，需要比较下
+> 另外本题返回结果是`long`，数值会比较大，应当定义为`long[] dp`的数组
+
+### 代码
+
+* java
+
+```java
+class Solution {
+    public long mostPoints(int[][] questions) {
+        int n = questions.length;
+        long[] dp = new long[n];
+        dp[n-1] = questions[n-1][0];
+        for (int i = n - 2; i >= 0; i--) {
+            int nextIdx = i + questions[i][1] + 1;
+            dp[i] = nextIdx >= n? Math.max(dp[i+1],questions[i][0]):Math.max(dp[i+1],questions[i][0]+dp[nextIdx]);
+        }
+        return dp[0];
+    }
+}
+```
+

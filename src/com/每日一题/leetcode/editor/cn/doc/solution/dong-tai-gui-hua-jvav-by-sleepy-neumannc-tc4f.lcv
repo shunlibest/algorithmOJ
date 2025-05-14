@@ -1,0 +1,68 @@
+> Problem: [100289. 分割字符频率相等的最少子字符串](https://leetcode.cn/problems/minimum-substring-partition-of-equal-character-frequency/description/)
+
+[TOC]
+
+# 思路
+
+> 二分想过 但是无法确定，并且可以发现每一个后面的数据都会影响到前面的。
+> 假设最后一个值i分别可以和第i-1,i-2,i-3...0个数据构成数据
+> 那么第i个字符所能构成的最小值就是
+> min(当前字符串与前n位进行分割 + 前n位可以构成的最小频率)
+
+# 解题方法
+
+> 问题在于状态， 如果每一次都和前n位置计算太过于缓慢 可以将前n位的数据信息保存起来，这样的话对于之前每一个位置只需要花费$O(26)$进行计算，对于每一个最后的字符串，都要和前面的进行匹配，共需要花费$O(26n)$.
+> 我们需要模拟每一个位置都为最后位置，共需要花费$O(26n^2)$.
+
+# 复杂度
+
+时间复杂度:
+
+> 添加时间复杂度, 示例： $O(26n^2)$.
+
+空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public int minimumSubstringsInPartition(String s) {
+//     dp[i][27] 代表所最少消耗数据
+        int[][] dp = new int[s.length() + 1][27];
+        for (int i = 1; i < s.length() + 1; i++) {
+            char c = s.charAt(i - 1);
+//          每当循环到一个值 我们将这个值在其之前的所有位置都加上，(模拟以前n为结尾到当前的剩余数据)
+            for (int j = 0; j < i; j++) {
+                dp[j][c - 'a']++;
+            }
+//            默认值为前一个值 + 1(其实也可以不要 因为后面会匹配到)
+            dp[i][26] = dp[i-1][26] + 1;
+//            循环所有可能性
+            for (int j = 0; j < i; j++) {
+                int count = 0;
+//                如果以j分割的字串平衡(检查改该字符串是否能和前面构成平衡字符串)
+                for (int k = 0; k < 26; k++) {
+                    if(dp[j][k] == 0) continue;
+//                    第一次出现非0
+                    if(dp[j][k] != 0 && count == 0) {
+                        count = dp[j][k];
+                        continue;
+                    }
+                    if(dp[j][k] != 0 && dp[j][k] != count) {
+                        count = -2;
+                        break;
+                    }
+                }
+//              这里有一个小判断 因为前面的检查平衡字符串有点小问题 需要打个补丁
+                if(count != -2) dp[i][26] = Math.min(dp[i][26], dp[j][26] + 1);
+            }
+        }
+        return dp[s.length()][26];
+    }
+}
+```
+

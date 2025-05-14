@@ -1,0 +1,58 @@
+### 解题思路
+
+注意一件事。
+给好友按照层级编号，某些好友可能并不是k级，在这之前如果就出现了的话，是不能被当做k级好友的。
+
+### 代码
+
+* java
+
+```java
+class Solution {
+
+
+	public List<String> watchedVideosByFriends(List<List<String>> watchedVideos, int[][] friends, int id, int level) {
+		int n = friends.length;
+		Integer[] idxs = new Integer[n];
+		idxs[id] = 0;
+		Queue<Integer> queue = new LinkedList<>();
+		int l = 1;
+		for (int i = 0; i < friends[id].length; i++) {
+			int idx = friends[id][i];
+			queue.add(idx);
+			idxs[idx] = l;
+		}
+		while (l < level) {
+			int size = queue.size();
+			l++;
+			while (size > 0) {
+				int cur = queue.poll();
+				for (int i = 0; i < friends[cur].length; i++) {
+					int idx = friends[cur][i];
+					if (idxs[idx] == null) {
+						queue.add(idx);
+						idxs[idx] = l;
+					}
+				}
+				size--;
+			}
+		}
+		Map<String, Integer> cnts = new HashMap<>();
+		Set<String> set = new HashSet<>();
+		while (!queue.isEmpty()) {
+			int cur = queue.poll();
+			for (String video : watchedVideos.get(cur)) {
+				set.add(video);
+				cnts.put(video, cnts.getOrDefault(video, 0) + 1);
+			}
+		}
+		List<String> ans = new ArrayList<>(set);
+		Collections.sort(ans, (a, b) -> cnts.get(a) == cnts.get(b) ? a.compareTo(b) : cnts.get(a) - cnts.get(b));
+		return ans;
+	}
+
+
+
+}
+```
+

@@ -1,0 +1,57 @@
+> Problem: [983. 最低票价](https://leetcode.cn/problems/minimum-cost-for-tickets/description/)
+
+**//这里使用常规的思想去更新dp[i],其含义为从days[0]-days[i]为完成旅行计划所要的花费，每次更新的时候去判断是否使用7天票和30天票所花费更少即可**
+
+# Code
+
+* []
+
+```C++
+// class Solution {
+// public:
+//     int mincostTickets(vector<int>& days, vector<int>& costs) {
+// //这是一道稍显不寻常的动态规划的题目，因为一般的dp数组是从左到右去递推，即后面的状态依赖前面的状态
+// //而这里正好相反，因为今日选择买什么票取决于后面的天是否出门，因此这里选择从后往前去推会更好理解
+// //dp[i]的含义为从第i天起到最后一天的出门日，所需要的买的票的最少的总金额数，
+// //状态转移方程为dp[i]=min(dp[i+1]+2,dp[i+7]+7,dp[i+30]+15)
+// int len=days.size();//总共的出门天数
+// int maxday=days[len-1];//最后一个出门日
+// int minday=days[0];//第一个出门日
+// vector<int>dp(maxday+31,0);//设置dp数组的容量以及初始值
+
+// for(int d=maxday,i=len-1;d>=minday;d--){
+//     //按天从maxday遍历到minday，到达每个出门的结点都要进行决策上的判断，选择一个最小值
+//     if(d==days[i]){
+//         dp[d]=min({dp[d+1]+costs[0],dp[d+7]+costs[1],dp[d+30]+costs[2]});
+//         i--;//更新目标为下一个出门日
+//     }
+//     else{
+//         dp[d]=dp[d+1];//若不出门的情况下
+//     }
+// }
+// return dp[minday];
+//     }
+// };
+class Solution {
+public:
+    int mincostTickets(vector<int>& days, vector<int>& costs) {
+//这里使用常规的思想去更新dp[i],其含义为从days[0]-days[i]为完成旅行计划所要的花费，每次更新的时候去判断是否使用7天票和30天票所花费更少即可
+int n=days.size();
+vector<int> dp(n+1);
+dp[0]=0;
+for(int i=1;i<=n;i++){
+    dp[i]=dp[i-1]+costs[0];
+    for(int j=0;j<=i-1;j++){
+        if(days[i-1]-days[j]<=6){
+            dp[i]=min(dp[i],dp[j]+costs[1]);
+        }
+        if(days[i-1]-days[j]<=29){
+            dp[i]=min(dp[i],dp[j]+costs[2]);
+        }
+    }
+}
+return dp[n];
+    }
+};
+```
+

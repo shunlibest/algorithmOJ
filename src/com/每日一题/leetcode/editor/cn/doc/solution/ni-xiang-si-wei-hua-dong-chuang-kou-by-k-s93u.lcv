@@ -1,0 +1,44 @@
+# [3258. 统计满足 K 约束的子字符串数量 I](https://leetcode.cn/problems/count-substrings-that-satisfy-k-constraint-i/)
+
+## 思路
+
+逆向思维+滑动窗口
+
+> 如何逆向？
+
+一个长度为 $n$ 的字符串的连续子串的个数为 $1+2+...+n=\frac{(1+n)*n}{2}$
+
+本题的条件是 $A||B$，因此只需求出$(-A)\&\&(-B)$——求出同时包含$k+1$个0和$k+1$个1的连续子字符串，用连续子串的总个数相减即可；
+
+> 如何滑动窗口？
+
+对于一个已经至少同时包含$k+1$个0和$k+1$个1的字符串，后面无论怎么添加0或1，这个字符串都满足条件。
+
+因此我们只需要求出以 $i$ 为起点，至少同时包含$k+1$个0和$k+1$个1的最短字符串，假设此时右窗口为 $right$，则有 $n-right$ 个字符串满足要求。
+
+## 代码
+
+* cpp
+
+```cpp
+class Solution {
+public:
+    int countKConstraintSubstrings(string s, int k) {
+        int n = s.size();
+        int left = 0, right = 0;
+        int cnt_0 = 0, cnt_1 = 0;
+        int gtk = 0;
+        while(right < n){
+            (s[right] == '0')?cnt_0++:cnt_1++;
+            while(cnt_0 > k && cnt_1 > k){
+                gtk += (n - right);
+                (s[left] == '0')?cnt_0--:cnt_1--;
+                left++;
+            }
+            right++;
+        }
+        return ((1+n)*n)/2 - gtk;
+    }
+};
+```
+

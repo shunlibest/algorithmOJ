@@ -1,0 +1,144 @@
+> Problem: [100279. 访问消失节点的最少时间](https://leetcode.cn/problems/minimum-time-to-visit-disappearing-nodes/description/)
+
+# 普通Dijkstra（最后一个测试例子过不了，超内存）
+
+* []
+
+```Java
+class Solution {
+    public int[] minimumTime(int n, int[][] edges, int[] disappear) {
+        int[][] weight = new int[n][n];
+        for (int[] row : weight) {
+            Arrays.fill(row, Integer.MAX_VALUE / 2);
+        }
+        // 记录所有可达的节点
+        Set<Integer> set = new HashSet<>();
+        for (int[] edge : edges) {
+            int x = edge[0];
+            int y = edge[1];
+            int t = edge[2];
+            if (x == y || weight[x][y] <= t) {
+                continue;
+            }
+            weight[x][y] = t;
+            weight[y][x] = t;
+            set.add(x);
+            set.add(y);
+        }
+
+        int[] minDistance = new int[n];
+        // 初始化最短路长度为无穷大，为松弛操作做准备
+        Arrays.fill(minDistance, 1, n, Integer.MAX_VALUE / 2);
+        // 已经确定最短路径通过的点（标记为已访问）
+        boolean[] done = new boolean[n];
+        while (true) {
+            int node = -1;
+            // 找当前节点以外minDistance[i]最小的点，最短路径一定通过这个点（未访问过的）
+            // node < 0 是第一次循环的特殊情况，放行
+            for (int i = 0; i < n; i++) {
+                if (!done[i] && (node < 0 || (minDistance[i] < minDistance[node]))) {
+                    // i 赋给 node，node 表示下次要经过的点
+                    node = i;
+                }
+            }
+            // 如果所有可达的节点都遍历到了，则说明已经找到最短路了
+            if (set.isEmpty()) {
+                // 不可能找到比 minDistance[n-1] 更短，或者一样短的最短路了（注意本题边权都是正数）
+                break;
+            }
+            // 最短路长度已确定（无法变得更小）
+            done[node] = true;
+            set.remove(node);
+            // 尝试更新 node 的邻居的最短路
+            for (int neighbor = 0; neighbor < n; neighbor++) {
+                int newMinDistance = minDistance[node] + weight[node][neighbor];
+                // neighbor 不能消失
+                if (newMinDistance < minDistance[neighbor] && disappear[neighbor] > newMinDistance) {
+                    // 就目前来说，最短路必须经过 node
+                    minDistance[neighbor] = newMinDistance;
+                }
+            }
+        }
+        for (int i = 0; i < n; i++) {
+            minDistance[i] = minDistance[i] == Integer.MAX_VALUE / 2 ? -1 : minDistance[i];
+        }
+        return minDistance;
+    }
+}
+```
+
+# 堆优化Dijkstra
+
+* []
+
+```Java
+class Solution {
+
+    public int[] minimumTime(int n, int[][] edges, int[] disappear) {
+        List<List<Pair<Integer, Integer>>> graph = new ArrayList<>(n);
+        for (int i = 0; i < n; i++) {
+            graph.add(new ArrayList<>());
+        }
+
+        for (int[] edge : edges) {
+            int u = edge[0], v = edge[1], weight = edge[2];
+            graph.get(u).add(new Pair<>(v, weight));
+            graph.get(v).add(new Pair<>(u, weight));
+        }
+
+        int[] minDistance = new int[n];
+        Arrays.fill(minDistance, Integer.MAX_VALUE / 2);
+
+        // 优先队列里面存的是 <0->node的最短距离, node>
+        PriorityQueue<Pair<Integer, Integer>> pq = new PriorityQueue<>(Comparator.comparingInt(Pair::getKey));
+        pq.offer(new Pair<>(0, 0));
+        minDistance[0] = 0;
+
+        boolean[] visited = new boolean[n];
+
+        while (!pq.isEmpty()) {
+            Pair<Integer, Integer> current = pq.poll();
+            int startNodeDis = current.getKey(), node = current.getValue();
+
+            if (visited[node]) {
+                continue;
+            }
+            visited[node] = true;
+
+            for (Pair<Integer, Integer> neighborPair : graph.get(node)) {
+                int neighbor = neighborPair.getKey(), nodeNeighborDis = neighborPair.getValue();
+                // neighbor 不能消失
+                if (minDistance[neighbor] > nodeNeighborDis + startNodeDis && nodeNeighborDis + startNodeDis < disappear[neighbor]) {
+                    minDistance[neighbor] = nodeNeighborDis + startNodeDis;
+                    pq.offer(new Pair<>(minDistance[neighbor], neighbor));
+                }
+            }
+        }
+
+        for (int i = 0; i < minDistance.length; i++) {
+            minDistance[i] = minDistance[i] == Integer.MAX_VALUE / 2 ? -1 : minDistance[i];
+        }
+
+        return minDistance;
+    }
+}
+
+class Pair<K, V> {
+    K key;
+    V value;
+
+    Pair(K key, V value) {
+        this.key = key;
+        this.value = value;
+    }
+
+    public K getKey() {
+        return key;
+    }
+
+    public V getValue() {
+        return value;
+    }
+}
+```
+

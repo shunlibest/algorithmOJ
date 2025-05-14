@@ -1,0 +1,51 @@
+> Problem: [1971. 寻找图中是否存在路径](https://leetcode.cn/problems/find-if-path-exists-in-graph/description/)
+
+[TOC]
+
+# 思路
+
+> 讲述看到这一题的思路
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+时间复杂度:
+
+> 添加时间复杂度, 示例： $O(n)$
+
+空间复杂度:
+
+> 添加空间复杂度, 示例： $O(n)$
+
+# Code
+
+* []
+
+```C++
+using ll=long long;
+const ll N=10e+5;
+int pre[N];
+class Solution {
+public:
+    void merge(int x,int y){
+        pre[find(x)]=find(y);
+    }
+    int find(int x){
+        return pre[x]=pre[x]==x?x:find(pre[x]);
+    }
+    bool validPath(int n, vector<vector<int>>& edges, int source, int destination) {
+        for(int i=0;i<=n;i++){
+            pre[i]=i;
+        }//一定不要忘记初始化
+        for(int i=0;i<edges.size();i++){
+            merge(edges[i][0],edges[i][1]);
+        }
+        return find(source)==find(destination);//同根必联通
+    }
+    
+};
+```
+

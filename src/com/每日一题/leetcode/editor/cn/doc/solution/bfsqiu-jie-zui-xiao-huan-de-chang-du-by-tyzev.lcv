@@ -1,0 +1,155 @@
+> Problem: [2608. 图中的最短环](https://leetcode.cn/problems/shortest-cycle-in-a-graph/description/)
+
+[TOC]
+
+# 思路
+
+> 判断存在环
+
+1. 通过pathTo数组记录节点的路径，在方法bfs(start)中，pathTo[i] = j,表示从start到i的路径中，会通过j，然后下一个就是i。
+2. 当bfs中，出队节点node，对于node的某个邻接节点adj，如果adj已经被遍历过，且pathTo[node] 不为adj，说明存在不止一条路径，可以从start到adj。其中一条是start -> xxx -> pathTo[node] -> adj，另一条是 start -> yyy -> adj。此时我们就找到了一个环
+
+> 计算环的（可能的）长度
+
+1.通过disTo数据记录路径长度。在方法bfs(start)中，disTo[i] = j，表示从start到i的路径为j
+2.当我们在bfs(start)中找到一个环时，start可能在环中，也可能不在环中。当start在环中时，环的长度就是 disTo[point] + disTo[adj] + 1。否者环的长度大于 disTo[point] + disTo[adj] + 1
+
+> 计算最小环的长度
+
+因此我们需要遍历所有的节点，并把每一个节点i作为起点，执行bfs(i)。确保我们能找到所有的环，并且包含起点在环中的所有情况，在这个过程中不断维护环的最小长度。
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+时间复杂度:
+
+> o(n^2)。需要遍历所有节点i，执行bfs(i)，每次执行bfs(i)也需要遍历所有节点。因此耗时为n^2，其中n是节点数量
+
+空间复杂度:
+
+> o(n)
+
+# Code
+
+* []
+
+```Java
+class Solution {
+    public int findShortestCycle(int n, int[][] edges) {
+        Graph graph = buildGraph(n, edges);
+        Cycle cycle = new Cycle(graph);
+        if (cycle.existCycle()) {
+            return cycle.getShortestCycleLen();
+        }
+        return -1;
+    }
+
+    private Graph buildGraph(int n, int[][] edges) {
+        Graph graph = new Graph(n);
+        for (int[] edge : edges) {
+            graph.addEdge(edge[0], edge[1]);
+
+        }
+        return graph;
+
+    }
+}
+
+class Graph {
+
+    // adj[i] 表示和i相邻的节点
+    private List<Integer>[] adj;
+
+    private int pointNum;
+
+    public Graph(int num) {
+        this.pointNum = num;
+        adj = (List<Integer>[]) new List[pointNum];
+        for (int point = 0; point < pointNum; point++) {
+            adj[point] = new ArrayList();
+        }
+    }
+
+    public void addEdge(int v, int w) {
+        adj[v].add(w);
+        adj[w].add(v);
+    }
+
+    public Iterable<Integer> getAdj(int v) {
+        return adj[v];
+    }
+
+    public int getPointNum() {
+        return pointNum;
+    }
+
+
+}
+
+class Cycle {
+
+    private Graph graph;
+
+    private int shortestCycleLen = Integer.MAX_VALUE;
+
+    public int getShortestCycleLen() {
+        return shortestCycleLen;
+    }
+
+    private boolean hasCycle = false;
+
+    public boolean existCycle() {
+        return hasCycle;
+    }
+
+    public Cycle(Graph graph) {
+        this.graph = graph;
+        computeShortestCycleLen();
+    }
+
+    private void computeShortestCycleLen() {
+        int pointNum = graph.getPointNum();
+        for (int start = 0; start < pointNum; start ++) {
+            bfs(start);
+        }
+    }
+
+    private void bfs(int start) {
+        int pointNum = graph.getPointNum();
+        boolean[] marked = new boolean[pointNum];
+        int[] disTo = new int[pointNum];
+        int[] pathTo = new int[pointNum];
+        marked[start] = true;
+        pathTo[start] = -1;
+        disTo[start] = 0;
+        Queue<Integer> queue = new LinkedList();
+        queue.add(start);
+        while (!queue.isEmpty()) {
+            int point = queue.poll();
+            int currentDis = disTo[point];
+            for (int adj : graph.getAdj(point)) {
+                if (!marked[adj]) {
+                    disTo[adj] = currentDis + 1;
+                    pathTo[adj] = point;
+                    marked[adj] = true;
+                    queue.add(adj);
+                } else {
+                    if (adj == pathTo[point]) {
+                        continue;
+                    } else {
+                        // cycle found, record possible cycle len
+                        hasCycle = true;
+                        int possibleCycleLen = disTo[point] + disTo[adj] + 1;
+                        shortestCycleLen = Math.min(shortestCycleLen, possibleCycleLen);
+                    }
+                }
+            }
+        }
+    }
+
+}
+```
+

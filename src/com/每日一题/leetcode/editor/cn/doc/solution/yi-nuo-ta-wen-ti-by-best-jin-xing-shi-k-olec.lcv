@@ -1,0 +1,18 @@
+### 解题思路
+
+这个人太懒了，只写了两行代码=.=
+![5L@U1AI\[BIL8M5H7O0@I4V2.png](https://pic.leetcode-cn.com/1621950932-AexzLM-5L@U1AI%5BBIL8M5H7O0@I4V2.png)
+
+### 代码
+
+* c
+
+```c
+void hanota(int* A, int ASize, int* B, int BSize, int** C, int* CSize){
+    
+    *CSize=ASize;
+    *C=A;
+}
+```
+
+**纯属娱乐，这是错误写法，切勿轻易模仿🤣**

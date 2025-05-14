@@ -1,0 +1,44 @@
+> Problem: [100300. 所有数对中数位不同之和](https://leetcode.cn/problems/sum-of-digit-differences-of-all-pairs/description/)
+
+[TOC]
+
+# 思路
+
+按位数，逐个实现，乘法原理相乘。
+
+# Code
+
+执行用时分布98ms击败100.00%；消耗内存分布13.91MB击败100.00%
+
+* []
+
+```C
+long long sumDigitDifferences(int* nums, int numsSize) {
+    long long ans = 0LL;
+    while (nums[0]) {
+        long cnt[10] = {0};
+        for (int i = 0; i < numsSize; ++ i) 
+            ++ cnt[nums[i] % 10], nums[i] /= 10;
+        for (int i = 0; i < 10; ++ i)
+            for (int j = i + 1; j < 10; ++ j)
+                ans += cnt[i] * cnt[j];
+    }
+    return ans;    
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def sumDigitDifferences(self, nums: List[int]) -> int:
+        ans = 0
+        while nums[0]:
+            cnt, nums = Counter(x % 10 for x in nums), [x // 10 for x in nums]
+            ans += sum(cnt[i] * cnt[j] for i, j in combinations(cnt.keys(), 2))
+        return ans
+```
+
+**您若还有不同方法，欢迎贴在评论区，一起交流探讨！ ^_^**
+
+**↓ 点个赞，点收藏，留个言，再划走，感谢您支持作者！ ^_^**

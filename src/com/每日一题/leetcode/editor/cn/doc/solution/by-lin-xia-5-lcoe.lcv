@@ -1,0 +1,135 @@
+[toc]
+
+> 直接进入 [四] 本题全部代码
+
+# 一、思路
+
+**左中右三根柱子的移动方法**：
+
+1. 黑盒1（一大步）： `1-N-1` 个盘子全部移动到2号柱
+
+2. （一小步）：第N个盘子直接从1号柱移动到3号柱
+
+3. 黑盒2（一大步）：1-N-1个盘子全部从2号柱移动到3号柱
+
+**通用的思路**：
+
+> 上面有两个黑盒，但为了实现方便，需要摒弃掉左中右, 把中左右当做参数，最后只写一个黑盒(函数)
+
+将所有圆盘从`from柱子`(出发柱子) 移动到`to柱子`(目的柱子)
+
+* 
+
+```
+1）1-N-1 ： from -> other
+2) N: from -> to
+3)1-N-1: other -> to
+```
+
+# 二、伪代码
+
+下面精妙之处在于：  不断变换初始柱子，整个函数可复用
+
+* go
+
+```go
+// from: 圆盘初始位置； to：圆盘目的柱子； other：需要借助的空柱子
+// num:需要移动的盘子个数
+func Move(from string, to string, other string, num int) {
+   1. if from柱子 上只剩一个圆盘
+   	将圆盘直接从from柱移动到To柱
+   	return
+   2. else from柱子上有num个盘子{
+      将num-1个盘子从from移动到other: Move(from, other, to, num-1)
+      将num号盘子从from移动到to: print(将num从from移动到to上)
+      将num-1个盘子从other移动到to:Move(other, to, from, num-1)
+   }
+}
+```
+
+# 三、实现Move函数
+
+* go
+
+```go
+func Move(from, to, other string, num int) {
+	if num == 1 {
+		fmt.Printf("将1从%s移动到%s\n", from, to)
+		return
+	}
+	Move(from, other, to, num-1)               //将num-1个盘子从from移动到other
+	fmt.Printf("将%d从%s移动到%s\n", num, from, to) //将num号盘子从from移动到to
+	Move(other, to, from, num-1)               // 将num-1个盘子从other移动到to
+}
+func main() {
+	Move("Left", "Right", "Mid", 3)
+}
+```
+
+**输出**
+
+* go
+
+```go
+将1从Left移动到Right
+将2从Left移动到Mid
+将1从Right移动到Mid
+将3从Left移动到Right
+将1从Mid移动到Left
+将2从Mid移动到Right
+将1从Left移动到Right
+```
+
+# 四、本题代码
+
+## 实现代码
+
+* go
+
+```go
+func hanota(A []int, B []int, C []int) []int {
+	if len(A) == 0 {
+		return A
+	}
+
+	// Move：移动ABC， 保证ABC的全局性改变
+	var move func(from, to, other *[]int, n int)
+	move = func(from, to, other *[]int, n int) {
+		// 1. 如果from只有一个盘子，直接移动到To
+		if n == 1 { //终止条件
+			*to = append(*to, (*from)[len(*from)-1])
+			*from = (*from)[:len(*from)-1]
+			// slice原来的元素始终都在原来的内存空间，因此想要删除元素只能：覆盖并输出前面需要的数据
+			fmt.Println("此时的from = ", from)
+			return
+		}
+		// 2. 如果有N个：
+		// 	1. 将N-1一个圆盘移动到other
+		move(from, other, to, n-1)
+		// 	2. 将第N个从from移动到To
+		*to = append(*to, (*from)[len(*from)-1])
+		*from = (*from)[:len(*from)-1]
+		// 	3. 将N-1个从other移动到To
+		move(other, to, from, n-1)
+		// 	完成全部移动
+	}
+	move(&A, &C, &B, len(A)) // 将A中的盘子都移动到C
+	return C
+}
+```
+
+## Go实现难点
+
+1. 题目中ABC三根柱子是用slice实现的，slice的内存特点是无法删除元素，只能覆盖。
+
+   比如当slice只有一个元素，删除slice尾部元素：
+
+* go
+
+```go
+不能使用：slice = []int{}
+而要使用：slice = slice[:-1] or slice = slice[:len(slice)-1]
+```
+
+2. A B C三根柱子在`move`函数中要使用**引用传递**，或者不断更新ABC三根柱子的情况。（一开始没有注意到这个问题，导致ABC三根柱子没有更新）
+

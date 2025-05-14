@@ -1,0 +1,24 @@
+> Problem: [797. 所有可能的路径](https://leetcode.cn/problems/all-paths-from-source-to-target/description/)
+
+# Code
+
+* []
+
+```Python
+class Solution:
+    def allPathsSourceTarget(self, graph: List[List[int]]) -> List[List[int]]:
+        ans = []
+        stack = []
+        n = len(graph)
+        def dfs(i):
+            if i == n - 1:
+                ans.append(stack[:])
+            for path in graph[i]:
+                stack.append(path)
+                dfs(path)
+                stack.pop()
+        stack.append(0)
+        dfs(0)
+        return ans
+```
+

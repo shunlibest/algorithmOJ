@@ -1,0 +1,153 @@
+# 解法
+
+## 思路和算法
+
+由于不超过特定整数的非负整数中，不含连续 $1$ 的整数个数取决于二进制位数更少的不含连续 $1$ 的整数个数，因此可以使用动态规划计算不超过 $n$ 的非负整数中的二进制表示不含连续 $1$ 的整数个数。
+
+由于二进制表示的每一位可能是 $0$ 或 $1$，因此需要分别考虑每一位取 $0$ 和 $1$ 的情况。
+
+用 $m$ 表示正整数 $n$ 的二进制表示的位数。创建 $m \times 2$ 的二维数组 $\textit{dp}$，其中 $\textit{dp}[i][j]$ 表示二进制表示的最高位是第 $i$ 位（即 $2^i$ 对应的位）且最高位的取值是 $j$ 的不含连续 $1$ 的非负整数个数。
+
+当 $i = 0$ 时，最高位 $0$ 和 $1$ 分别对应一个不含连续 $1$ 的非负整数，因此动态规划的边界情况是 $\textit{dp}[0][0] = \textit{dp}[0][1] = 1$。
+
+当 $i > 0$ 时，应满足第 $i$ 位与第 $i - 1$ 位不能同时取 $1$。动态规划的状态转移方程如下。
+
+- 当第 $i$ 位取 $0$ 时，第 $i - 1$ 位可以取 $0$ 或 $1$，因此 $\textit{dp}[i][0] = \textit{dp}[i - 1][0] + \textit{dp}[i - 1][1]$。
+
+- 当第 $i$ 位取 $1$ 时，第 $i - 1$ 位只能取 $0$，因此 $\textit{dp}[i][1] = \textit{dp}[i - 1][0]$。
+
+由于每一项依赖于前一项，因此应从小到大遍历每个 $i$ 并计算 $\textit{dp}[i][0]$ 和 $\textit{dp}[i][1]$。计算所有的状态之后，根据动态规划的状态值计算不超过 $n$ 的非负整数中的二进制表示不含连续 $1$ 的整数个数。
+
+从大到小遍历每个 $i$，遍历过程中维护上一个二进制位的值 $\textit{prev}$ 和当前二进制位的值 $\textit{curr}$，初始时 $\textit{prev} = 0$。对于遍历到的每个 $i$，执行如下操作。
+
+1. 如果 $\textit{curr} = 1$，则当第 $i$ 位取 $0$ 时，第 $i$ 位及更低位组成的非负整数一定不超过 $n$ 的对应位组成的非负整数，因此第 $i$ 位及更低位组成的二进制表示不含连续 $1$ 的非负整数都符合要求，将答案增加 $\textit{dp}[i][0]$。
+
+2. 如果 $\textit{curr} = \textit{prev} = 1$，则第 $i$ 位取 $0$ 和第 $i + 1$ 位取 $0$ 的符合要求的非负整数都已经计算过，不存在更多的非负整数需要计算，因此结束循环。
+
+上述计算过程中，遍历到第 $i$ 位时，只计算当前位小于正整数 $n$ 的第 $i$ 位的非负整数个数，当前位等于正整数 $n$ 的第 $i$ 位的整数个数将在遍历到更低位时计算，因此上述计算可以覆盖所有小于 $n$ 的非负整数中的二进制表示不含连续 $1$ 的整数个数。
+
+由于上述计算没有考虑正整数 $n$，因此需要额外判断正整数 $n$ 是否符合二进制表示不含连续 $1$ 的要求。如果正整数 $n$ 符合二进制表示不含连续 $1$，则将答案加 $1$。
+
+考虑 $[0, n]$ 范围中的所有整数之后，即可得到不超过 $n$ 的非负整数中的二进制表示不含连续 $1$ 的整数个数。
+
+## 代码
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    public int findIntegers(int n) {
+        int m = getLength(n);
+        int[][] dp = new int[m][2];
+        dp[0][0] = 1;
+        dp[0][1] = 1;
+        for (int i = 1; i < m; i++) {
+            dp[i][0] = dp[i - 1][0] + dp[i - 1][1];
+            dp[i][1] = dp[i - 1][0];
+        }
+        int count = 0;
+        int prev = 0;
+        for (int i = m - 1; i >= 0; i--) {
+            int curr = (n >> i) & 1;
+            if (curr == 1) {
+                count += dp[i][0];
+                if (curr == prev) {
+                    break;
+                }
+            }
+            prev = curr;
+        }
+        if (noConsecutiveOnes(n)) {
+            count++;
+        }
+        return count;
+    }
+
+    public int getLength(int n) {
+        int length = 0;
+        while (n > 0) {
+            n /= 2;
+            length++;
+        }
+        return length;
+    }
+
+    public boolean noConsecutiveOnes(int n) {
+        int prev = 0;
+        while (n > 0) {
+            int curr = n & 1;
+            if (curr == 1 && prev == 1) {
+                return false;
+            }
+            prev = curr;
+            n /= 2;
+        }
+        return true;
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    public int FindIntegers(int n) {
+        int m = GetLength(n);
+        int[][] dp = new int[m][];
+        for (int i = 0; i < m; i++) {
+            dp[i] = new int[2];
+        }
+        dp[0][0] = 1;
+        dp[0][1] = 1;
+        for (int i = 1; i < m; i++) {
+            dp[i][0] = dp[i - 1][0] + dp[i - 1][1];
+            dp[i][1] = dp[i - 1][0];
+        }
+        int count = 0;
+        int prev = 0;
+        for (int i = m - 1; i >= 0; i--) {
+            int curr = (n >> i) & 1;
+            if (curr == 1) {
+                count += dp[i][0];
+                if (curr == prev) {
+                    break;
+                }
+            }
+            prev = curr;
+        }
+        if (NoConsecutiveOnes(n)) {
+            count++;
+        }
+        return count;
+    }
+
+    public int GetLength(int n) {
+        int length = 0;
+        while (n > 0) {
+            n /= 2;
+            length++;
+        }
+        return length;
+    }
+
+    public bool NoConsecutiveOnes(int n) {
+        int prev = 0;
+        while (n > 0) {
+            int curr = n & 1;
+            if (curr == 1 && prev == 1) {
+                return false;
+            }
+            prev = curr;
+            n /= 2;
+        }
+        return true;
+    }
+}
+```
+
+## 复杂度分析
+
+- 时间复杂度：$O(\log n)$，其中 $n$ 是给定的整数。状态数是 $O(\log n)$，每个状态的计算时间是 $O(1)$，因此时间复杂度是 $O(\log n)$。
+
+- 空间复杂度：$O(\log n)$，其中 $n$ 是给定的整数。需要创建大小为 $(\lfloor \log n \rfloor + 1) \times 2$ 的二维数组。
+

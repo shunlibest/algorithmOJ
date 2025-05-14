@@ -1,0 +1,299 @@
+## 视频讲解
+
+[区间 DP【基础算法精讲 22】](https://www.bilibili.com/video/BV1Gs4y1E7EU/)，制作不易，欢迎点赞！
+
+> APP 用户需要分享到 wx 打开链接。
+
+## 一、记忆化搜索
+
+* [sol1-Python3]
+
+```py
+class Solution:
+    def longestPalindromeSubseq(self, s: str) -> int:
+        @cache
+        def dfs(i: int, j: int) -> int:
+            if i > j: return 0  # 空串
+            if i == j: return 1  # 只有一个字母
+            if s[i] == s[j]:  # 都选
+                return dfs(i + 1, j - 1) + 2
+            return max(dfs(i + 1, j), dfs(i, j - 1))  # 枚举哪个不选
+        return dfs(0, len(s) - 1)
+```
+
+* [sol1-Java]
+
+```java
+class Solution {
+    private char[] s;
+    private int[][] memo;
+
+    public int longestPalindromeSubseq(String S) {
+        s = S.toCharArray();
+        int n = s.length;
+        memo = new int[n][n];
+        for (int i = 0; i < n; ++i)
+            Arrays.fill(memo[i], -1); // -1 表示还没有计算过
+        return dfs(0, n - 1);
+    }
+
+    private int dfs(int i, int j) {
+        if (i > j) return 0; // 空串
+        if (i == j) return 1; // 只有一个字母
+        if (memo[i][j] != -1) return memo[i][j];
+        if (s[i] == s[j]) return memo[i][j] = dfs(i + 1, j - 1) + 2; // 都选
+        return memo[i][j] = Math.max(dfs(i + 1, j), dfs(i, j - 1)); // 枚举哪个不选
+    }
+}
+```
+
+* [sol1-C++]
+
+```cpp
+class Solution {
+public:
+    int longestPalindromeSubseq(string s) {
+        int n = s.length(), memo[n][n];
+        memset(memo, -1, sizeof(memo)); // -1 表示还没有计算过
+        function<int(int, int)> dfs = [&](int i, int j) -> int {
+            if (i > j) return 0; // 空串
+            if (i == j) return 1; // 只有一个字母
+            int &res = memo[i][j];
+            if (res != -1) return res;
+            if (s[i] == s[j]) return res = dfs(i + 1, j - 1) + 2; // 都选
+            return res = max(dfs(i + 1, j), dfs(i, j - 1)); // 枚举哪个不选
+        };
+        return dfs(0, n - 1);
+    }
+};
+```
+
+* [sol1-Go]
+
+```go
+func longestPalindromeSubseq(s string) int {
+    n := len(s)
+    memo := make([][]int, n)
+    for i := range memo {
+        memo[i] = make([]int, n)
+        for j := range memo[i] {
+            memo[i][j] = -1 // -1 表示还没有计算过
+        }
+    }
+    var dfs func(int, int) int
+    dfs = func(i, j int) (res int) {
+        if i > j { // 空串
+            return
+        }
+        if i == j { // 只有一个字母
+            return 1
+        }
+        p := &memo[i][j]
+        if *p != -1 {
+            return *p
+        }
+        defer func() { *p = res }()
+        if s[i] == s[j] {
+            return dfs(i+1, j-1) + 2 // 都选
+        }
+        return max(dfs(i+1, j), dfs(i, j-1)) // 枚举哪个不选
+    }
+    return dfs(0, n-1)
+}
+
+func max(a, b int) int { if a < b { return b }; return a }
+```
+
+### 复杂度分析
+
+- 时间复杂度：$O(n^2)$，其中 $n$ 为 $s$ 的长度。动态规划的时间复杂度 $=$ 状态个数 $\times$ 单个状态的转移个数。本题中状态个数等于 $O(n^2)$，而单个状态的转移个数为 $O(1)$，因此时间复杂度为 $O(n^2)$。
+- 空间复杂度：$O(n^2)$。
+
+## 二、1:1 翻译成递推
+
+根据视频中讲的，把 $\textit{dfs}$ 改成 $f$ 数组，把递归改成循环就好了。需要注意循环的顺序。
+
+* [sol2-Python3]
+
+```py
+class Solution:
+    def longestPalindromeSubseq(self, s: str) -> int:
+        n = len(s)
+        f = [[0] * n for _ in range(n)]
+        for i in range(n - 1, -1, -1):
+            f[i][i] = 1
+            for j in range(i + 1, n):
+                if s[i] == s[j]:
+                    f[i][j] = f[i + 1][j - 1] + 2
+                else:
+                    f[i][j] = max(f[i + 1][j], f[i][j - 1])
+        return f[0][-1]
+```
+
+* [sol2-Java]
+
+```java
+class Solution {
+    public int longestPalindromeSubseq(String S) {
+        char[] s = S.toCharArray();
+        int n = s.length;
+        int[][] f = new int[n][n];
+        for (int i = n - 1; i >= 0; --i) {
+            f[i][i] = 1;
+            for (int j = i + 1; j < n; ++j)
+                f[i][j] = s[i] == s[j] ? f[i + 1][j - 1] + 2 :
+                        Math.max(f[i + 1][j], f[i][j - 1]);
+        }
+        return f[0][n - 1];
+    }
+}
+```
+
+* [sol2-C++]
+
+```cpp
+class Solution {
+public:
+    int longestPalindromeSubseq(string s) {
+        int n = s.length(), f[n][n];
+        memset(f, 0, sizeof(f));
+        for (int i = n - 1; i >= 0; --i) {
+            f[i][i] = 1;
+            for (int j = i + 1; j < n; ++j)
+                f[i][j] = s[i] == s[j] ? f[i + 1][j - 1] + 2 :
+                          max(f[i + 1][j], f[i][j - 1]);
+        }
+        return f[0][n - 1];
+    }
+};
+```
+
+* [sol2-Go]
+
+```go
+func longestPalindromeSubseq(s string) int {
+    n := len(s)
+    f := make([][]int, n)
+    for i := range f {
+        f[i] = make([]int, n)
+    }
+    for i := n - 1; i >= 0; i-- {
+        f[i][i] = 1
+        for j := i + 1; j < n; j++ {
+            if s[i] == s[j] {
+                f[i][j] = f[i+1][j-1] + 2
+            } else {
+                f[i][j] = max(f[i+1][j], f[i][j-1])
+            }
+        }
+    }
+    return f[0][n-1]
+}
+
+func max(a, b int) int { if a < b { return b }; return a }
+```
+
+### 复杂度分析
+
+- 时间复杂度：$O(n^2)$，其中 $n$ 为 $s$ 的长度。动态规划的时间复杂度 $=$ 状态个数 $\times$ 单个状态的转移个数。本题中状态个数等于 $O(n^2)$，而单个状态的转移个数为 $O(1)$，因此时间复杂度为 $O(n^2)$。
+- 空间复杂度：$O(n^2)$。
+
+## 三、空间优化
+
+* [sol3-Python3]
+
+```py
+class Solution:
+    def longestPalindromeSubseq(self, s: str) -> int:
+        n = len(s)
+        f = [0] * n
+        for i in range(n - 1, -1, -1):
+            f[i] = 1
+            pre = 0  # f[i+1][i]
+            for j in range(i + 1, n):
+                tmp = f[j]
+                f[j] = pre + 2 if s[i] == s[j] else max(f[j], f[j - 1])
+                pre = tmp
+        return f[-1]
+```
+
+* [sol3-Java]
+
+```java
+class Solution {
+    public int longestPalindromeSubseq(String S) {
+        char[] s = S.toCharArray();
+        int n = s.length;
+        int[] f = new int[n];
+        for (int i = n - 1; i >= 0; --i) {
+            f[i] = 1;
+            int pre = 0; // f[i+1][i]
+            for (int j = i + 1; j < n; ++j) {
+                int tmp = f[j];
+                f[j] = s[i] == s[j] ? pre + 2 : Math.max(f[j], f[j - 1]);
+                pre = tmp;
+            }
+        }
+        return f[n - 1];
+    }
+}
+```
+
+* [sol3-C++]
+
+```cpp
+class Solution {
+public:
+    int longestPalindromeSubseq(string s) {
+        int n = s.length(), f[n];
+        memset(f, 0, sizeof(f));
+        for (int i = n - 1; i >= 0; --i) {
+            f[i] = 1;
+            int pre = 0; // f[i+1][i]
+            for (int j = i + 1; j < n; ++j) {
+                int tmp = f[j];
+                f[j] = s[i] == s[j] ? pre + 2 : max(f[j], f[j - 1]);
+                pre = tmp;
+            }
+        }
+        return f[n - 1];
+    }
+};
+```
+
+* [sol3-Go]
+
+```go
+func longestPalindromeSubseq(s string) int {
+    n := len(s)
+    f := make([]int, n)
+    for i := n - 1; i >= 0; i-- {
+        f[i] = 1
+        pre := 0 // f[i+1][i]
+        for j := i + 1; j < n; j++ {
+            if s[i] == s[j] {
+                pre, f[j] = f[j], pre+2
+            } else {
+                pre = f[j]
+                f[j] = max(f[j], f[j-1])
+            }
+        }
+    }
+    return f[n-1]
+}
+
+func max(a, b int) int { if a < b { return b }; return a }
+```
+
+### 复杂度分析
+
+- 时间复杂度：$O(n^2)$，其中 $n$ 为 $s$ 的长度。
+- 空间复杂度：$O(n)$。
+
+### 课后作业
+
+- [375. 猜数字大小 II](https://leetcode.cn/problems/guess-number-higher-or-lower-ii/)
+- [1312. 让字符串成为回文串的最少插入次数](https://leetcode.cn/problems/minimum-insertion-steps-to-make-a-string-palindrome/)
+- [1547. 切棍子的最小成本](https://leetcode.cn/problems/minimum-cost-to-cut-a-stick/)
+- [1000. 合并石头的最低成本](https://leetcode.cn/problems/minimum-cost-to-merge-stones/)
+

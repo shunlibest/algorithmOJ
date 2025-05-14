@@ -1,0 +1,30 @@
+1. 成本 是 一加一减的。当前下标i， i-l 为偶数则加法，为奇数则减法。
+2. dp，到当前的最大成本。两种情况：
+
+- 直接跟着前面，即 dp[i - 1] + nums[i]
+- 把前一个当成一个开头， 即 dp[i - 2] + nums[i - 1] - nums[i]
+
+3. 所以递推公式是 dp[i] = Math.max(dp[i - 1] + nums[i], dp[i - 2] + nums[i - 1] - nums[i]);
+4. 数组长度范围从1开始，dp起始要处理好
+
+* []
+
+```Java
+class Solution {
+    public long maximumTotalCost(int[] nums) {
+        int len = nums.length;
+        if (len == 1) return (long) nums[0];
+        if (len == 2) return Math.max((long) nums[0] + nums[1],  (long) nums[0] - nums[1]);
+
+        long[] dp = new long[len];
+        dp[0] = (long) nums[0];
+        dp[1] = Math.max((long) nums[0] + nums[1],  (long) nums[0] - nums[1]);
+
+        for (int i = 2; i < len; i++)
+            dp[i] = Math.max(dp[i - 1] + nums[i], dp[i - 2] + nums[i - 1] - nums[i]);
+
+        return dp[len - 1];
+    }
+}
+```
+

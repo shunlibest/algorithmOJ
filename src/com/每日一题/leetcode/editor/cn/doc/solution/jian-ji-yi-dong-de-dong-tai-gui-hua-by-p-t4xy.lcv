@@ -1,0 +1,108 @@
+> Problem: [2896. 执行操作使两个字符串相等](https://leetcode.cn/problems/apply-operations-to-make-two-strings-equal/description/)
+
+# 解题思路
+
+遍历两个字符串，将字符不同的索引保存在数组 $pos$中。如果字符不同的索引数为 $0$，那么两个字符串相同，不用做任何翻转操作，所以返回答案 $0$。如果字符不同的索引数为奇数，则返回答案 $-1$， 因为每个操作需要一对字符进行翻转。
+
+如果字符不同的索引数为 $index$, 那么有 $index/2$ 对字符需要进行翻转。我们先只考虑操作一，将每两个下标都进行操作一翻转，那么总的操作代价为 $x * index /2$。
+
+然后遍历数组 $pos$，查看两个相邻下标进行操作二翻转是否比进行操作一翻转所需要的代价还小。如果还小，则把答案更新为两个相邻下标进行操作二翻转时的代价。
+
+# 复杂度
+
+- 时间复杂度: $O(n)$， $n$ 为字符串的长度。
+- 空间复杂度：$O(C)$，$C$ 为 $501$，数组 $pos$的长度。数组 $pos$ 用于存贮字符不相同时的索引。该数组的类型为 $static$, 所有测试用例都用同一个数组。
+
+# Code
+
+* []
+
+```Java
+
+class Solution {
+  static int[] pos = new int[501];
+  public int minOperations(String s1, String s2, int x) {
+
+     int n = s1.length(), index = 0;
+     for(int i = 0; i < n; ++i){
+         if(s1.charAt(i) != s2.charAt(i))
+             pos[index++] = i;
+     }
+
+     if(index == 0) return 0;
+     if((index & 1) == 1) return -1;
+     
+      int cur = index /2 * x , pre = cur;
+      for (int i = 1; i < index; i++) {
+          int next = Math.min(cur,  pre + pos[i] - pos[i-1] - x);
+          pre = cur;
+          cur = next;
+      }
+      return cur;
+  }
+}
+
+```
+
+当一个下标和相邻的下标进行操作二翻转时，它只和前面的下标或者后面的下标组成一对进行翻转，但不能和前面的下标和后面的下标同时进行翻转, 因为每个下标只需要翻转一次。在下面的代码中, $cur$ 表示的是当前下标和前面下标不做操作二时的最优解，$pre$ 表示前一个下标和前前一个下标不做操作二翻转时的最优解， $ pre + pos[i] - pos[i-1] - x$ 表示前一个下标和前前一个下标不做操作二翻转但和当前下标做操作二翻转时的最优解。
+
+* Java
+
+```Java
+Math.min(cur,  pre + pos[i] - pos[i-1] - x);
+```
+
+间隔一个数据操作的方法在其它的题目中也有类似的解法。
+
+[198. 打家劫舍](https://leetcode.cn/problems/house-robber/description/)
+
+* []
+
+```java
+
+class Solution {
+    public int rob(int[] nums) {
+        int pre = 0, curr = 0;
+        for(int x:nums){
+            int next = Math.max(curr, pre + x);
+            pre = curr;
+            curr = next;
+        }
+        return curr;
+    }
+}
+
+
+```
+
+[213. 打家劫舍 II](https://leetcode.cn/problems/house-robber-ii/description/)
+
+* []
+
+```java
+
+class Solution {
+    public int rob(int[] nums) {
+        
+         int n = nums.length;
+         if(n == 1) return nums[0];
+         if(n == 2) return Math.max(nums[0], nums[1]);
+         
+         return Math.max(getMax(nums, 0, n - 2), getMax(nums, 1, n - 1));
+    }
+    
+    int getMax(int[] nums, int start, int end){
+ 
+        int pre = 0, cur = 0;
+        for(int i = start; i <= end; ++i){
+            int next = Math.max(cur, pre + nums[i]);
+            pre = cur;
+            cur = next;
+        }
+        return cur;
+    }
+}
+
+
+```
+

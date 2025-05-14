@@ -1,0 +1,64 @@
+> Problem: [2192. 有向无环图中一个节点的所有祖先](https://leetcode.cn/problems/all-ancestors-of-a-node-in-a-directed-acyclic-graph/description/)
+
+[TOC]
+
+# 思路
+
+直接从"祖先"出发，那么中途可以经过的点都是这个点的"孩子"，那么将这个祖先直接放入res结果数组中对应的孩子部分即可
+这里要注意一下，我们为什么要使用st数组来进行标记？
+原因：比如1,3,5 和1，4，5这两种路径都会到达5这个结点，那么如果不加上的话根据我的代码就会出现重复加入的现象，固然进行一个标记，或者放入完之后后面对其手动去重，增加时间复杂度也可以ac掉本题。
+
+# Code
+
+* []
+
+```C++
+const int N=1010;
+class Solution {
+    vector<vector<int> > res;  
+    vector<vector<int> > g;
+    bool st[N][N]; //通过一个二维数组进行标记
+    void dfs(int parent,int next)
+    {
+        //遍历所有的孙子
+        for(int i=0;i<g[next].size();i++)
+        {
+            //如果已经被标记了，那么此时不能再添加进去
+            if(st[g[next][i]][parent])
+                continue;
+            st[g[next][i]][parent]=true;
+            res[g[next][i]].push_back(parent);
+            dfs(parent,g[next][i]);
+        }
+    }
+
+public:
+    vector<vector<int>> getAncestors(int n, vector<vector<int>>& edges) {
+        res.resize(n);
+        g.resize(n);
+        for(int i=0;i<edges.size();i++)
+        {
+            int a=edges[i][0];
+            int b=edges[i][1];
+            //注意这里是有向图
+            g[a].push_back(b); //a指向b
+        }
+        for(int i=0;i<n;i++) //从各个结点出发
+        {
+            dfs(i,i); //祖先为i
+        }
+        //现在出现了重复的现象
+        //两种选择，
+        // 1:直接去重
+        // 2:手动标记
+
+        return res;
+
+    }
+};
+
+
+//典型的深搜题目,拿一个例子来讲，如果0开始出发的时候，其路径上的点，就是0的孙子们
+//固然就可以做出来了
+```
+

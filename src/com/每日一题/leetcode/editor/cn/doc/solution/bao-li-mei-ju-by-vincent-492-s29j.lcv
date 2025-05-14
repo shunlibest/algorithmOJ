@@ -1,0 +1,20 @@
+* python3
+
+```python
+class Solution:
+    def minimumSubstringsInPartition(self, s: str) -> int:
+        n=len(s)
+        @cache
+        def dfs(k):
+            if k>=n: return 0
+            res=inf
+            g=Counter()
+            for i in range(k,n):
+                g[s[i]]+=1
+                if len(set(g.values()))==1:
+                    res=min(res,1+dfs(i+1))
+            return res
+        return dfs(0)
+   
+```
+

@@ -1,0 +1,48 @@
+> Problem: [2332. 坐上公交的最晚时间](https://leetcode.cn/problems/the-latest-time-to-catch-a-bus/description/)
+
+[TOC]
+
+# 思路
+
+> 讲述看到这一题的思路
+
+# 解题方法
+
+> 描述你的解题方法
+
+# 复杂度
+
+时间复杂度:O(nlog(n));
+
+空间复杂度:O(1);(忽略排序的栈开销)
+
+# Code
+
+* []
+
+```C++
+class Solution {
+public:
+    int latestTimeCatchTheBus(vector<int>& buses, vector<int>& passengers, int capacity) {
+        sort(buses.begin(),buses.end());
+        sort(passengers.begin(),passengers.end());
+        int mytime=0;
+        int j=0;
+        for(int i=0;i<buses.size();i++)//双指针
+        {
+            int cur=capacity;
+            while(j<passengers.size()&&cur>0&&passengers[j]<=buses[i])
+            {
+                if(!j||passengers[j]-1!=passengers[j-1]) mytime=passengers[j]-1;
+                //passengers[j]=passengers[j-1]的话,不符合不能乘客同时刻到达这个条件
+                j++;
+                cur--;
+            }
+            if(cur>0&&(j==0||passengers[j-1]<buses[i])) mytime=buses[i];
+            //当前车辆还有空位且乘客到达时间小于车辆出发时间(如果等于mytime即最大值)
+        }
+        return mytime;
+    }
+};
+```
+

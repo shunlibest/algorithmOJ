@@ -1,0 +1,37 @@
+* []
+
+```Go
+func hanota(A []int, B []int, C []int) []int {
+    return A;
+}
+```
+
+* []
+
+```C++
+class Solution {
+public:
+    void hanota(vector<int>& A, vector<int>& B, vector<int>& C) {
+        swap(A, C);
+    }
+};
+```
+
+* []
+
+```Java
+class Solution {
+    public void hanota(List<Integer> A, List<Integer> B, List<Integer> C) {
+        C.addAll(A);
+    }
+}
+```
+
+* []
+
+```Python
+class Solution:
+    def hanota(self, A: List[int], B: List[int], C: List[int]) -> None:
+        C += A
+```
+

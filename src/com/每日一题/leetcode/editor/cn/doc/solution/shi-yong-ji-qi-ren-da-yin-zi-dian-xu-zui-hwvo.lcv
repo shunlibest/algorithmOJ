@@ -1,0 +1,270 @@
+#### 方法一：贪心 + 栈
+
+**思路**
+
+这题其实是给了一个栈的入栈序列，要求出栈序列字典序最小。考虑栈顶元素 $c$ 和字符串 $s$ 中剩余字符中最小的字符 $\textit{minCharacter}$：
+- 如果 $c \lt \textit{minCharacter}$，那么要将栈顶元素出栈，才能保证出栈序列最小。
+- 如果 $c \gt \textit{minCharacter}$，那么要将栈顶元素保留，并不停入栈，直到 $\textit{minCharacter}$ 才能保证出栈序列最小。
+- 如果 $c = \textit{minCharacter}$，那么也要将栈顶元素出栈，才能保证出栈序列最小。因为这样做的话，我们可以先将 $c$ 出栈，然后再不停入栈后将 $\textit{minCharacter}$ 出栈，出栈序列中有两个连续的最小字符。否则如果先不停入栈后将 $\textit{minCharacter}$ 出栈，我们只能得到一个最小字符，后续的字符只会大于等于该最小字符。
+
+有了这个贪心的思路，我们可以每次将一个字符入栈，然后更新字符串 $s$ 中剩余字符中最小的字符 $\textit{minCharacter}$，并不停比较栈顶元素和 $\textit{minCharacter}$ 的大小，如果符合条件则出栈，否则就进入下一次循环。最后返回结果。
+
+**代码**
+
+* [sol1-Python3]
+
+```Python
+class Solution:
+    def robotWithString(self, s: str) -> str:
+        cnt = Counter(s)
+        stack = []
+        res = []
+        minCharacter = 'a'
+        for c in s:
+            stack.append(c)
+            cnt[c] -= 1
+            while minCharacter != 'z' and cnt[minCharacter] == 0:
+                minCharacter = chr(ord(minCharacter) + 1)
+            while stack and stack[-1] <= minCharacter:
+                res.append(stack.pop())
+        return ''.join(res)
+```
+
+* [sol1-C++]
+
+```C++
+class Solution {
+public:
+    string robotWithString(string s) {
+        unordered_map<char, int> cnt;
+        for (char c : s) {
+            cnt[c]++;
+        }
+
+        stack<char> stk;
+        string res;
+        char minCharacter = 'a';
+        for (char c : s) {
+            stk.emplace(c);
+            cnt[c]--;
+            while (minCharacter != 'z' && cnt[minCharacter] == 0) {
+                minCharacter++;
+            }
+            while (!stk.empty() && stk.top() <= minCharacter) {
+                res.push_back(stk.top());
+                stk.pop();
+            }
+        }
+        
+        return res;
+    }
+};
+```
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    public String robotWithString(String s) {
+        int[] cnt = new int[26];
+        for (char c : s.toCharArray()) {
+            cnt[c - 'a']++;
+        }
+
+        Stack<Character> stack = new Stack<>();
+        StringBuilder res = new StringBuilder();
+        char minCharacter = 'a';
+        for (char c : s.toCharArray()) {
+            stack.push(c);
+            cnt[c - 'a']--;
+            while (minCharacter != 'z' && cnt[minCharacter - 'a'] == 0) {
+                minCharacter++;
+            }
+            while (!stack.isEmpty() && stack.peek() <= minCharacter) {
+                res.append(stack.pop());
+            }
+        }
+        
+        return res.toString();
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    public string RobotWithString(string s) {
+        int[] cnt = new int[26];
+        foreach (char c in s) {
+            cnt[c - 'a']++;
+        }
+        
+        Stack<char> stack = new Stack<char>();
+        StringBuilder res = new StringBuilder();
+        char minCharacter = 'a';
+        foreach (char c in s) {
+            stack.Push(c);
+            cnt[c - 'a']--;
+            while (minCharacter != 'z' && cnt[minCharacter - 'a'] == 0) {
+                minCharacter++;
+            }
+            while (stack.Count > 0 && stack.Peek() <= minCharacter) {
+                res.Append(stack.Pop());
+            }
+        }
+        
+        return res.ToString();
+    }
+}
+```
+
+* [sol1-Go]
+
+```Go
+func robotWithString(s string) string {
+    cnt := make([]int, 26)
+    for _, c := range s {
+        cnt[c - 'a']++
+    }
+
+    stack := []rune{}
+    res := []rune{}
+    minCharacter := 'a'
+    for _, c := range s {
+        stack = append(stack, c)
+        cnt[c - 'a']--
+        for minCharacter != 'z' && cnt[minCharacter - 'a'] == 0 {
+            minCharacter++
+        }
+        for len(stack) > 0 && stack[len(stack) - 1] <= minCharacter {
+            res = append(res, stack[len(stack) - 1])
+            stack = stack[:len(stack) - 1]
+        }
+    }
+    
+    return string(res)
+}
+```
+
+* [sol1-C]
+
+```C
+char* robotWithString(char* s) {
+    int cnt[26] = {0};
+    int len = strlen(s);
+    for (int i = 0; i < len; i++) {
+        cnt[s[i] - 'a']++;
+    }
+    
+    char* stack = (char*)malloc(len * sizeof(char));
+    int top = 0;
+    char* res = (char*)malloc((len + 1) * sizeof(char));
+    int pos = 0;
+    char minCharacter = 'a';
+    for (int i = 0; i < len; i++) {
+        stack[top++] = s[i];
+        cnt[s[i] - 'a']--;
+        while (minCharacter != 'z' && cnt[minCharacter - 'a'] == 0) {
+            minCharacter++;
+        }
+        while (top > 0 && stack[top - 1] <= minCharacter) {
+            res[pos++] = stack[--top];
+        }
+    }
+    
+    res[pos] = '\0';
+    free(stack);
+    return res;
+}
+```
+
+* [sol1-JavaScript]
+
+```JavaScript
+var robotWithString = function(s) {
+    let cnt = new Array(26).fill(0);
+    for (let c of s) {
+        cnt[c.charCodeAt(0) - 'a'.charCodeAt(0)]++;
+    }
+
+    let stack = [];
+    let res = [];
+    let minCharacter = 'a';
+    for (let c of s) {
+        stack.push(c);
+        cnt[c.charCodeAt(0) - 'a'.charCodeAt(0)]--;
+        while (minCharacter !== 'z' && cnt[minCharacter.charCodeAt(0) - 'a'.charCodeAt(0)] === 0) {
+            minCharacter = String.fromCharCode(minCharacter.charCodeAt(0) + 1);
+        }
+        while (stack.length > 0 && stack[stack.length - 1] <= minCharacter) {
+            res.push(stack.pop());
+        }
+    }
+    
+    return res.join('');
+};
+```
+
+* [sol1-TypeScript]
+
+```TypeScript
+function robotWithString(s: string): string {
+    let cnt: number[] = new Array(26).fill(0);
+    for (let c of s) {
+        cnt[c.charCodeAt(0) - 'a'.charCodeAt(0)]++;
+    }
+    
+    let stack: string[] = [];
+    let res: string[] = [];
+    let minCharacter: string = 'a';
+    for (let c of s) {
+        stack.push(c);
+        cnt[c.charCodeAt(0) - 'a'.charCodeAt(0)]--;
+        while (minCharacter !== 'z' && cnt[minCharacter.charCodeAt(0) - 'a'.charCodeAt(0)] === 0) {
+            minCharacter = String.fromCharCode(minCharacter.charCodeAt(0) + 1);
+        }
+        while (stack.length > 0 && stack[stack.length - 1] <= minCharacter) {
+            res.push(stack.pop()!);
+        }
+    }
+    
+    return res.join('');
+}
+```
+
+* [sol1-Rust]
+
+```Rust
+impl Solution {
+    pub fn robot_with_string(s: String) -> String {
+        let mut cnt = [0; 26];
+        for c in s.chars() {
+            cnt[(c as u8 - b'a') as usize] += 1;
+        }
+    
+        let mut stack = Vec::new();
+        let mut res = String::new();
+        let mut min_character = b'a';
+        for c in s.chars() {
+            stack.push(c);
+            cnt[(c as u8 - b'a') as usize] -= 1;
+            while min_character != b'z' && cnt[(min_character - b'a') as usize] == 0 {
+                min_character += 1;
+            }
+            while !stack.is_empty() && stack.last().unwrap() <= &(min_character as char) {
+                res.push(stack.pop().unwrap());
+            }
+        }
+        
+        res
+    }
+}
+```
+
+**复杂度分析**
+
+- 时间复杂度：$O(n + |\Sigma|)$，其中 $n$ 是字符串 $s$ 的长度，$|\Sigma|$ 是字符集合大小。
+
+- 空间复杂度：$O(n)$。
+

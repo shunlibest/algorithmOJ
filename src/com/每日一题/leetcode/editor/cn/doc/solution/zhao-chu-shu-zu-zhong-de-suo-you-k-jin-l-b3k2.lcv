@@ -1,0 +1,405 @@
+#### 方法一：枚举
+
+**思路与算法**
+
+我们可以枚举所有的下标对 $(i, j)$，并判断是否满足 $\textit{nums}[j] = \textit{key}$ 且 $|i - j| \le k$。与此同时，我们用数组 $\textit{res}$ 维护所有 $K$ 近邻下标。如果上述两个条件均满足，则我们将 $i$ 添加进数组 $\textit{res}$ 中。
+
+为了使得 $\textit{res}$ 中不含有重复下标，且按照递增顺序，我们可以先**按递增顺序**枚举 $i$，再枚举 $j$，并且每当 $i$ 被添加进 $\textit{res}$ 后，我们就**终止内层循环**，开始遍历下一个 $i$。最终，数组 $\textit{res}$ 即为符合要求的所有 $K$ 近邻下标，我们返回作为答案即可。
+
+**代码**
+
+* [sol1-C++]
+
+```C++
+class Solution {
+public:
+    vector<int> findKDistantIndices(vector<int>& nums, int key, int k) {
+        vector<int> res;
+        int n = nums.size();
+        // 遍历数对
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (nums[j] == key && abs(i - j) <= k) {
+                    res.push_back(i);
+                    break;   // 提前结束以防止重复添加
+                }
+            }
+        }
+        return res;
+    }
+};
+```
+
+* [sol1-Python3]
+
+```Python
+class Solution:
+    def findKDistantIndices(self, nums: List[int], key: int, k: int) -> List[int]:
+        res = []
+        n = len(nums)
+        # 遍历数对
+        for i in range(n):
+            for j in range(n):
+                if nums[j] == key and abs(i - j) <= k:
+                    res.append(i)
+                    break   # 提前结束以防止重复添加
+        return res
+```
+
+* [sol1-Java]
+
+```Java
+class Solution {
+    public List<Integer> findKDistantIndices(int[] nums, int key, int k) {
+        List<Integer> res = new ArrayList<>();
+        int n = nums.length;
+        // 遍历数对
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (nums[j] == key && Math.abs(i - j) <= k) {
+                    res.add(i);
+                    break; // 提前结束以防止重复添加
+                }
+            }
+        }
+        return res;
+    }
+}
+```
+
+* [sol1-C#]
+
+```C#
+public class Solution {
+    public IList<int> FindKDistantIndices(int[] nums, int key, int k) {
+        List<int> res = new List<int>();
+        int n = nums.Length;
+        // 遍历数对
+        for (int i = 0; i < n; ++i) {
+            for (int j = 0; j < n; ++j) {
+                if (nums[j] == key && Math.Abs(i - j) <= k) {
+                    res.Add(i);
+                    break; // 提前结束以防止重复添加
+                }
+            }
+        }
+        return res;
+    }
+}
+```
+
+* [sol1-Go]
+
+```Go
+func findKDistantIndices(nums []int, key int, k int) []int {
+    var res []int
+	n := len(nums)
+	// 遍历数对
+	for i := 0; i < n; i++ {
+		for j := 0; j < n; j++ {
+			if nums[j] == key && abs(i - j) <= k {
+				res = append(res, i)
+				break // 提前结束以防止重复添加
+			}
+		}
+	}
+	return res
+}
+
+func abs(x int) int {
+    if x < 0 {
+        return -x
+    }
+    return x
+}
+```
+
+* [sol1-C]
+
+```C
+int* findKDistantIndices(int* nums, int numsSize, int key, int k, int* returnSize) {
+    int* res = (int*)malloc(numsSize * sizeof(int));
+    int count = 0;
+    // 遍历数对
+    for (int i = 0; i < numsSize; ++i) {
+        for (int j = 0; j < numsSize; ++j) {
+            if (nums[j] == key && abs(i - j) <= k) {
+                res[count++] = i;
+                break; // 提前结束以防止重复添加
+            }
+        }
+    }
+    *returnSize = count;
+    return res;
+}
+```
+
+* [sol1-JavaScript]
+
+```JavaScript
+var findKDistantIndices = function(nums, key, k) {
+    const res = [];
+    const n = nums.length;
+    // 遍历数对
+    for (let i = 0; i < n; ++i) {
+        for (let j = 0; j < n; ++j) {
+            if (nums[j] === key && Math.abs(i - j) <= k) {
+                res.push(i);
+                break; // 提前结束以防止重复添加
+            }
+        }
+    }
+    return res;
+};
+```
+
+* [sol1-TypeScript]
+
+```TypeScript
+function findKDistantIndices(nums: number[], key: number, k: number): number[] {
+    const res: number[] = [];
+    const n = nums.length;
+    // 遍历数对
+    for (let i = 0; i < n; ++i) {
+        for (let j = 0; j < n; ++j) {
+            if (nums[j] === key && Math.abs(i - j) <= k) {
+                res.push(i);
+                break; // 提前结束以防止重复添加
+            }
+        }
+    }
+    return res;
+}
+```
+
+* [sol1-Rust]
+
+```Rust
+impl Solution {
+    pub fn find_k_distant_indices(nums: Vec<i32>, key: i32, k: i32) -> Vec<i32> {
+        let mut res = Vec::new();
+        let n = nums.len();
+        // 遍历数对
+        for i in 0..n {
+            for j in 0..n {
+                if nums[j] == key && (i as i32 - j as i32).abs() <= k {
+                    res.push(i as i32);
+                    break; // 提前结束以防止重复添加
+                }
+            }
+        }
+        res
+    }
+}
+```
+
+**复杂度分析**
+
+- 时间复杂度：$O(n^2)$，其中 $n$ 为数组 $\textit{nums}$ 的长度。即为遍历下标 $i, j$ 寻找目标下标的时间复杂度。
+
+- 空间复杂度：$O(1)$，输出数组不计入空间复杂度。
+
+#### 方法二：一遍遍历
+
+**思路与算法**
+
+我们不妨设数组 $\textit{nums}$ 的长度为 $n$。那么，对于任何一个满足 $\textit{nums}[j] = \textit{key}$ 的下标 $j$，**闭区间** $[\max(0, j - k), \min(n - 1, j + k)]$ 区间内的所有下标均为 $K$ 近邻下标（此处取最大最小值是为了保证下标合法）。
+
+那么，我们就可以通过一次遍历数组 $\textit{nums}$，找到所有满足 $\textit{nums}[j] = \textit{key}$ 的下标 $j$，并将对应区间内的整数添加进 $\textit{res}$ 即可。但这样仍然会导致可能有重复的下标被添加进答案数组。为此，我们可以用 $r$ 来表示当前**未被判断过**是否为 $K$ 近邻下标的**最小**下标。在遍历开始前，$r = 0$；每当遍历到符合条件的 $j$ 时，我们只需要将**闭区间** $[\max(0, j - k), \min(n - 1, j + k)]$ 区间内的所有下标依次添加至 $\textit{res}$ 中即可，同时，我们将 $r$ 更新为 $\min(n - 1, j + k) + 1$。当遍历完成后，$\textit{res}$ 即为按递增顺序排序、且不重复的符合要求的所有 $K$ 近邻下标。
+
+**代码**
+
+* [sol2-C++]
+
+```C++
+class Solution {
+public:
+    vector<int> findKDistantIndices(vector<int>& nums, int key, int k) {
+        vector<int> res;
+        int r = 0;   // 未被判断过的最小下标
+        int n = nums.size();
+        for (int j = 0; j < n; ++j) {
+            if (nums[j] == key) {
+                int l = max(r, j - k);
+                r = min(n - 1, j + k) + 1;
+                for (int i = l; i < r; ++i) {
+                    res.push_back(i);
+                }
+            }
+        }
+        return res;
+    }
+};
+```
+
+* [sol2-Python3]
+
+```Python
+class Solution:
+    def findKDistantIndices(self, nums: List[int], key: int, k: int) -> List[int]:
+        res = []
+        r = 0   # 未被判断过的最小下标
+        n = len(nums)
+        for j in range(n):
+            if nums[j] == key:
+                l = max(r, j - k)
+                r = min(n - 1, j + k) + 1
+                for i in range(l, r):
+                    res.append(i)
+        return res
+```
+
+* [sol2-Java]
+
+```Java
+class Solution {
+    public List<Integer> findKDistantIndices(int[] nums, int key, int k) {
+        List<Integer> res = new ArrayList<>();
+        int r = 0; // 未被判断过的最小下标
+        int n = nums.length;
+        for (int j = 0; j < n; ++j) {
+            if (nums[j] == key) {
+                int l = Math.max(r, j - k);
+                r = Math.min(n - 1, j + k) + 1;
+                for (int i = l; i < r; ++i) {
+                    res.add(i);
+                }
+            }
+        }
+        return res;
+    }
+}
+```
+
+* [sol2-C#]
+
+```C#
+public class Solution {
+    public IList<int> FindKDistantIndices(int[] nums, int key, int k) {
+        List<int> res = new List<int>();
+        int r = 0; // 未被判断过的最小下标
+        int n = nums.Length;
+        for (int j = 0; j < n; ++j) {
+            if (nums[j] == key) {
+                int l = Math.Max(r, j - k);
+                r = Math.Min(n - 1, j + k) + 1;
+                for (int i = l; i < r; ++i) {
+                    res.Add(i);
+                }
+            }
+        }
+        return res;
+    }
+}
+```
+
+* [sol2-Go]
+
+```Go
+func findKDistantIndices(nums []int, key int, k int) []int {
+    var res []int
+	r := 0 // 未被判断过的最小下标
+	n := len(nums)
+	for j := 0; j < n; j++ {
+		if nums[j] == key {
+			l := max(r, j - k)
+			r = min(n - 1, j + k) + 1
+			for i := l; i < r; i++ {
+				res = append(res, i)
+			}
+		}
+	}
+	return res
+}
+```
+
+* [sol2-C]
+
+```C
+int* findKDistantIndices(int* nums, int numsSize, int key, int k, int* returnSize) {
+    int* res = (int*)malloc(numsSize * sizeof(int));
+    int count = 0;
+    int r = 0; // 未被判断过的最小下标
+    for (int j = 0; j < numsSize; ++j) {
+        if (nums[j] == key) {
+            int l = fmax(r, j - k);
+            r = fmin(numsSize - 1, j + k) + 1;
+            for (int i = l; i < r; ++i) {
+                res[count++] = i;
+            }
+        }
+    }
+    *returnSize = count;
+    return res;
+}
+```
+
+* [sol1-JavaScript]
+
+```JavaScript
+var findKDistantIndices = function(nums, key, k) {
+    const res = [];
+    let r = 0; // 未被判断过的最小下标
+    const n = nums.length;
+    for (let j = 0; j < n; ++j) {
+        if (nums[j] === key) {
+            const l = Math.max(r, j - k);
+            r = Math.min(n - 1, j + k) + 1;
+            for (let i = l; i < r; ++i) {
+                res.push(i);
+            }
+        }
+    }
+    return res;
+};
+
+```
+
+* [sol2-TypeScript]
+
+```TypeScript
+function findKDistantIndices(nums: number[], key: number, k: number): number[] {
+    const res: number[] = [];
+    let r = 0; // 未被判断过的最小下标
+    const n = nums.length;
+    for (let j = 0; j < n; ++j) {
+        if (nums[j] === key) {
+            const l = Math.max(r, j - k);
+            r = Math.min(n - 1, j + k) + 1;
+            for (let i = l; i < r; ++i) {
+                res.push(i);
+            }
+        }
+    }
+    return res;
+};
+```
+
+* [sol2-Rust]
+
+```Rust
+impl Solution {
+    pub fn find_k_distant_indices(nums: Vec<i32>, key: i32, k: i32) -> Vec<i32> {
+        let mut res = Vec::new();
+        let mut r = 0; // 未被判断过的最小下标
+        let n = nums.len();
+        for j in 0..n {
+            if nums[j] == key {
+                let l = r.max(j as i32 - k);
+                r = (n as i32 - 1).min(j as i32 + k) + 1;
+                for i in l..r {
+                    res.push(i);
+                }
+            }
+        }
+        res
+    }
+}
+```
+
+**复杂度分析**
+
+- 时间复杂度：$O(n)$，其中 $n$ 为数组 $\textit{nums}$ 的长度。即为遍历数组统计所有目标下标的时间复杂度。
+
+- 空间复杂度：$O(1)$，输出数组不计入空间复杂度。
+

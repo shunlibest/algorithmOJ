@@ -5,6 +5,8 @@ import com.每日一题.leetcode.editor.cn.Code743_networkDelayTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
 
 public class Utils {
 
@@ -153,6 +155,18 @@ public class Utils {
         System.out.println(Arrays.toString(array));
     }
 
+    public static void printTable(Map<Integer, Integer> array) {
+
+        array.forEach(new BiConsumer<Integer, Integer>() {
+            @Override
+            public void accept(Integer integer, Integer integer2) {
+                System.out.println(integer + " ->" + integer2);
+            }
+        });
+
+    }
+
+
     public static void printTable(double[] array) {
         System.out.println(Arrays.toString(array));
     }
@@ -166,7 +180,6 @@ public class Utils {
     public static void printTable(int[] array) {
         System.out.println(Arrays.toString(array));
     }
-
 
 
     public static void printTable(long[][] booleanArray) {
